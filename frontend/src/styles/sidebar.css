@@ -98,7 +98,6 @@ hr {
   align-items: center;
 }
 
-
 .sidebar-add-project p {
   font-size: 28px;
   width: 25px;
@@ -140,7 +139,7 @@ hr {
   align-items: center;
   width: 35px;
   height: 35px;
-  background-color: antiquewhite;
+
   margin: 1px 5px 0 5px;
 }
 .sidebar-project-name {

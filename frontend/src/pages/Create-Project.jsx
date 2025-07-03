@@ -3,6 +3,7 @@ import { SidebarProvider, useSidebar } from "../context/SidebarContext";
 import "../styles/dashboard.css";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
+import "../styles/create-project.css";
 
 const Create_Project_Content = () => {
   const { isSidebarOpen } = useSidebar();
@@ -54,22 +55,43 @@ const Create_Project_Content = () => {
                   <label htmlFor="project-name">
                     Tên dự án <span style={{ color: "red" }}>*</span>
                   </label>
-                  <input type="text" id="project-name" />
+                  <input
+                    type="text"
+                    id="project-name"
+                    placeholder="Tên dự án"
+                  />
                 </div>
                 <div className="create-project-input">
                   <label htmlFor="project-description">
                     Mô tả dự án của bạn
                   </label>
-                  <input type="text" id="project-description" />
+                  <textarea
+                    type="text"
+                    id="project-description"
+                    placeholder="Mô tả dự án"
+                    rows="5"
+                  />
                 </div>
-                <div className="create-project-input">
-                  <label htmlFor="project-type">Loại dự án</label>
+                <div className="create-project-input-type">
+                  <label htmlFor="project-type">
+                    Loại dự án <span style={{ color: "red" }}>*</span>
+                  </label>
                   <div className="project-type-group">
                     <input type="checkbox" id="project-type" />
                     <div className="type">
                       <h3>Scrum</h3>
-                      <p>Tiến nhanh tới mục tiêu dự án của bạn </p>
+                      <p>
+                        Tiến nhanh tới mục tiêu dự án của bạn bằng bảng, danh
+                        sách công việc tồn đọng và mốc thời gian
+                      </p>
                     </div>
+                  </div>
+                </div>
+                <div className="project-button">
+                  <div className="create-button">
+                    <button className="btn-add" type="submit">
+                      Tạo dự án
+                    </button>
                   </div>
                 </div>
               </div>

@@ -84,27 +84,25 @@ const Sidebar = () => {
       </div>
 
       <hr />
-      <div  className={`sidebar-common-project ${focusedItem === "/create-project" ? "focused" : ""}`}>
+      <div
+        className={`sidebar-common-project ${
+          focusedItem === "/create-project" ? "focused" : ""
+        }`}
+      >
         <div className="sidebar-icon-project">
           <div className="sidebar-icon">
             <FontAwesomeIcon icon={faRocket} />
           </div>
           <p className="sidebar-common-project-title">Dự án</p>
         </div>
-        <div className="sidebar-add-project" onClick={() => handleItemClick("/create-project")}>
+        <div
+          className="sidebar-add-project"
+          onClick={() => handleItemClick("/create-project")}
+        >
           <p>+</p>
         </div>
       </div>
-      <div className="sidebar-display-project">
-        <div className="sidebar-project-list">
-          <div className="sidebar-project-item">
-            <h3 id="name-summary">M</h3>
-          </div>
-          <div className="sidebar-project-name">
-            <p id="project-name">Mẫu dự án</p>
-          </div>
-        </div>
-      </div>
+      <div className="sidebar-display-project"></div>
     </div>
   );
 };
