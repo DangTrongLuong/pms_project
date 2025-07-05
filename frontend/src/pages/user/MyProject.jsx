@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { SidebarProvider, useSidebar } from "../context/SidebarContext";
-import "../styles/dashboard.css";
+import { SidebarProvider, useSidebar } from "../../context/SidebarContext";
+import "../../styles/user/dashboard.css";
 import { useNavigate } from "react-router-dom";
-import Sidebar from "../components/Sidebar";
-import Navbar from "../components/Navbar";
-import "../styles/my_project.css";
+import Sidebar from "../../components/Sidebar";
+import Navbar from "../../components/Navbar";
+import "../../styles/user/my_project.css";
 
 const MyProjects = () => {
   const { isSidebarOpen } = useSidebar();
@@ -96,11 +96,20 @@ const MyProjects = () => {
                 <p>
                   <strong>Tên dự án:</strong> {project.project_name}
                 </p>
-                <p>
-                  <strong>Mô tả:</strong> {project.description}
-                </p>
+                {project.description && (
+                  <p>
+                    <strong>Mô tả:</strong> {project.description}
+                  </p>
+                )}
+
                 <p>
                   <strong>Loại dự án:</strong> {project.project_type}
+                </p>
+                <p>
+                  <strong>Thời gian bắt đầu:</strong> {project.start_date}
+                </p>
+                <p>
+                  <strong>Thời gian kết thúc:</strong> {project.end_date}
                 </p>
                 <p>
                   <strong>Người tạo:</strong> {project.created_by_name}
@@ -108,6 +117,11 @@ const MyProjects = () => {
                 <p>
                   <strong>Leader:</strong> {project.leader}
                 </p>
+                {project.members && (
+                  <p>
+                    <strong>Thành viên:</strong> {project.members}
+                  </p>
+                )}
                 <button
                   className="view-button"
                   onClick={() => navigate(`/project/${project.id}`)}

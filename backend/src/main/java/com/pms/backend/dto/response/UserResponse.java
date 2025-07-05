@@ -25,6 +25,7 @@ public class UserResponse {
     @Column(name = "id", updatable = false, nullable = false)
     String id;
     String email;
+    String name;
     String password;
     LocalDate createdAt;
 }

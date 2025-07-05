@@ -1,23 +1,25 @@
 import React from "react";
 import "./styles/App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import Register from "./pages/Register";
+import Login from "./pages/user/Login";
+import Dashboard from "./pages/user/Dashboard";
+import Register from "./pages/user/Register";
 import AuthMiddleware from "./middlewares/authGoogleMiddleware";
-import Task from "./pages/Task";
-import Members from "./pages/Members";
-import MyProject from "./pages/MyProject";
-import Create_Project from "./pages/Create-Project";
-import HomePage from "./pages/HomePage";
-import Profile from "./pages/Profile";
+import Task from "./pages/user/Task";
+import Members from "./pages/user/Members";
+import MyProject from "./pages/user/MyProject";
+import Create_Project from "./pages/user/Create-Project";
+import HomePage from "./pages/user/HomePage";
+import Profile from "./pages/user/Profile";
+import Backlog from "./pages/user/Backlog";
+import Progress from "./pages/user/Progress";
 import {
   NotificationProvider,
   NotificationContext,
 } from "./context/NotificationContext";
-import "./styles/login.css"; // Import login.css for notification styles
+import "./styles/user/login.css"; // Import login.css for notification styles
 import { UserProvider } from "./context/UserContext";
-import ProjectTask from "./pages/Project_Task";
+import ProjectTask from "./components/Project_Task";
 function App() {
   return (
     <NotificationProvider>
@@ -72,13 +74,16 @@ function App() {
               />
 
               <Route
-                path="/project-task/:id?"
+                path="/project-task/:id"
                 element={
                   <AuthMiddleware>
                     <ProjectTask />
                   </AuthMiddleware>
                 }
-              />
+              >
+                <Route path="backlog" element={<Backlog />} />
+                <Route path="progress" element={<Progress />} />
+              </Route>
 
               <Route
                 path="/create-project"

@@ -26,4 +26,6 @@ public class ProjectResponse {
     String short_name;
     String color;
     LocalDate created_at;
+    LocalDate start_date; // Thêm trường mới
+    LocalDate end_date;
 }

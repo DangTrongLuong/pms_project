@@ -2,12 +2,12 @@
 import React, { useState, useContext, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-import logo from "../assets/logo.png";
-import illustration from "../assets/illustration.jpg";
-import feature1 from "../assets/feature1.jpg";
-import feature2 from "../assets/feature2.jpg";
-import bg from "../assets/image.png";
-import "../styles/homepage.css";
+import logo from "../../assets/logo.png";
+import illustration from "../../assets/illustration.jpg";
+import feature1 from "../../assets/feature1.jpg";
+import feature2 from "../../assets/feature2.jpg";
+import bg from "../../assets/image.png";
+import "../../styles/user/homepage.css";
 
 const HomePage = () => {
   const navigate = useNavigate();

@@ -1,6 +1,12 @@
 package com.pms.backend.dto.request;
 
-import lombok.*;
+import java.time.LocalDate;
+
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 @Data
@@ -14,4 +20,6 @@ public class ProjectUpdateRequest {
     String description;
     String leader;
     String members;
+    LocalDate start_date; 
+    LocalDate end_date;
 }

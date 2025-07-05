@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { SidebarProvider, useSidebar } from "../context/SidebarContext";
+import { SidebarProvider, useSidebar } from "../../context/SidebarContext";
 import { useNavigate } from "react-router-dom";
-import "../styles/dashboard.css";
-import Sidebar from "../components/Sidebar";
-import Navbar from "../components/Navbar";
-import "../styles/create-project.css";
+import "../../styles/user/dashboard.css";
+import Sidebar from "../../components/Sidebar";
+import Navbar from "../../components/Navbar";
+import "../../styles/user/create-project.css";
 
 const Create_Project_Content = () => {
   const { isSidebarOpen, setProjects } = useSidebar();
@@ -13,9 +13,16 @@ const Create_Project_Content = () => {
     project_name: "",
     description: "",
     project_type: "Scrum",
+    start_date: "",
+    end_date: "",
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({
+    project_name: "",
+    project_type: "",
+    start_date: "",
+    end_date: "",
+  });
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
@@ -27,6 +34,38 @@ const Create_Project_Content = () => {
         ? "description"
         : id]: value,
     }));
+    // Validation cho project_name
+    if (id === "project-name" && !value.trim()) {
+      setErrors((prev) => ({ ...prev, project_name: "Tên dự án là bắt buộc" }));
+    } else if (id === "project-name") {
+      setErrors((prev) => ({ ...prev, project_name: "" }));
+    }
+  };
+
+  const handleDateChange = (e) => {
+    const { id, value } = e.target;
+    // Validation ngay khi nhập
+    let errorMsg = "";
+    if (value) {
+      const [year, month, day] = value.split("-").map(Number);
+      if (year < 1900 || year > 2100) {
+        errorMsg = "Năm không hợp lệ.";
+      } else if (month < 1 || month > 12) {
+        errorMsg = "Tháng phải từ 1 đến 12.";
+      } else {
+        const daysInMonth = new Date(year, month, 0).getDate();
+        if (day < 1 || day > daysInMonth) {
+          errorMsg = "Ngày không hợp lệ cho tháng này.";
+        }
+      }
+    }
+    setErrors((prev) => ({ ...prev, [id]: errorMsg }));
+    if (!errorMsg) {
+      setFormData((prev) => ({
+        ...prev,
+        [id]: value,
+      }));
+    }
   };
 
   const handleCheckboxChange = (e) => {
@@ -34,19 +73,50 @@ const Create_Project_Content = () => {
       ...prev,
       project_type: e.target.checked ? "Scrum" : "",
     }));
+    // Validation cho project_type
+    if (!e.target.checked) {
+      setErrors((prev) => ({
+        ...prev,
+        project_type: "Vui lòng chọn loại dự án",
+      }));
+    } else {
+      setErrors((prev) => ({ ...prev, project_type: "" }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    // Kiểm tra lỗi trước khi submit
+    const newErrors = {
+      project_name: !formData.project_name.trim()
+        ? "Tên dự án là bắt buộc"
+        : "",
+      project_type: !formData.project_type ? "Vui lòng chọn loại dự án" : "",
+      start_date: formData.start_date
+        ? validateDate(formData.start_date)
+          ? ""
+          : "Ngày bắt đầu không hợp lệ."
+        : "",
+      end_date: formData.end_date
+        ? validateDate(formData.end_date)
+          ? ""
+          : "Ngày kết thúc không hợp lệ."
+        : "",
+    };
+    setErrors(newErrors);
 
-    if (!formData.project_name.trim()) {
-      setError("Tên dự án là bắt buộc");
-      return;
-    }
+    if (Object.values(newErrors).some((error) => error)) return;
 
-    if (!formData.project_type) {
-      setError("Vui lòng chọn loại dự án");
+    // Kiểm tra thứ tự ngày
+    if (
+      formData.start_date &&
+      formData.end_date &&
+      new Date(formData.end_date) < new Date(formData.start_date)
+    ) {
+      setErrors((prev) => ({
+        ...prev,
+        end_date: "Ngày kết thúc phải sau ngày bắt đầu.",
+      }));
       return;
     }
 
@@ -80,15 +150,12 @@ const Create_Project_Content = () => {
         const project = data.result;
         console.log("Project created:", project);
 
-        // Store project in localStorage
         const projects = JSON.parse(localStorage.getItem("projects") || "[]");
         projects.push(project);
         localStorage.setItem("projects", JSON.stringify(projects));
 
-        // Update sidebar projects
         setProjects(projects);
 
-        // Navigate to dashboard
         if (window.progressCallback) {
           window.progressCallback(() => navigate("/dashboard"));
         } else {
@@ -98,11 +165,27 @@ const Create_Project_Content = () => {
         throw new Error(data.message || "Failed to create project");
       }
     } catch (err) {
-      setError(err.message || "Đã có lỗi xảy ra khi tạo dự án");
+      setErrors((prev) => ({
+        ...prev,
+        general: err.message || "Đã có lỗi xảy ra khi tạo dự án",
+      }));
       console.error("Create project error:", err);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const validateDate = (dateStr) => {
+    if (!dateStr) return true; // Cho phép trống
+    const [year, month, day] = dateStr.split("-").map(Number);
+    return (
+      year >= 1900 &&
+      year <= 2100 &&
+      month >= 1 &&
+      month <= 12 &&
+      day >= 1 &&
+      day <= new Date(year, month, 0).getDate()
+    );
   };
 
   useEffect(() => {
@@ -147,7 +230,9 @@ const Create_Project_Content = () => {
                   Điền thông tin dự án ở phía dưới để hoàn thiện việc tạo dự án
                 </p>
               </div>
-              {error && <p style={{ color: "red" }}>{error}</p>}
+              {errors.general && (
+                <p style={{ color: "red" }}>{errors.general}</p>
+              )}
               <form onSubmit={handleSubmit} className="create-project-form">
                 <div className="create-project-input">
                   <label htmlFor="project-name">
@@ -160,6 +245,18 @@ const Create_Project_Content = () => {
                     value={formData.project_name}
                     onChange={handleInputChange}
                   />
+                  {errors.project_name && (
+                    <p
+                      style={{
+                        color: "red",
+                        marginTop: -12,
+                        marginBottom: 6,
+                        fontSize: 15,
+                      }}
+                    >
+                      {errors.project_name}
+                    </p>
+                  )}
                 </div>
                 <div className="create-project-input">
                   <label htmlFor="project-description">
@@ -168,10 +265,56 @@ const Create_Project_Content = () => {
                   <textarea
                     id="project-description"
                     placeholder="Mô tả dự án"
-                    rows="5"
+                    rows="3"
                     value={formData.description}
                     onChange={handleInputChange}
                   />
+                </div>
+                <div className="create-project-input">
+                  <label htmlFor="start_date">
+                    Ngày bắt đầu <span style={{ color: "red" }}>*</span>
+                  </label>
+                  <input
+                    type="date"
+                    id="start_date"
+                    value={formData.start_date}
+                    onChange={handleDateChange}
+                  />
+                  {errors.start_date && (
+                    <p
+                      style={{
+                        color: "red",
+                        marginTop: -12,
+                        marginBottom: 6,
+                        fontSize: 15,
+                      }}
+                    >
+                      {errors.start_date}
+                    </p>
+                  )}
+                </div>
+                <div className="create-project-input">
+                  <label htmlFor="end_date">
+                    Ngày kết thúc <span style={{ color: "red" }}>*</span>
+                  </label>
+                  <input
+                    type="date"
+                    id="end_date"
+                    value={formData.end_date}
+                    onChange={handleDateChange}
+                  />
+                  {errors.end_date && (
+                    <p
+                      style={{
+                        color: "red",
+                        marginTop: -12,
+                        marginBottom: 6,
+                        fontSize: 15,
+                      }}
+                    >
+                      {errors.end_date}
+                    </p>
+                  )}
                 </div>
                 <div className="create-project-input-type">
                   <label htmlFor="project-type">
@@ -192,13 +335,20 @@ const Create_Project_Content = () => {
                       </p>
                     </div>
                   </div>
+                  {errors.project_type && (
+                    <p style={{ color: "red" }}>{errors.project_type}</p>
+                  )}
                 </div>
+
                 <div className="project-button">
                   <div className="create-button">
                     <button
                       className="btn-add"
                       type="submit"
-                      disabled={isLoading}
+                      disabled={
+                        isLoading ||
+                        Object.values(errors).some((error) => error)
+                      }
                     >
                       {isLoading ? (
                         <span

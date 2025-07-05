@@ -20,21 +20,9 @@ public class TokenFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         String path = request.getRequestURI();
         // Skip public endpoints
-        if (path.startsWith("/api/auth/login")
-                || path.equals("/api/auth/register")
-                || path.equals("/api/auth/logout")
-                || path.equals("/api/auth/loginSuccess")
-                || path.startsWith("/login/oauth2/code/")
-                || path.equals("/api/auth/user-info")
-                || path.equals("/api/auth/refresh-token")
+        if (path.startsWith("/api/auth/")
                 || path.equals("/")
-                || path.startsWith("/uploads/")
-                || path.equals("/api/auth/check-email")
-                || path.startsWith("/api/auth/update-user-by-email/")
-                || path.equals("/api/auth/upload-avatar")
-                || path.equals("/api/auth/upload-background")
-                || path.equals("/api/auth/remove-background")
-                || path.equals("/api/projects/create-project")
+                || path.startsWith("/uploads/")              
                 || path.startsWith("/api/projects/")) {
 
             filterChain.doFilter(request, response);

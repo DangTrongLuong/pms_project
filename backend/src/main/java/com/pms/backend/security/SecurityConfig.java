@@ -32,24 +32,11 @@ public class SecurityConfig {
                 .authorizeHttpRequests(requests -> requests
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers(
-                                "/api/auth/register",
-                                "/api/auth/login",
-                                "/api/auth/logout",
-                                "/api/auth/user-info",
-                                "/api/auth/loginSuccess",
-                                "/api/auth/login/google",
-                                "/api/auth/refresh-token",
+                                "/api/auth/**",                              
                                 "/oauth2/**",
                                 "/login/oauth2/code/**",
                                 "/",
-                                "/api/auth/debug/session",
-                                "/api/auth/check-email",
-                                "/api/auth/update-user-by-email/{email}",
-                                "/api/auth/upload-avatar",
-                                "/api/auth/upload-background",
-                                "/api/auth/remove-background",
-                                "/api/projects/create-project",
-                                "/api/projects/my-projects"
+                                "/api/projects/**"
 
                         ).permitAll()
                         .anyRequest().authenticated())

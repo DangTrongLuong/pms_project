@@ -37,4 +37,9 @@ public class Project {
     @Column(name="members")
     String members;
     String leader;
+    @Column(name = "start_date")
+    LocalDate start_date;
+
+    @Column(name = "end_date")
+    LocalDate end_date;
 }

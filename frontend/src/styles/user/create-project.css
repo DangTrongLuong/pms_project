@@ -1,13 +1,13 @@
 .create-project-container {
   width: 100%;
-  height: 635px;
+  height: auto;
   padding: 30px;
   border-radius: 10px;
   box-shadow: 1px 1px 2px gray;
 }
 .create-project-header {
   width: 100%;
-  height: 580px;
+  height: auto;
   margin-top: -15px;
   padding: 10px;
 }
@@ -25,6 +25,9 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+.create-project-input label {
+  font-size: 17px;
 }
 
 .create-project-input input {

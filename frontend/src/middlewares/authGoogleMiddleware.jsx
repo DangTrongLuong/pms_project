@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useContext } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { NotificationContext } from "../context/NotificationContext";
-import "../styles/login.css";
+import "../styles/user/login.css";
 import { useUser } from "../context/UserContext";
 const AuthMiddleware = ({ children }) => {
   const navigate = useNavigate();

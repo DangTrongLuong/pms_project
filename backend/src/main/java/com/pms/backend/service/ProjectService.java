@@ -64,6 +64,8 @@ public class ProjectService {
         project.setLeader(userName);
         project.setColor(generateRandomColor());
         project.setShort_name(generateShortName(request.getProject_name()));
+        project.setStart_date(request.getStart_date());
+        project.setEnd_date(request.getEnd_date());
 
         Project savedProject = projectRepository.save(project);
         log.info("Project created: {}", savedProject);
@@ -104,6 +106,8 @@ public class ProjectService {
     if (request.getProject_name() != null && !request.getProject_name().trim().isEmpty()) {
         project.setShort_name(generateShortName(request.getProject_name()));
     }
+    project.setStart_date(request.getStart_date());
+    project.setEnd_date(request.getEnd_date());
 
     Project updatedProject = projectRepository.save(project);
     log.info("Project updated: {}", updatedProject);

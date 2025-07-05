@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { SidebarProvider, useSidebar } from "../context/SidebarContext";
-import Sidebar from "../components/Sidebar";
-import Navbar from "../components/Navbar";
+import { SidebarProvider, useSidebar } from "../../context/SidebarContext";
+import Sidebar from "../../components/Sidebar";
+import Navbar from "../../components/Navbar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare, faTrashCan } from "@fortawesome/free-regular-svg-icons";
-import "../styles/profile.css";
-import { useUser } from "../context/UserContext";
+import "../../styles/user/profile.css";
+import { useUser } from "../../context/UserContext";
 
 const ProfileContent = () => {
   const { isSidebarOpen } = useSidebar();

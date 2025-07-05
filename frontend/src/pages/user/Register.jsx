@@ -1,23 +1,23 @@
-import React, { useState, useRef, useEffect, useContext } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import { NotificationContext } from '../context/NotificationContext';
-import { register } from '../context/authContext';
-import logo from "../assets/logo.png";
-import illustration from "../assets/illustration.jpg";
-import "../styles/register.css";
+import React, { useState, useRef, useEffect, useContext } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { NotificationContext } from "../../context/NotificationContext";
+import { register } from "../../context/authContext";
+import logo from "../../assets/logo.png";
+import illustration from "../../assets/illustration.jpg";
+import "../../styles/user/register.css";
 
 function Register() {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState({
     general: "",
     name: "",
     email: "",
     password: "",
-    confirmPassword: ""
+    confirmPassword: "",
   });
   const navigate = useNavigate();
   const progressRef = useRef(null);
@@ -37,7 +37,8 @@ function Register() {
   };
 
   const validatePassword = (value) => {
-    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{6,}$/;
+    const passwordRegex =
+      /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{6,}$/;
     return value && !passwordRegex.test(value)
       ? "Mật khẩu phải có ít nhất 1 chữ hoa, 1 số, 1 ký tự đặc biệt và dài 6 ký tự"
       : "";
@@ -51,7 +52,10 @@ function Register() {
 
   const checkEmailExists = async (email) => {
     try {
-      const response = await axios.post('http://localhost:8080/api/auth/check-email', { email });
+      const response = await axios.post(
+        "http://localhost:8080/api/auth/check-email",
+        { email }
+      );
       return response.data.exists;
     } catch (error) {
       console.error("Lỗi kiểm tra email:", error);
@@ -64,8 +68,9 @@ function Register() {
     setName(value);
     setError((prev) => ({
       ...prev,
-      name: value === "" ? "Vui lòng nhập tên đăng nhập" : validateFullName(value),
-      general: ""
+      name:
+        value === "" ? "Vui lòng nhập tên đăng nhập" : validateFullName(value),
+      general: "",
     }));
   };
 
@@ -75,7 +80,7 @@ function Register() {
     setError((prev) => ({
       ...prev,
       email: value === "" ? "Vui lòng nhập email" : validateEmail(value),
-      general: ""
+      general: "",
     }));
   };
 
@@ -84,9 +89,12 @@ function Register() {
     setPassword(value);
     setError((prev) => ({
       ...prev,
-      password: value === "" ? "Vui lòng nhập mật khẩu" : validatePassword(value),
-      confirmPassword: confirmPassword ? validateConfirmPassword(confirmPassword, value) : prev.confirmPassword,
-      general: ""
+      password:
+        value === "" ? "Vui lòng nhập mật khẩu" : validatePassword(value),
+      confirmPassword: confirmPassword
+        ? validateConfirmPassword(confirmPassword, value)
+        : prev.confirmPassword,
+      general: "",
     }));
   };
 
@@ -95,8 +103,11 @@ function Register() {
     setConfirmPassword(value);
     setError((prev) => ({
       ...prev,
-      confirmPassword: value === "" ? "Vui lòng nhập lại mật khẩu" : validateConfirmPassword(value, password),
-      general: ""
+      confirmPassword:
+        value === ""
+          ? "Vui lòng nhập lại mật khẩu"
+          : validateConfirmPassword(value, password),
+      general: "",
     }));
   };
 
@@ -124,13 +135,19 @@ function Register() {
       name: "",
       email: "",
       password: "",
-      confirmPassword: ""
+      confirmPassword: "",
     });
 
-    const fullNameError = !name ? "Vui lòng nhập tên đăng nhập" : validateFullName(name);
+    const fullNameError = !name
+      ? "Vui lòng nhập tên đăng nhập"
+      : validateFullName(name);
     const emailError = !email ? "Vui lòng nhập email" : validateEmail(email);
-    const passwordError = !password ? "Vui lòng nhập mật khẩu" : validatePassword(password);
-    const confirmPasswordError = !confirmPassword ? "Vui lòng nhập lại mật khẩu" : validateConfirmPassword(confirmPassword, password);
+    const passwordError = !password
+      ? "Vui lòng nhập mật khẩu"
+      : validatePassword(password);
+    const confirmPasswordError = !confirmPassword
+      ? "Vui lòng nhập lại mật khẩu"
+      : validateConfirmPassword(confirmPassword, password);
 
     if (fullNameError || emailError || passwordError || confirmPasswordError) {
       setError((prev) => ({
@@ -138,7 +155,7 @@ function Register() {
         name: fullNameError,
         email: emailError,
         password: passwordError,
-        confirmPassword: confirmPasswordError
+        confirmPassword: confirmPasswordError,
       }));
       shakeInputs();
       return;
@@ -149,7 +166,7 @@ function Register() {
       if (emailExists) {
         setError((prev) => ({
           ...prev,
-          email: "Email đã được sử dụng, vui lòng thử lại"
+          email: "Email đã được sử dụng, vui lòng thử lại",
         }));
         shakeInputs();
         return;
@@ -157,11 +174,11 @@ function Register() {
 
       await register(name, email, password);
       triggerSuccess("Đăng ký thành công");
-      navigate('/login', { replace: true });
+      navigate("/login", { replace: true });
     } catch (err) {
       setError((prev) => ({
         ...prev,
-        general: err.message || "Đăng ký thất bại. Vui lòng thử lại."
+        general: err.message || "Đăng ký thất bại. Vui lòng thử lại.",
       }));
       shakeInputs();
     }

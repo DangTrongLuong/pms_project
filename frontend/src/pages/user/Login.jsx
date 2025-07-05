@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { login } from "../context/authContext";
-import logo from "../assets/logo.png";
-import googleIcon from "../assets/google-icon.png";
-import backgroundImage from "../assets/du-an.webp";
-import { NotificationContext } from "../context/NotificationContext";
-import "../styles/login.css";
-import { useUser } from "../context/UserContext";
+import { login } from "../../context/authContext";
+import logo from "../../assets/logo.png";
+import googleIcon from "../../assets/google-icon.png";
+import backgroundImage from "../../assets/du-an.webp";
+import { NotificationContext } from "../../context/NotificationContext";
+import "../../styles/user/login.css";
+import { useUser } from "../../context/UserContext";
 
 function Login() {
   const [email, setEmail] = useState("");

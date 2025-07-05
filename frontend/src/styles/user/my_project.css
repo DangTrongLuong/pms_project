@@ -1,13 +1,13 @@
 .main-container h2 {
   font-size: 34px;
+  margin: 20px 0 -5px 15px;
 }
 
 .project-list {
   width: 100%;
-  height: 570px;
-  padding: 5px;
+  height: auto;
+  padding: 25px;
   margin-top: 5px;
-  overflow-y: scroll;
 }
 
 .project-list .project-item {

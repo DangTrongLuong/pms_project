@@ -1,8 +1,8 @@
 import React, { useEffect } from "react";
-import { SidebarProvider, useSidebar } from "../context/SidebarContext";
-import "../styles/dashboard.css";
-import Sidebar from "../components/Sidebar";
-import Navbar from "../components/Navbar";
+import { SidebarProvider, useSidebar } from "../../context/SidebarContext";
+import "../../styles/user/dashboard.css";
+import Sidebar from "../../components/Sidebar";
+import Navbar from "../../components/Navbar";
 
 const TaskContent = () => {
   const { isSidebarOpen } = useSidebar();

@@ -1,13 +1,13 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faHouse } from "@fortawesome/free-solid-svg-icons";
 import React, { useEffect } from "react";
-import { SidebarProvider, useSidebar } from "../context/SidebarContext";
-import { useParams } from "react-router-dom";
-import "../styles/dashboard.css";
-import Sidebar from "../components/Sidebar";
-import Navbar from "../components/Navbar";
+import { SidebarProvider, useSidebar } from "../../context/SidebarContext";
+import "../../styles/user/dashboard.css";
+import Sidebar from "../../components/Sidebar";
+import Navbar from "../../components/Navbar";
 
-const ProjectTaskContent = () => {
+const DashboardContent = () => {
   const { isSidebarOpen } = useSidebar();
-  const { id } = useParams(); // Lấy id từ URL, nhưng không sử dụng để thay đổi nội dung
 
   useEffect(() => {
     window.progressCallback = (navigateCallback) => {
@@ -43,19 +43,33 @@ const ProjectTaskContent = () => {
           <Sidebar />
         </div>
         <div className={`main-container ${!isSidebarOpen ? "full" : ""}`}>
-          <h1>Đây là task</h1>
+          <div className="dashboard-header">
+            <FontAwesomeIcon
+              icon={faHouse}
+              size="2x"
+              className="dashboard-icon"
+            />
+            <h1 className="dashboard-title">Dashboard</h1>
+          </div>
+          <div className="dashboard-content">
+            <p>Welcome to your dashboard!</p>
+            <p>You can view your profile, manage your tasks, and more.</p>
+          </div>
+          <div className="dashboard-footer">
+            <button className="dashboard-back-button">Back to Home</button>
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
-const ProjectTask = () => {
+const Dashboard = () => {
   return (
     <SidebarProvider>
-      <ProjectTaskContent />
+      <DashboardContent />
     </SidebarProvider>
   );
 };
 
-export default ProjectTask;
+export default Dashboard;

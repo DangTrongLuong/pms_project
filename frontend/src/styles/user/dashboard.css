@@ -19,8 +19,8 @@
 
 .main-container {
   width: 85%;
-  padding: 20px;
   transition: width 0.3s ease-in-out;
+  overflow-y: scroll;
 }
 .sidebar.hidden {
   transform: translateX(-100%);

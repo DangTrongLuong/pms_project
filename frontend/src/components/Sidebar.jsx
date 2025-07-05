@@ -7,15 +7,16 @@ import {
   faDiagramProject,
   faRocket,
 } from "@fortawesome/free-solid-svg-icons";
-import "../styles/sidebar.css";
+import "../styles/user/sidebar.css";
 import { useSidebar } from "../context/SidebarContext";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 
 const Sidebar = () => {
   const { isSidebarOpen, setProjects, projects } = useSidebar(); // Lấy cả projects từ context
   const [focusedItem, setFocusedItem] = useState("/dashboard");
   const navigate = useNavigate();
   const location = useLocation();
+  const { id } = useParams();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -72,12 +73,12 @@ const Sidebar = () => {
     }
   };
   const handleItemList = (id) => {
-    const path = `/project-task/${id}`;
-    setFocusedItem(path);
+    const basePath = `/project-task/${id}`;
+    setFocusedItem(basePath);
     if (window.progressCallback) {
-      window.progressCallback(() => navigate(path));
+      window.progressCallback(() => navigate(basePath));
     } else {
-      navigate(path);
+      navigate(basePath);
     }
   };
 

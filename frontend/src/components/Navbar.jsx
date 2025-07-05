@@ -10,7 +10,7 @@ import {
   faEllipsisV,
 } from "@fortawesome/free-solid-svg-icons";
 import { faUser, faSun } from "@fortawesome/free-regular-svg-icons";
-import "../styles/navbar.css";
+import "../styles/user/navbar.css";
 import logo from "../assets/logo.png";
 import { useSidebar } from "../context/SidebarContext";
 import { useNavigate } from "react-router-dom";
