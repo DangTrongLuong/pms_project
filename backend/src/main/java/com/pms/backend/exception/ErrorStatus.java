@@ -9,6 +9,11 @@ public enum ErrorStatus {
     PROJECT_NOTFOUND(400, "Project not found!"),
     INVALID_CREDENTIALS(400, "Invalid Credentials!"),
     INVALID_INPUT(400, "Invalid Input!"),
+    INTERNAL_SERVER_ERROR(400, "Internal Server Error!"),
+    PROJECT_NOT_FOUND(400, "Project not found!"),
+    PROJECT_NOT_EXISTED(400, "Project not existed!"),
+    UNAUTHORIZED(400, "Unauthorized!"),
+
     ;
 
     private int status;

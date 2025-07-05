@@ -12,16 +12,56 @@ import { useSidebar } from "../context/SidebarContext";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const Sidebar = () => {
-  const { isSidebarOpen } = useSidebar();
-  const [focusedItem, setFocusedItem] = useState("/dashboard"); // Mặc định focus Trang chủ
+  const { isSidebarOpen, setProjects, projects } = useSidebar(); // Lấy cả projects từ context
+  const [focusedItem, setFocusedItem] = useState("/dashboard");
   const navigate = useNavigate();
   const location = useLocation();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Cập nhật focusedItem dựa trên đường dẫn hiện tại
     const currentPath = location.pathname;
     setFocusedItem(currentPath);
-  }, [location.pathname]);
+
+    const fetchProjects = async () => {
+      try {
+        const userId = localStorage.getItem("userId");
+        const accessToken = localStorage.getItem("accessToken");
+
+        if (!userId || !accessToken) {
+          throw new Error("User not authenticated");
+        }
+
+        const response = await fetch(
+          "http://localhost:8080/api/projects/my-projects",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${accessToken}`,
+              userId: userId,
+            },
+          }
+        );
+
+        const data = await response.json();
+        if (response.ok) {
+          setProjects(data); // Cập nhật danh sách dự án từ DB
+          localStorage.setItem("projects", JSON.stringify(data)); // Lưu cache vào localStorage
+        } else {
+          throw new Error(data.message || "Failed to fetch projects");
+        }
+      } catch (err) {
+        console.error("Fetch projects error:", err);
+        // Nếu lỗi, xóa cache cũ và không hiển thị dự án cũ
+        localStorage.removeItem("projects");
+        setProjects([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, [location.pathname, setProjects]);
 
   const handleItemClick = (path) => {
     setFocusedItem(path);
@@ -31,6 +71,19 @@ const Sidebar = () => {
       navigate(path);
     }
   };
+  const handleItemList = (id) => {
+    const path = `/project-task/${id}`;
+    setFocusedItem(path);
+    if (window.progressCallback) {
+      window.progressCallback(() => navigate(path));
+    } else {
+      navigate(path);
+    }
+  };
+
+  if (loading) {
+    return <div>Loading...</div>; // Hiển thị loading trong khi lấy dữ liệu
+  }
 
   return (
     <div
@@ -102,7 +155,28 @@ const Sidebar = () => {
           <p>+</p>
         </div>
       </div>
-      <div className="sidebar-display-project"></div>
+      <div className="sidebar-display-project">
+        {projects.map((project) => (
+          <div
+            className={`sidebar-project-list ${
+              focusedItem === `/project-task/${project.id}` ? "focused" : ""
+            }`}
+            key={project.id}
+            onClick={() => handleItemList(project.id)}
+          >
+            <div
+              className="sidebar-project-item"
+              style={{ backgroundColor: project.color, borderRadius: "50px" }}
+              // onClick={() => handleItemClick(`/project/${project.id}`)}
+            >
+              <h3 id="name-summary">{project.short_name}</h3>
+            </div>
+            <div className="sidebar-project-name">
+              <p id="project-name">{project.project_name}</p>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

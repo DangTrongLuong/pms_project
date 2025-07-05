@@ -17,6 +17,7 @@ import {
 } from "./context/NotificationContext";
 import "./styles/login.css"; // Import login.css for notification styles
 import { UserProvider } from "./context/UserContext";
+import ProjectTask from "./pages/Project_Task";
 function App() {
   return (
     <NotificationProvider>
@@ -69,6 +70,16 @@ function App() {
                   </AuthMiddleware>
                 }
               />
+
+              <Route
+                path="/project-task/:id?"
+                element={
+                  <AuthMiddleware>
+                    <ProjectTask />
+                  </AuthMiddleware>
+                }
+              />
+
               <Route
                 path="/create-project"
                 element={

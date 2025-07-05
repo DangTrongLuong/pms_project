@@ -1,0 +1,56 @@
+.main-container h2 {
+  font-size: 34px;
+}
+
+.project-list {
+  width: 100%;
+  height: 570px;
+  padding: 5px;
+  margin-top: 5px;
+  overflow-y: scroll;
+}
+
+.project-list .project-item {
+  margin-bottom: 20px;
+  width: 48%;
+
+  padding: 10px 0 15px 10px;
+  border-radius: 5px;
+  float: left;
+  margin-right: 20px;
+  box-shadow: 2px 2px 5px rgb(142, 142, 142, 0.5);
+  border-left: 3px solid blue;
+  transition: all 0.3s ease-in-out;
+  font-size: 16px;
+}
+.project-list .project-item p {
+  margin-top: 5px;
+}
+
+.project-list .project-item strong {
+  margin-right: 5px;
+}
+.project-list .project-item:hover {
+  transform: translateY(-2px);
+}
+
+.view-button {
+  width: 120px;
+  height: 35px;
+  margin-top: 8px;
+  border-radius: 5px;
+  outline: none;
+  border: none;
+  background-color: rgb(0, 173, 75);
+  color: white;
+  font-size: 17px;
+  font-weight: 550;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+
+@media (max-width: 768px) {
+  .project-list .project-item {
+    width: 100%;
+  }
+}

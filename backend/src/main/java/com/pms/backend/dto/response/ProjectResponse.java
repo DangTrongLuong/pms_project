@@ -1,9 +1,13 @@
 package com.pms.backend.dto.response;
 
-import lombok.*;
-import lombok.experimental.FieldDefaults;
-
 import java.time.LocalDate;
+
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 @Data
 @NoArgsConstructor
@@ -19,5 +23,7 @@ public class ProjectResponse {
     String description;
     String members;
     String leader;
+    String short_name;
+    String color;
     LocalDate created_at;
 }

@@ -4,6 +4,9 @@ const SidebarContext = createContext();
 
 export function SidebarProvider({ children }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [projects, setProjects] = useState(
+    JSON.parse(localStorage.getItem("projects") || "[]")
+  );
 
   useEffect(() => {
     const handleResize = () => {
@@ -24,7 +27,9 @@ export function SidebarProvider({ children }) {
   };
 
   return (
-    <SidebarContext.Provider value={{ isSidebarOpen, toggleSidebar }}>
+    <SidebarContext.Provider
+      value={{ isSidebarOpen, toggleSidebar, projects, setProjects }}
+    >
       {children}
     </SidebarContext.Provider>
   );

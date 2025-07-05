@@ -20,7 +20,8 @@
   background-color: rgba(139, 226, 253, 0.2);
   border-right: 2px solid blue;
 }
-.sidebar-item.focused {
+.sidebar-item.focused,
+.sidebar-project-list.focused {
   background-color: rgba(139, 226, 253, 0.2);
   border-right: 2px solid blue;
 }
@@ -145,8 +146,8 @@ hr {
 .sidebar-project-name {
   width: auto;
   height: 30px;
-  font-size: 18px;
-  font-weight: 450;
+  font-size: 17px;
+
   padding: 0 5px;
   margin: 5px 5px 0 0;
 }

@@ -47,7 +47,9 @@ public class SecurityConfig {
                                 "/api/auth/update-user-by-email/{email}",
                                 "/api/auth/upload-avatar",
                                 "/api/auth/upload-background",
-                                "/api/auth/remove-background"
+                                "/api/auth/remove-background",
+                                "/api/projects/create-project",
+                                "/api/projects/my-projects"
 
                         ).permitAll()
                         .anyRequest().authenticated())

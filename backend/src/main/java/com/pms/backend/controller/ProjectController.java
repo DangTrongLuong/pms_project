@@ -1,8 +1,8 @@
 package com.pms.backend.controller;
 
 import java.util.List;
-import java.util.UUID;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,39 +33,42 @@ public class ProjectController {
     @PostMapping("/create-project")
     public ApiResponsive<ProjectResponse> createProject(
             @RequestBody ProjectCreationRequest request,
+            @RequestHeader("userId") String userId,
+            @RequestHeader("userName") String userName) {
+        ProjectResponse projectResponse = projectService.createProject(request, userId, userName);
+        return ApiResponsive.<ProjectResponse>builder()
+                .result(projectResponse)
+                .build();
+    }
+
+    @GetMapping("/my-projects")
+public ResponseEntity<List<ProjectResponse>> getMyProjects(@RequestHeader("userId") String userId) {
+    List<ProjectResponse> projects = projectService.getProjectsByUser(userId);
+    return ResponseEntity.ok(projects);
+}
+
+    @GetMapping("/{projectId}")
+    public ResponseEntity<ProjectResponse> getProject(
+            @PathVariable("projectId") int projectId,
             @RequestHeader("userId") String userId) {
-        UUID uuid = UUID.fromString(userId);
-        ApiResponsive<ProjectResponse> apiResponsive = new ApiResponsive<>();
-        apiResponsive.setResult(projectService.createProject(request, userId));
-        return apiResponsive;
+        ProjectResponse projectResponse = projectService.getProjectById(projectId, userId);
+        return ResponseEntity.ok(projectResponse);
     }
 
-    @GetMapping
-    public List<ProjectResponse> getProjects() {
-        return projectService.getProjects();
-    }
-
-    @GetMapping("/get-project/{projectId}")
-    public ProjectResponse getProject(@PathVariable("projectId") Integer projectId) {
-        return projectService.getProject(projectId);
-    }
-
-    @GetMapping("/{projectId}/members")
-    public List<String> getProjectMembers(@PathVariable("projectId") Integer projectId) {
-        return projectService.getProjectMembers(projectId);
-    }
-
-    @PutMapping("/update-project/{projectId}")
-    public ProjectResponse updateProject(
-            @PathVariable("projectId") Integer projectId,
+    @PutMapping("/{projectId}")
+    public ResponseEntity<ProjectResponse> updateProject(
+            @PathVariable("projectId") int projectId,
             @RequestBody ProjectUpdateRequest request,
             @RequestHeader("userId") String userId) {
-        return projectService.updateProject(projectId, request, userId);
+        ProjectResponse projectResponse = projectService.updateProject(projectId, request, userId);
+        return ResponseEntity.ok(projectResponse);
     }
 
-    @DeleteMapping("/delete-project/{projectId}")
-    public String deleteProject(@PathVariable("projectId") Integer projectId) {
-        projectService.deleteProject(projectId);
-        return "Project has been deleted";
+    @DeleteMapping("/{projectId}")
+    public ResponseEntity<String> deleteProject(
+            @PathVariable("projectId") int projectId,
+            @RequestHeader("userId") String userId) {
+        projectService.deleteProject(projectId, userId);
+        return ResponseEntity.ok("Project deleted successfully");
     }
 }

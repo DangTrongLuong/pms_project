@@ -34,16 +34,22 @@ public class TokenFilter extends OncePerRequestFilter {
                 || path.equals("/api/auth/upload-avatar")
                 || path.equals("/api/auth/upload-background")
                 || path.equals("/api/auth/remove-background")
-
-                ) {
+                || path.equals("/api/projects/create-project")
+                || path.startsWith("/api/projects/")) {
 
             filterChain.doFilter(request, response);
             return;
         }
 
         String authHeader = request.getHeader("Authorization");
+        String userId = (String) request.getSession().getAttribute("userId");
+        String userName = (String) request.getSession().getAttribute("name");
+
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            if (request.getSession().getAttribute("user") != null) {
+            if (userId != null && userName != null) {
+                // Set headers for downstream use
+                request.setAttribute("userId", userId);
+                request.setAttribute("userName", userName);
                 filterChain.doFilter(request, response);
                 return;
             }
@@ -60,7 +66,8 @@ public class TokenFilter extends OncePerRequestFilter {
         // Validate Google token
         if (accessToken.startsWith("ya29.") || accessToken.length() > 200) {
             try {
-                HttpURLConnection conn = (HttpURLConnection) new URL("https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=" + accessToken).openConnection();
+                HttpURLConnection conn = (HttpURLConnection) new URL(
+                        "https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=" + accessToken).openConnection();
                 conn.setRequestMethod("GET");
                 int responseCode = conn.getResponseCode();
                 if (responseCode != 200) {
@@ -71,6 +78,12 @@ public class TokenFilter extends OncePerRequestFilter {
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Error validating Google token");
                 return;
             }
+        }
+
+        // Set userId and userName from session
+        if (userId != null && userName != null) {
+            request.setAttribute("userId", userId);
+            request.setAttribute("userName", userName);
         }
 
         filterChain.doFilter(request, response);
