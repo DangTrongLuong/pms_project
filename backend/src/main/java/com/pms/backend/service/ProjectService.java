@@ -29,6 +29,7 @@ public class ProjectService {
     ProjectRepository projectRepository;
     UserRepository userRepository;
     ProjectMapper projectMapper;
+    MembersService membersService;
 
     // Tạo màu ngẫu nhiên
     private String generateRandomColor() {
@@ -57,6 +58,9 @@ public class ProjectService {
         if (request.getProject_type() == null || request.getProject_type().trim().isEmpty()) {
             throw new AppException(ErrorStatus.INVALID_INPUT);
         }
+        if (userName == null || userName.trim().isEmpty()) {
+            throw new AppException(ErrorStatus.INVALID_INPUT);
+        }
 
         Project project = projectMapper.toProject(request);
         project.setCreated_by_id(userId);
@@ -69,6 +73,8 @@ public class ProjectService {
 
         Project savedProject = projectRepository.save(project);
         log.info("Project created: {}", savedProject);
+
+        membersService.addProjectCreatorAsLeader(savedProject.getId(), userId, userName);
 
         return projectMapper.toProjectResponse(savedProject);
     }

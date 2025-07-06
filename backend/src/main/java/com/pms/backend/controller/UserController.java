@@ -32,6 +32,7 @@ import com.pms.backend.entity.User;
 import com.pms.backend.exception.AppException;
 import com.pms.backend.exception.ErrorStatus;
 import com.pms.backend.repository.UserRepository;
+import com.pms.backend.service.MembersService;
 import com.pms.backend.service.UserService;
 
 import lombok.AccessLevel;
@@ -46,6 +47,7 @@ import lombok.experimental.FieldDefaults;
 public class UserController {
     final UserService userService;
     final UserRepository userRepository;
+    final MembersService membersService;
     @PostMapping("/register")
     ApiResponsive<User> createUser(@RequestBody UserCreationRequest request) {
         ApiResponsive<User> apiResponsive = new ApiResponsive<>();
@@ -126,6 +128,7 @@ public class UserController {
             String avatarUrl = "http://localhost:8080/uploads/avatars/" + fileName;
             user.setAvatar_url(avatarUrl);
             userRepository.save(user);
+            membersService.updateMemberAvatar(email, avatarUrl);
 
             response.put("success", true);
             response.put("avatarUrl", avatarUrl);

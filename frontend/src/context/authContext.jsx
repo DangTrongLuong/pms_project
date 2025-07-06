@@ -16,7 +16,7 @@ export const login = async (email, password) => {
         "tokenExpiresAt",
         Date.now() + data.result.expiresIn * 1000
       );
-      localStorage.setItem("userId", data.result.userId);
+      localStorage.setItem("userId", data.result.id);
       localStorage.setItem("userEmail", data.result.email || email);
       localStorage.setItem("userName", data.result.name || "User"); // Lưu tên
       localStorage.setItem(
@@ -31,6 +31,7 @@ export const login = async (email, password) => {
       );
       localStorage.setItem("backgroundUrl", data.result.backgroundUrl || null);
       localStorage.setItem("authProvider", "email"); // Lưu authProvider
+
       return data.result;
     } else {
       throw new Error("Login failed");

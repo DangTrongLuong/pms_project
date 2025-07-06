@@ -109,6 +109,7 @@ function Login() {
         userName: result.name || null,
         backgroundUrl: result.backgroundUrl || null,
       });
+      
       localStorage.setItem("authProvider", "email");
       triggerSuccess();
       navigate("/dashboard", { replace: true });

@@ -20,4 +20,5 @@ public class ProjectCreationRequest {
     String description;
     LocalDate start_date;
     LocalDate end_date;
+    String userName;
 }

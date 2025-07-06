@@ -17,11 +17,16 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { id } = useParams();
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const currentPath = location.pathname;
-    setFocusedItem(currentPath);
+    if (currentPath.startsWith("/project-task/")) {
+      setFocusedItem(`/project-task/${id || projects[0]?.id}/backlog`);
+    } else {
+      setFocusedItem(currentPath);
+    }
 
     const fetchProjects = async () => {
       try {
@@ -72,8 +77,8 @@ const Sidebar = () => {
       navigate(path);
     }
   };
-  const handleItemList = (id) => {
-    const basePath = `/project-task/${id}`;
+  const handleItemList = (projectId) => {
+    const basePath = `/project-task/${projectId}/backlog`;
     setFocusedItem(basePath);
     if (window.progressCallback) {
       window.progressCallback(() => navigate(basePath));
@@ -160,7 +165,15 @@ const Sidebar = () => {
         {projects.map((project) => (
           <div
             className={`sidebar-project-list ${
-              focusedItem === `/project-task/${project.id}` ? "focused" : ""
+              focusedItem ===
+                (id &&
+                  `/project-task/${id}/backlog` ===
+                    `/project-task/${project.id}/backlog`) ||
+              (id &&
+                `/project-task/${id}/progress` ===
+                  `/project-task/${project.id}/progress`)
+                ? "focused"
+                : ""
             }`}
             key={project.id}
             onClick={() => handleItemList(project.id)}

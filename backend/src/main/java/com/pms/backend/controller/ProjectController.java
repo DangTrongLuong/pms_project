@@ -33,8 +33,12 @@ public class ProjectController {
     @PostMapping("/create-project")
     public ApiResponsive<ProjectResponse> createProject(
             @RequestBody ProjectCreationRequest request,
-            @RequestHeader("userId") String userId,
-            @RequestHeader("userName") String userName) {
+            @RequestHeader("userId") String userId
+            ) {
+            String userName = request.getUserName();
+            if (userName == null || userName.trim().isEmpty()) {
+            throw new IllegalArgumentException("userName is required");
+        }
         ProjectResponse projectResponse = projectService.createProject(request, userId, userName);
         return ApiResponsive.<ProjectResponse>builder()
                 .result(projectResponse)

@@ -35,8 +35,8 @@
 .project-header .project-header-navbar-items {
   display: flex;
   width: auto;
-  height: 26px;
-  padding: 0 5px;
+  height: 26.5px;
+  padding: 0 6px;
   margin-right: 8px;
   cursor: pointer;
   font-size: 17px;
@@ -68,7 +68,7 @@
   border-radius: 5px;
   margin: 0 15px;
 
-  border: 1px solid rgb(0, 0, 0, 0.5);
+  border: 1px solid rgb(218, 218, 218);
 }
 .project-action-bellow-navbar .project-action-find svg {
   margin: 0 5px;
@@ -76,13 +76,23 @@
 .project-action-bellow-navbar .project-action-find input {
   border: none;
   outline: none;
+  background-color: rgb(0, 0, 0, 0);
   height: 28px;
   width: 180px;
 }
-.project-action-bellow-navbar .project-action-name-list {
-  width: auto;
-  height: 35px;
-  margin-right: 15px;
+.project-action-name-list {
+  display: flex;
+  align-items: center;
+}
+
+.project-action-name-list .member-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  object-fit: cover;
+  margin-left: -8px;
 }
 .project-action-bellow-navbar .project-action-button {
   display: flex;
@@ -108,4 +118,190 @@
 .project-action-bellow-navbar .project-action-complete:hover {
   background-color: rgb(4, 79, 228);
   transform: translateY(-2px);
+}
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Add Member Form */
+.add-member-form {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 50%;
+  height: auto;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.add-member-form h3 {
+  margin-bottom: 20px;
+}
+
+.search-container {
+  position: relative;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-bottom: 10px;
+}
+
+.suggestions-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1001;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.suggestion-item:hover {
+  background-color: #f0f0f0;
+}
+
+.suggestion-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.selected-members {
+  margin: 10px 0;
+}
+
+.selected-member {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-bottom: 5px;
+}
+
+.member-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+
+.remove-member {
+  cursor: pointer;
+  color: #ff0000;
+}
+
+.form-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.cancel-button {
+  padding: 8px 16px;
+  background: #ccc;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.confirm-button {
+  padding: 8px 16px;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.confirm-button:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+}
+
+/* Confirmation Dialog */
+.confirm-dialog {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 400px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.confirm-dialog h3 {
+  margin-bottom: 20px;
+}
+
+.confirm-dialog ul {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 20px;
+}
+
+.confirm-dialog li {
+  padding: 5px 0;
+}
+
+@media (max-width: 768px) {
+  .project-header {
+    width: 100%;
+    height: 200px;
+  }
+  .project-header .project-header-navbar {
+    display: flex;
+    flex-direction: column;
+  }
+  .project-header-navbar-items {
+    width: auto !important;
+    max-width: 170px;
+    font-size: 15px !important;
+    margin-bottom: 10px;
+  }
+  .add-member-form {
+    width: 320px;
+  }
+  .project-action-bellow-navbar {
+    display: flex;
+    flex-direction: column;
+    height: 140px;
+    margin-bottom: -10px;
+  }
+  .project-action-name-list {
+    margin: 10px 0 10px 20px;
+  }
+  .project-action-button {
+    display: flex;
+    justify-content: start !important;
+    align-items: start;
+    margin: 0 10px;
+    width: 180px !important;
+  }
 }

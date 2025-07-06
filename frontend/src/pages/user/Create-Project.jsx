@@ -15,6 +15,7 @@ const Create_Project_Content = () => {
     project_type: "Scrum",
     start_date: "",
     end_date: "",
+    userName: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({
@@ -139,9 +140,8 @@ const Create_Project_Content = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${accessToken}`,
             userId: userId,
-            userName: userName,
           },
-          body: JSON.stringify(formData),
+          body: JSON.stringify({ ...formData, userName }),
         }
       );
 
