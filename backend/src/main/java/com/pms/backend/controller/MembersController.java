@@ -71,4 +71,21 @@ public class MembersController {
         List<MembersResponse> users = membersService.searchUsers(query, userId);
         return ResponseEntity.ok(users);
     }
+    @DeleteMapping("/project/{projectId}/email/{email}")
+    public ResponseEntity<Void> deleteMemberByEmail(
+            @PathVariable int projectId,
+            @PathVariable String email,
+            @RequestHeader("userId") String userId) {
+        membersService.deleteMemberByEmailAndProject(email, projectId, userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/project/{projectId}/transfer-leader")
+    public ResponseEntity<Void> transferLeader(
+            @PathVariable int projectId,
+            @RequestBody MemberCreationRequest request,
+            @RequestHeader("userId") String userId) {
+        membersService.transferLeader(projectId, request.getEmail(), userId);
+        return ResponseEntity.ok().build();
+    }
 }

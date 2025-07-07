@@ -44,24 +44,19 @@ public class MembersService {
         }
     }
 
-
     public MembersResponse addMember(int projectId, MemberCreationRequest request, String userId) {
         log.info("Adding member to projectId: {} by userId: {}", projectId, userId);
 
-        // Validate project existence
         var project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new AppException(ErrorStatus.PROJECT_NOT_FOUND));
 
-        // Validate user existence
         User invitedUser = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new AppException(ErrorStatus.USER_NOTFOUND));
 
-        // Check if user is already a member
         if (memberRepository.existsByEmailAndProjectId(request.getEmail(), String.valueOf(projectId))) {
             throw new AppException(ErrorStatus.MEMBER_ALREADY_EXISTS);
         }
 
-        // Get inviter's details
         User inviter = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorStatus.USER_NOTFOUND));
 
@@ -83,7 +78,6 @@ public class MembersService {
     public List<MembersResponse> getMembersByProject(int projectId, String userId) {
         log.info("Fetching members for projectId: {} by userId: {}", projectId, userId);
 
-        // Validate project access
         projectRepository.findById(projectId)
                 .orElseThrow(() -> new AppException(ErrorStatus.PROJECT_NOT_FOUND));
 
@@ -99,7 +93,6 @@ public class MembersService {
         Members member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new AppException(ErrorStatus.MEMBER_NOT_FOUND));
 
-        // Validate project access
         projectRepository.findById(Integer.parseInt(member.getProjectId()))
                 .orElseThrow(() -> new AppException(ErrorStatus.PROJECT_NOT_FOUND));
 
@@ -116,12 +109,57 @@ public class MembersService {
         Members member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new AppException(ErrorStatus.MEMBER_NOT_FOUND));
 
-        // Validate project access
         projectRepository.findById(Integer.parseInt(member.getProjectId()))
                 .orElseThrow(() -> new AppException(ErrorStatus.PROJECT_NOT_FOUND));
 
         memberRepository.delete(member);
         log.info("Member deleted: {}", memberId);
+    }
+
+    public void deleteMemberByEmailAndProject(String email, int projectId, String userId) {
+        log.info("Deleting member with email: {} from projectId: {} by userId: {}", email, projectId, userId);
+
+        Members member = memberRepository.findByEmailAndProjectId(email, String.valueOf(projectId))
+                .orElseThrow(() -> new AppException(ErrorStatus.MEMBER_NOT_FOUND));
+
+        projectRepository.findById(projectId)
+                .orElseThrow(() -> new AppException(ErrorStatus.PROJECT_NOT_FOUND));
+
+        memberRepository.delete(member);
+        log.info("Member deleted: email {} from project {}", email, projectId);
+    }
+
+    public void transferLeader(int projectId, String newLeaderEmail, String userId) {
+        log.info("Transferring leader for projectId: {} to email: {} by userId: {}", projectId, newLeaderEmail, userId);
+
+        var project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new AppException(ErrorStatus.PROJECT_NOT_FOUND));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorStatus.USER_NOTFOUND));
+        if (!project.getCreated_by_id().equals(userId) && !memberRepository.findByEmailAndProjectId(user.getEmail(), String.valueOf(projectId))
+                .map(m -> m.getRole().equals("LEADER"))
+                .orElse(false)) {
+            throw new AppException(ErrorStatus.UNAUTHORIZED);
+        }
+
+        Members newLeader = memberRepository.findByEmailAndProjectId(newLeaderEmail, String.valueOf(projectId))
+                .orElseThrow(() -> new AppException(ErrorStatus.MEMBER_NOT_FOUND));
+
+        Members currentLeader = memberRepository.findByProjectId(String.valueOf(projectId))
+                .stream()
+                .filter(m -> m.getRole().equals("LEADER"))
+                .findFirst()
+                .orElseThrow(() -> new AppException(ErrorStatus.MEMBER_NOT_FOUND));
+
+        currentLeader.setRole("USER");
+        newLeader.setRole("LEADER");
+        project.setLeader(newLeader.getName());
+
+        memberRepository.save(currentLeader);
+        memberRepository.save(newLeader);
+        projectRepository.save(project);
+        log.info("Leadership transferred to: {}", newLeaderEmail);
     }
 
     public List<MembersResponse> searchUsers(String query, String userId) {

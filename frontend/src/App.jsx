@@ -20,6 +20,7 @@ import {
 import "./styles/user/login.css"; // Import login.css for notification styles
 import { UserProvider } from "./context/UserContext";
 import ProjectTask from "./components/Project_Task";
+import CustomCursor from "./components/CustomCursor";
 function App() {
   return (
     <NotificationProvider>
@@ -27,6 +28,7 @@ function App() {
         <Notification />
         <UserProvider>
           <div className="App">
+            <CustomCursor />
             <Routes>
               {/* Public routes */}
               <Route path="/" element={<HomePage />} />

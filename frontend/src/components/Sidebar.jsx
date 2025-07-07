@@ -12,7 +12,7 @@ import { useSidebar } from "../context/SidebarContext";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 
 const Sidebar = () => {
-  const { isSidebarOpen, setProjects, projects } = useSidebar(); // Lấy cả projects từ context
+  const { isSidebarOpen, setProjectsSidebar, projects } = useSidebar(); // Lấy cả projects từ context
   const [focusedItem, setFocusedItem] = useState("/dashboard");
   const navigate = useNavigate();
   const location = useLocation();
@@ -51,7 +51,7 @@ const Sidebar = () => {
 
         const data = await response.json();
         if (response.ok) {
-          setProjects(data); // Cập nhật danh sách dự án từ DB
+          setProjectsSidebar(data); // Cập nhật danh sách dự án từ DB
           localStorage.setItem("projects", JSON.stringify(data)); // Lưu cache vào localStorage
         } else {
           throw new Error(data.message || "Failed to fetch projects");
@@ -60,14 +60,14 @@ const Sidebar = () => {
         console.error("Fetch projects error:", err);
         // Nếu lỗi, xóa cache cũ và không hiển thị dự án cũ
         localStorage.removeItem("projects");
-        setProjects([]);
+        setProjectsSidebar([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchProjects();
-  }, [location.pathname, setProjects]);
+  }, [location.pathname, setProjectsSidebar]);
 
   const handleItemClick = (path) => {
     setFocusedItem(path);

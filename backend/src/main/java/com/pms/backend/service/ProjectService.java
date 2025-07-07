@@ -9,10 +9,13 @@ import org.springframework.stereotype.Service;
 import com.pms.backend.dto.request.ProjectCreationRequest;
 import com.pms.backend.dto.request.ProjectUpdateRequest;
 import com.pms.backend.dto.response.ProjectResponse;
+import com.pms.backend.entity.Members;
 import com.pms.backend.entity.Project;
+import com.pms.backend.entity.User;
 import com.pms.backend.exception.AppException;
 import com.pms.backend.exception.ErrorStatus;
 import com.pms.backend.mapper.ProjectMapper;
+import com.pms.backend.repository.MemberRepository;
 import com.pms.backend.repository.ProjectRepository;
 import com.pms.backend.repository.UserRepository;
 
@@ -28,10 +31,10 @@ import lombok.extern.slf4j.Slf4j;
 public class ProjectService {
     ProjectRepository projectRepository;
     UserRepository userRepository;
+    MemberRepository memberRepository;
     ProjectMapper projectMapper;
     MembersService membersService;
 
-    // Tạo màu ngẫu nhiên
     private String generateRandomColor() {
         Random random = new Random();
         int r = random.nextInt(256);
@@ -40,7 +43,6 @@ public class ProjectService {
         return String.format("#%02x%02x%02x", r, g, b);
     }
 
-    // Tạo short_name từ project_name
     private String generateShortName(String projectName) {
         if (projectName == null || projectName.trim().isEmpty()) {
             return "";
@@ -51,7 +53,6 @@ public class ProjectService {
     public ProjectResponse createProject(ProjectCreationRequest request, String userId, String userName) {
         log.info("Creating project for userId: {}, userName: {}", userId, userName);
 
-        // Validate request
         if (request.getProject_name() == null || request.getProject_name().trim().isEmpty()) {
             throw new AppException(ErrorStatus.INVALID_INPUT);
         }
@@ -80,45 +81,68 @@ public class ProjectService {
     }
 
     public List<ProjectResponse> getProjectsByUser(String userId) {
-    log.info("Fetching projects for userId: {}", userId);
-    List<Project> projects = projectRepository.findAll()
-            .stream()
-            .filter(project -> project.getCreated_by_id().equals(userId))
-            .collect(Collectors.toList());
-    return projects.stream()
-            .map(projectMapper::toProjectResponse)
-            .collect(Collectors.toList());
-}
+        log.info("Fetching projects for userId: {}", userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorStatus.USER_NOTFOUND));
+
+        List<Project> projects = projectRepository.findAll()
+                .stream()
+                .filter(project -> 
+                    project.getCreated_by_id().equals(userId) || 
+                    memberRepository.existsByEmailAndProjectId(user.getEmail(), String.valueOf(project.getId()))
+                )
+                .collect(Collectors.toList());
+
+        return projects.stream()
+                .map(project -> {
+                    List<Members> members = memberRepository.findByProjectId(String.valueOf(project.getId()));
+                    project.setMembers(members.stream()
+                            .map(Members::getEmail)
+                            .collect(Collectors.joining(", ")));
+                    return projectMapper.toProjectResponse(project);
+                })
+                .collect(Collectors.toList());
+    }
 
     public ProjectResponse getProjectById(int projectId, String userId) {
         log.info("Fetching projectId: {} for userId: {}", projectId, userId);
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new AppException(ErrorStatus.PROJECT_NOT_FOUND));
-        if (!project.getCreated_by_id().equals(userId)) {
+        
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorStatus.USER_NOTFOUND));
+        if (!project.getCreated_by_id().equals(userId) &&
+            !memberRepository.existsByEmailAndProjectId(user.getEmail(), String.valueOf(projectId))) {
             throw new AppException(ErrorStatus.UNAUTHORIZED);
         }
+
+        List<Members> members = memberRepository.findByProjectId(String.valueOf(projectId));
+        project.setMembers(members.stream()
+                .map(Members::getEmail)
+                .collect(Collectors.joining(", ")));
+        
         return projectMapper.toProjectResponse(project);
     }
 
     public ProjectResponse updateProject(int projectId, ProjectUpdateRequest request, String userId) {
-    log.info("Updating projectId: {} for userId: {}", projectId, userId);
-    Project project = projectRepository.findById(projectId)
-            .orElseThrow(() -> new AppException(ErrorStatus.PROJECT_NOT_FOUND));
-    if (!project.getCreated_by_id().equals(userId)) {
-        throw new AppException(ErrorStatus.UNAUTHORIZED);
-    }
+        log.info("Updating projectId: {} for userId: {}", projectId, userId);
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new AppException(ErrorStatus.PROJECT_NOT_FOUND));
+        if (!project.getCreated_by_id().equals(userId)) {
+            throw new AppException(ErrorStatus.UNAUTHORIZED);
+        }
 
-    projectMapper.updateProjectFromRequest(project, request);
-    if (request.getProject_name() != null && !request.getProject_name().trim().isEmpty()) {
-        project.setShort_name(generateShortName(request.getProject_name()));
-    }
-    project.setStart_date(request.getStart_date());
-    project.setEnd_date(request.getEnd_date());
+        projectMapper.updateProjectFromRequest(project, request);
+        if (request.getProject_name() != null && !request.getProject_name().trim().isEmpty()) {
+            project.setShort_name(generateShortName(request.getProject_name()));
+        }
+        project.setStart_date(request.getStart_date());
+        project.setEnd_date(request.getEnd_date());
 
-    Project updatedProject = projectRepository.save(project);
-    log.info("Project updated: {}", updatedProject);
-    return projectMapper.toProjectResponse(updatedProject);
-}
+        Project updatedProject = projectRepository.save(project);
+        log.info("Project updated: {}", updatedProject);
+        return projectMapper.toProjectResponse(updatedProject);
+    }
 
     public void deleteProject(int projectId, String userId) {
         log.info("Deleting projectId: {} for userId: {}", projectId, userId);

@@ -7,7 +7,7 @@ import Navbar from "../../components/Navbar";
 import "../../styles/user/create-project.css";
 
 const Create_Project_Content = () => {
-  const { isSidebarOpen, setProjects } = useSidebar();
+  const { isSidebarOpen, setProjectsSidebar } = useSidebar();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     project_name: "",
@@ -154,7 +154,7 @@ const Create_Project_Content = () => {
         projects.push(project);
         localStorage.setItem("projects", JSON.stringify(projects));
 
-        setProjects(projects);
+        setProjectsSidebar(projects);
 
         if (window.progressCallback) {
           window.progressCallback(() => navigate("/dashboard"));

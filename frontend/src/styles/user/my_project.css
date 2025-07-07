@@ -1,3 +1,4 @@
+/* Existing styles */
 .main-container h2 {
   font-size: 34px;
   margin: 20px 0 -5px 15px;
@@ -5,7 +6,7 @@
 
 .project-list {
   width: 100%;
-  height: auto;
+  height: 100vh;
   padding: 25px;
   margin-top: 5px;
 }
@@ -13,7 +14,7 @@
 .project-list .project-item {
   margin-bottom: 20px;
   width: 48%;
-
+  height: 300px;
   padding: 10px 0 15px 10px;
   border-radius: 5px;
   float: left;
@@ -22,7 +23,11 @@
   border-left: 3px solid blue;
   transition: all 0.3s ease-in-out;
   font-size: 16px;
+  overflow-y: auto;
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
 }
+
 .project-list .project-item p {
   margin-top: 5px;
 }
@@ -30,13 +35,36 @@
 .project-list .project-item strong {
   margin-right: 5px;
 }
+
 .project-list .project-item:hover {
   transform: translateY(-2px);
 }
 
+.member-list ul {
+  width: 100%;
+  height: auto;
+  padding: 10px;
+  margin-top: -5px;
+  list-style: none;
+}
+
+.member-list ul li {
+  padding: 3px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3px;
+}
+
+.member-list ul li .action-delete-change {
+  display: flex;
+  justify-content: end;
+  width: auto;
+}
+
 .view-button {
   width: 120px;
-  height: 35px;
+  height: 33px;
   margin-top: 8px;
   border-radius: 5px;
   outline: none;
@@ -49,8 +77,82 @@
   transition: all 0.3s ease-in-out;
 }
 
+.action-menu {
+  position: absolute;
+  background-color: #fff;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  padding: 10px;
+  z-index: 1000;
+  min-width: 150px;
+}
+
+.action-button {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.action-button:hover {
+  background-color: #f0f0f0;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.confirm-dialog {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  width: 400px;
+  text-align: center;
+}
+
+.form-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.cancel-button {
+  padding: 8px 16px;
+  background-color: #ccc;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.confirm-button {
+  padding: 8px 16px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
 @media (max-width: 768px) {
   .project-list .project-item {
     width: 100%;
+    font-size: 15px;
+  }
+
+  .action-menu {
+    min-width: 120px;
   }
 }

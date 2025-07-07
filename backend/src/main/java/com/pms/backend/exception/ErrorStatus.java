@@ -14,7 +14,7 @@ public enum ErrorStatus {
     PROJECT_NOT_EXISTED(400, "Project not existed!"),
     UNAUTHORIZED(400, "Unauthorized!"),
     MEMBER_NOT_FOUND(404, "Member not found"),
-    MEMBER_ALREADY_EXISTS(409, "Member already exists in the project"),
+    MEMBER_ALREADY_EXISTS(409, "Thành viên đã tồn tại trong dự án!"),
 
     ;
 

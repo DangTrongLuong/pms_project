@@ -17,7 +17,7 @@ import Backlog from "../pages/user/Backlog";
 import Progress from "../pages/user/Progress";
 
 const ProjectTaskContent = () => {
-  const { isSidebarOpen } = useSidebar();
+  const { isSidebarOpen, setProjectsSidebar } = useSidebar();
   const { id } = useParams();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -112,42 +112,43 @@ const ProjectTaskContent = () => {
     }
   };
 
-  useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const userId = localStorage.getItem("userId");
-        const accessToken = localStorage.getItem("accessToken");
+  const fetchProjects = async () => {
+    try {
+      const userId = localStorage.getItem("userId");
+      const accessToken = localStorage.getItem("accessToken");
 
-        if (!userId || !accessToken) {
-          throw new Error("User not authenticated");
-        }
-
-        const response = await fetch(
-          "http://localhost:8080/api/projects/my-projects",
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${accessToken}`,
-              userId: userId,
-            },
-          }
-        );
-
-        const data = await response.json();
-        if (response.ok) {
-          setProjects(data);
-        } else {
-          throw new Error(data.message || "Failed to fetch projects");
-        }
-      } catch (err) {
-        setError(err.message || "Đã có lỗi xảy ra khi lấy danh sách dự án");
-        console.error("Fetch projects error:", err);
-      } finally {
-        setLoading(false);
+      if (!userId || !accessToken) {
+        throw new Error("User not authenticated");
       }
-    };
 
+      const response = await fetch(
+        "http://localhost:8080/api/projects/my-projects",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+            userId: userId,
+          },
+        }
+      );
+
+      const data = await response.json();
+      if (response.ok) {
+        setProjects(data);
+        setProjectsSidebar(data);
+        localStorage.setItem("projects", JSON.stringify(data));
+      } else {
+        throw new Error(data.message || "Failed to fetch projects");
+      }
+    } catch (err) {
+      setError(err.message || "Đã có lỗi xảy ra khi lấy danh sách dự án");
+      console.error("Fetch projects error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
     fetchProjects();
     if (id) fetchMembers();
   }, [id]);
@@ -270,7 +271,7 @@ const ProjectTaskContent = () => {
 
       // Cập nhật danh sách thành viên sau khi thêm thành công
       await fetchMembers();
-
+      await fetchProjects();
       setIsConfirmOpen(false);
       setIsAddMemberOpen(false);
       setSelectedMembers([]);
@@ -377,11 +378,6 @@ const ProjectTaskContent = () => {
                       className="member-avatar"
                     />
                   ))}
-                </div>
-                <div className="project-action-button">
-                  <button className="project-action-complete">
-                    Hoàn thành Sprint
-                  </button>
                 </div>
               </div>
               {isBacklog && <Backlog project={selectedProject} />}
