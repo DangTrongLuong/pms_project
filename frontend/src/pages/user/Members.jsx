@@ -59,13 +59,13 @@ const MembersContext = () => {
 
         const data = await response.json();
         if (response.ok) {
-          setUsers(data); // Giả sử data là mảng chứa các object { id, name, email, createdAt }
+          setUsers(data);
         } else {
           throw new Error(data.message || "Failed to fetch users");
         }
       } catch (err) {
         setError(
-          err.message || "Đã có lỗi xảy ra khi lấy danh sách thành viên"
+          err.message || "An error occurred while fetching the list of members"
         );
         console.error("Fetch users error:", err);
       } finally {
@@ -85,7 +85,7 @@ const MembersContext = () => {
           <Sidebar />
         </div>
         <div className={`main-container ${!isSidebarOpen ? "full" : ""}`}>
-          <h1>Đây là Thành viên</h1>
+          <h1>Members</h1>
           {loading ? (
             <div>Loading...</div>
           ) : error ? (
@@ -95,10 +95,10 @@ const MembersContext = () => {
               {users.map((user) => (
                 <div key={user.id}>
                   <p>
-                    <strong>Tên:</strong> {user.name || "Chưa có tên"}
+                    <strong>Name:</strong> {user.name || "No name provided"}
                   </p>
                   <p>
-                    <strong>Email:</strong> {user.email || "Chưa có email"}
+                    <strong>Email:</strong> {user.email || "No email provided"}
                   </p>
                 </div>
               ))}

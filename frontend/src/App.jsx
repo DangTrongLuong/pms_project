@@ -32,7 +32,7 @@ function App() {
           <Notification />
           <UserProvider>
             <div className="App">
-              <CustomCursor />
+              
               <Routes>
                 {/* Public routes */}
                 <Route path="/" element={<HomePage />} />

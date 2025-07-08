@@ -177,42 +177,19 @@ const Navbar = () => {
                           onClick={() => handleClickProfile("/my_profile")}
                         >
                           <FontAwesomeIcon icon={faUser} />
-                          Thông tin cá nhân
+                          Personal Information
                         </li>
-                        <li
-                          className="profile-dropdown-list-item"
-                          onClick={toggleThemeForm}
-                        >
-                          <FontAwesomeIcon icon={isDarkMode ? faMoon : faSun} />
-                          Phong cách
-                        </li>
+                        
                         <li
                           className="profile-dropdown-list-item"
                           onClick={handleLogout}
                         >
                           <FontAwesomeIcon icon={faArrowRightFromBracket} />
-                          Đăng xuất
+                          Log out
                         </li>
                       </ul>
                     </div>
-                    {isThemeFormOpen && (
-                      <div className="theme-form">
-                        <div
-                          className="theme-option"
-                          onClick={(e) => handleThemeChange("light", e)}
-                        >
-                          <FontAwesomeIcon icon={faSun} />
-                          Giao diện sáng
-                        </div>
-                        <div
-                          className="theme-option"
-                          onClick={(e) => handleThemeChange("dark", e)}
-                        >
-                          <FontAwesomeIcon icon={faMoon} />
-                          Giao diện tối
-                        </div>
-                      </div>
-                    )}
+                    
                   </>
                 )}
               </div>
@@ -249,42 +226,19 @@ const Navbar = () => {
                   onClick={() => handleClickProfile("/my_profile")}
                 >
                   <FontAwesomeIcon icon={faUser} />
-                  Thông tin cá nhân
+                  Personal infomation
                 </li>
-                <li
-                  className="profile-dropdown-list-item"
-                  onClick={toggleThemeForm}
-                >
-                  <FontAwesomeIcon icon={isDarkMode ? faMoon : faSun} />
-                  Phong cách
-                </li>
+                
                 <li
                   className="profile-dropdown-list-item"
                   onClick={handleLogout}
                 >
                   <FontAwesomeIcon icon={faArrowRightFromBracket} />
-                  Đăng xuất
+                  Log out
                 </li>
               </ul>
             </div>
-            {isThemeFormOpen && (
-              <div className="theme-form">
-                <div
-                  className="theme-option"
-                  onClick={(e) => handleThemeChange("light", e)}
-                >
-                  <FontAwesomeIcon icon={faSun} />
-                  Giao diện sáng
-                </div>
-                <div
-                  className="theme-option"
-                  onClick={(e) => handleThemeChange("dark", e)}
-                >
-                  <FontAwesomeIcon icon={faMoon} />
-                  Giao diện tối
-                </div>
-              </div>
-            )}
+            
           </div>
         )}
       </div>

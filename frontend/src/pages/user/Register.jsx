@@ -25,14 +25,14 @@ function Register() {
 
   const validateFullName = (value) => {
     return value && value.length < 6
-      ? "Tên đăng nhập phải có ít nhất 6 ký tự"
+      ? "Username must be at least 6 characters"
       : "";
   };
 
   const validateEmail = (value) => {
     const emailRegex = /^[^\s@]+@gmail\.com$/;
     return value && !emailRegex.test(value)
-      ? "Email phải có định dạng @gmail.com"
+      ? "Email must be a valid @gmail.com address"
       : "";
   };
 
@@ -40,13 +40,13 @@ function Register() {
     const passwordRegex =
       /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{6,}$/;
     return value && !passwordRegex.test(value)
-      ? "Mật khẩu phải có ít nhất 1 chữ hoa, 1 số, 1 ký tự đặc biệt và dài 6 ký tự"
+      ? "Password must contain at least 1 uppercase letter, 1 number, 1 special character and be 6 characters long"
       : "";
   };
 
   const validateConfirmPassword = (value, passwordValue) => {
     return value && value !== passwordValue
-      ? "Mật khẩu xác nhận không khớp"
+      ? "Confirmation password does not match"
       : "";
   };
 
@@ -58,8 +58,8 @@ function Register() {
       );
       return response.data.exists;
     } catch (error) {
-      console.error("Lỗi kiểm tra email:", error);
-      throw error.response?.data?.message || "Không thể kiểm tra email";
+      console.error("Email check error:", error);
+      throw error.response?.data?.message || "Can't check email";
     }
   };
 
@@ -69,7 +69,7 @@ function Register() {
     setError((prev) => ({
       ...prev,
       name:
-        value === "" ? "Vui lòng nhập tên đăng nhập" : validateFullName(value),
+        value === "" ? "Please enter username" : validateFullName(value),
       general: "",
     }));
   };
@@ -79,7 +79,7 @@ function Register() {
     setEmail(value);
     setError((prev) => ({
       ...prev,
-      email: value === "" ? "Vui lòng nhập email" : validateEmail(value),
+      email: value === "" ? "Please enter email" : validateEmail(value),
       general: "",
     }));
   };
@@ -90,7 +90,7 @@ function Register() {
     setError((prev) => ({
       ...prev,
       password:
-        value === "" ? "Vui lòng nhập mật khẩu" : validatePassword(value),
+        value === "" ? "Please enter password" : validatePassword(value),
       confirmPassword: confirmPassword
         ? validateConfirmPassword(confirmPassword, value)
         : prev.confirmPassword,
@@ -105,7 +105,7 @@ function Register() {
       ...prev,
       confirmPassword:
         value === ""
-          ? "Vui lòng nhập lại mật khẩu"
+          ? "Please re-enter password"
           : validateConfirmPassword(value, password),
       general: "",
     }));
@@ -134,19 +134,18 @@ function Register() {
       general: "",
       name: "",
       email: "",
-      password: "",
-      confirmPassword: "",
+      password:10,      confirmPassword: "",
     });
 
     const fullNameError = !name
-      ? "Vui lòng nhập tên đăng nhập"
+      ? "Please enter username"
       : validateFullName(name);
-    const emailError = !email ? "Vui lòng nhập email" : validateEmail(email);
+    const emailError = !email ? "Please enter email" : validateEmail(email);
     const passwordError = !password
-      ? "Vui lòng nhập mật khẩu"
+      ? "Please enter password"
       : validatePassword(password);
     const confirmPasswordError = !confirmPassword
-      ? "Vui lòng nhập lại mật khẩu"
+      ? "Please re-enter password"
       : validateConfirmPassword(confirmPassword, password);
 
     if (fullNameError || emailError || passwordError || confirmPasswordError) {
@@ -166,19 +165,19 @@ function Register() {
       if (emailExists) {
         setError((prev) => ({
           ...prev,
-          email: "Email đã được sử dụng, vui lòng thử lại",
+          email: "Email already in use, please try again",
         }));
         shakeInputs();
         return;
       }
 
       await register(name, email, password);
-      triggerSuccess("Đăng ký thành công");
+      triggerSuccess("Registration successful");
       navigate("/login", { replace: true });
     } catch (err) {
       setError((prev) => ({
         ...prev,
-        general: err.message || "Đăng ký thất bại. Vui lòng thử lại.",
+        general: err.message || "Registration failed. Please try again.",
       }));
       shakeInputs();
     }
@@ -237,9 +236,9 @@ function Register() {
     const support1Element = textRefs[1].current;
     const support2Element = textRefs[2].current;
     const texts = [
-      "Chào mừng bạn đến với PMS! Hãy tạo tài khoản để bắt đầu hành trình quản lý dự án của bạn !",
-      "Tùy chỉnh cách thức làm việc của nhóm bạn.",
-      "Thiết lập, dọn dẹp và tự động hóa ngay cả những quy trình làm việc phức tạp nhất của dự án.",
+      "Welcome to PMS! Create an account to start your project management journey!",
+      "Customize your team's workflow.",
+      "Set up, streamline, and automate even the most complex project workflows.",
     ];
     let indices = [0, 0, 0];
     let isPaused = [false, false, false];
@@ -299,24 +298,15 @@ function Register() {
           <ul className="homepage-navbar-support-list-login">
             <li className="homepage-navbar-support-item-login">
               <a href="#" className="home" onClick={handleHomePage}>
-                TRANG CHỦ
+                Home
               </a>
             </li>
             <li className="homepage-navbar-support-item-login">
               <a href="#" className="about_us">
-                ABOUT US
+                About us
               </a>
             </li>
           </ul>
-        </div>
-        <div className="homepage-navbar-login-btn">
-          <button
-            type="submit"
-            className="homepage-btn-login"
-            onClick={handleLoginClick}
-          >
-            ĐĂNG NHẬP
-          </button>
         </div>
       </div>
       <div className="register-home">
@@ -350,7 +340,7 @@ function Register() {
                     required
                     autoComplete="off"
                   />
-                  <label htmlFor="fullName">Tên đăng nhập</label>
+                  <label htmlFor="fullName">Username</label>
                   <div className="err">
                     {error.name && (
                       <p className="error-message">{error.name}</p>
@@ -385,7 +375,7 @@ function Register() {
                     required
                     autoComplete="off"
                   />
-                  <label htmlFor="password">Mật khẩu</label>
+                  <label htmlFor="password">Password</label>
                   <div className="err">
                     {error.password && (
                       <p className="error-message">{error.password}</p>
@@ -403,7 +393,7 @@ function Register() {
                     required
                     autoComplete="off"
                   />
-                  <label htmlFor="password-indentity">Nhập lại mật khẩu</label>
+                  <label htmlFor="password-indentity">Confirm Password</label>
                   <div className="err">
                     {error.confirmPassword && (
                       <p className="error-message">{error.confirmPassword}</p>
@@ -418,7 +408,7 @@ function Register() {
                   type="submit"
                   onClick={handleSubmit}
                 >
-                  ĐĂNG KÝ
+                  REGISTER
                 </button>
               </div>
               <div className="err-general">
@@ -430,9 +420,9 @@ function Register() {
               </div>
 
               <div className="login">
-                <p>Bạn đã có tài khoản?</p>
+                <p>Already have an account?</p>
                 <a href="#" onClick={handleLoginClick}>
-                  Đăng nhập ngay !
+                  Log in now!
                 </a>
               </div>
             </form>

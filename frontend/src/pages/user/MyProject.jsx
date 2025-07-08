@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { SidebarProvider, useSidebar } from "../../context/SidebarContext";
 import "../../styles/user/dashboard.css";
-import "../../styles/user/my_project.css"; // Sử dụng my_project.css
+import "../../styles/user/my_project.css";
 import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
@@ -12,7 +12,7 @@ import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 const formatDate = (dateString) => {
   if (!dateString) return "";
   const date = new Date(dateString);
-  return date.toLocaleDateString("vi-VN", {
+  return date.toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -27,12 +27,12 @@ const getInitials = (name = "") => {
 
 const mapStatusToFrontend = (backendStatus) => {
   const statusMap = {
-    IN_PROGRESS: "Đang hoạt động",
-    COMPLETED: "Đã hoàn thành",
-    ON_HOLD: "Tạm hoãn",
-    PLANNING: "Đang lập kế hoạch",
+    IN_PROGRESS: "Active",
+    COMPLETED: "Completed",
+    ON_HOLD: "On Hold",
+    PLANNING: "Planning",
   };
-  return statusMap[backendStatus] || "Đang lập kế hoạch";
+  return statusMap[backendStatus] || "Planning";
 };
 
 const mapTypeToFrontend = (backendType) => {
@@ -48,10 +48,10 @@ const SearchBar = ({ searchQuery, onSearchChange }) => {
       <input
         type="text"
         className="search-input"
-        placeholder="Tìm kiếm dự án..."
+        placeholder="Search projects..."
         value={searchQuery}
         onChange={(e) => onSearchChange(e.target.value)}
-        aria-label="Tìm kiếm dự án"
+        aria-label="Search projects"
       />
     </div>
   );
@@ -90,9 +90,7 @@ const Dropdown = ({ label, options, selected, onSelect, className = "" }) => {
           {options.map((option) => (
             <div
               key={option.value}
-              className={`dropdown-item ${
-                selected === option.value ? "selected" : ""
-              }`}
+              className={`dropdown-item ${selected === option.value ? "selected" : ""}`}
               onClick={() => {
                 onSelect(option.value);
                 setIsOpen(false);
@@ -112,28 +110,28 @@ const Dropdown = ({ label, options, selected, onSelect, className = "" }) => {
 const StatsBar = ({ projects }) => {
   const stats = {
     total: projects.length,
-    active: projects.filter((p) => p.status === "Đang hoạt động").length,
-    completed: projects.filter((p) => p.status === "Đã hoàn thành").length,
-    onHold: projects.filter((p) => p.status === "Tạm hoãn").length,
+    active: projects.filter((p) => p.status === "Active").length,
+    completed: projects.filter((p) => p.status === "Completed").length,
+    onHold: projects.filter((p) => p.status === "On Hold").length,
   };
 
   return (
     <div className="stats-bar">
       <div className="stat-item">
         <div className="stat-number">{stats.total}</div>
-        <div className="stat-label">Tổng số dự án</div>
+        <div className="stat-label">Total Projects</div>
       </div>
       <div className="stat-item">
         <div className="stat-number">{stats.active}</div>
-        <div className="stat-label">Đang hoạt động</div>
+        <div className="stat-label">Active</div>
       </div>
       <div className="stat-item">
         <div className="stat-number">{stats.completed}</div>
-        <div className="stat-label">Đã hoàn thành</div>
+        <div className="stat-label">Completed</div>
       </div>
       <div className="stat-item">
         <div className="stat-number">{stats.onHold}</div>
-        <div className="stat-label">Tạm hoãn</div>
+        <div className="stat-label">On Hold</div>
       </div>
     </div>
   );
@@ -141,21 +139,21 @@ const StatsBar = ({ projects }) => {
 
 // ProjectCard Component
 const ProjectCard = ({ project, onViewDetails, onActionClick, canManageMembers, currentUserEmail }) => {
-  const leadName = project.leader || "Không xác định";
+  const leadName = project.leader || "Unknown";
   const membersList = (project.members || "").split(", ").filter(Boolean);
 
   return (
     <div className="project-card" onClick={() => onViewDetails(project.id)}>
-      <h3 className="project-card-title">{project.project_name || "Dự án chưa có tên"}</h3>
+      <h3 className="project-card-title">{project.project_name || "Unnamed Project"}</h3>
       <div className="project-type-badge">
         {mapTypeToFrontend(project.project_type)}
       </div>
       <p className="project-card-description">
-        {project.description || "Không có mô tả"}
+        {project.description || "No description"}
       </p>
       <div className="project-card-footer">
         <div className="project-card-date">
-          Bắt đầu: {formatDate(project.start_date)}
+          Start: {formatDate(project.start_date)}
         </div>
         <div className="project-lead">
           <div className="lead-avatar">{getInitials(leadName)}</div>
@@ -163,7 +161,7 @@ const ProjectCard = ({ project, onViewDetails, onActionClick, canManageMembers, 
         </div>
       </div>
       <div className="project-team">
-        <div className="team-label">Thành viên</div>
+        <div className="team-label">Members</div>
         <div className="team-avatars">
           {membersList.slice(0, 4).map((member, index) => (
             <div
@@ -188,7 +186,7 @@ const ProjectCard = ({ project, onViewDetails, onActionClick, canManageMembers, 
           {membersList.length > 4 && (
             <div
               className="team-avatar team-more"
-              title={`+${membersList.length - 4} thành viên khác`}
+              title={`+${membersList.length - 4} more members`}
             >
               {`+${membersList.length - 4}`}
             </div>
@@ -214,7 +212,7 @@ const ProjectsList = ({
     return (
       <div className="loading-state">
         <div className="spinner" />
-        Đang tải dự án...
+        Loading projects...
       </div>
     );
   }
@@ -223,14 +221,14 @@ const ProjectsList = ({
     return (
       <div className="empty-state">
         <i className="fas fa-folder-open" />
-        <h3>Không tìm thấy dự án</h3>
-        <p>Thử điều chỉnh tìm kiếm hoặc tiêu chí lọc.</p>
+        <h3>No projects found</h3>
+        <p>Try adjusting your search or filter criteria.</p>
         <button
           className="btn btn-primary"
           onClick={() => navigate("/create-project")}
         >
           <i className="fas fa-plus" />
-          Tạo dự án mới
+          Create New Project
         </button>
       </div>
     );
@@ -256,7 +254,6 @@ const ProjectsList = ({
 const MyProjects = () => {
   const { isSidebarOpen, setProjectsSidebar } = useSidebar();
   const navigate = useNavigate();
-  // eslint-disable-next-line no-unused-vars
   const { id } = useParams();
   const [projects, setProjects] = useState([]);
   const [filteredProjects, setFilteredProjects] = useState([]);
@@ -315,7 +312,7 @@ const MyProjects = () => {
         const accessToken = localStorage.getItem("accessToken");
 
         if (!userId || !accessToken) {
-          throw new Error("Người dùng chưa xác thực");
+          throw new Error("User not authenticated");
         }
 
         const response = await fetch(
@@ -343,7 +340,6 @@ const MyProjects = () => {
           setProjectsSidebar(mappedProjects);
           localStorage.setItem("projects", JSON.stringify(mappedProjects));
 
-          // Fetch members for each project
           const membersData = {};
           for (const project of data) {
             const membersResponse = await fetch(
@@ -364,10 +360,10 @@ const MyProjects = () => {
           }
           setMembers(membersData);
         } else {
-          throw new Error(data.message || "Không thể lấy danh sách dự án");
+          throw new Error(data.message || "Failed to fetch projects");
         }
       } catch (err) {
-        setError(err.message || "Đã có lỗi xảy ra khi lấy danh sách dự án");
+        setError(err.message || "An error occurred while fetching the project list");
         console.error("Fetch projects error:", err);
       } finally {
         setLoading(false);
@@ -381,26 +377,22 @@ const MyProjects = () => {
     const filterAndSortProjects = () => {
       let filtered = [...projects];
 
-      // Apply search filter
       if (searchQuery.trim()) {
         filtered = filtered.filter((project) =>
           project.project_name?.toLowerCase().includes(searchQuery.toLowerCase())
         );
       }
 
-      // Apply status filter
       if (statusFilter !== "all") {
         filtered = filtered.filter((project) => project.status === statusFilter);
       }
 
-      // Apply type filter
       if (typeFilter !== "all") {
         filtered = filtered.filter(
           (project) => mapTypeToFrontend(project.project_type) === typeFilter
         );
       }
 
-      // Sort projects
       filtered.sort((a, b) => {
         switch (sortBy) {
           case "name":
@@ -453,9 +445,7 @@ const MyProjects = () => {
       const accessToken = localStorage.getItem("accessToken");
 
       const response = await fetch(
-        `http://localhost:8080/api/members/project/${projectId}/email/${encodeURIComponent(
-          email
-        )}`,
+        `http://localhost:8080/api/members/project/${projectId}/email/${encodeURIComponent(email)}`,
         {
           method: "DELETE",
           headers: {
@@ -468,10 +458,9 @@ const MyProjects = () => {
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.message || "Không thể xóa thành viên");
+        throw new Error(data.message || "Failed to remove member");
       }
 
-      // Refresh project list
       const fetchResponse = await fetch(
         "http://localhost:8080/api/projects/my-projects",
         {
@@ -497,7 +486,6 @@ const MyProjects = () => {
         setProjectsSidebar(mappedProjects);
         localStorage.setItem("projects", JSON.stringify(mappedProjects));
 
-        // Refresh members for the project
         const membersResponse = await fetch(
           `http://localhost:8080/api/members/project/${projectId}`,
           {
@@ -517,13 +505,13 @@ const MyProjects = () => {
           }));
         }
       } else {
-        throw new Error(data.message || "Không thể lấy danh sách dự án");
+        throw new Error(data.message || "Failed to fetch projects");
       }
 
       setDeleteConfirm(null);
       setActionMenu(null);
     } catch (err) {
-      setError(err.message || "Lỗi khi xóa thành viên");
+      setError(err.message || "Error removing member");
       console.error("Delete member error:", err);
     }
   };
@@ -548,10 +536,9 @@ const MyProjects = () => {
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.message || "Không thể chuyển leader");
+        throw new Error(data.message || "Failed to transfer leader");
       }
 
-      // Refresh project list
       const fetchResponse = await fetch(
         "http://localhost:8080/api/projects/my-projects",
         {
@@ -577,7 +564,6 @@ const MyProjects = () => {
         setProjectsSidebar(mappedProjects);
         localStorage.setItem("projects", JSON.stringify(mappedProjects));
 
-        // Refresh members for the project
         const membersResponse = await fetch(
           `http://localhost:8080/api/members/project/${projectId}`,
           {
@@ -597,13 +583,13 @@ const MyProjects = () => {
           }));
         }
       } else {
-        throw new Error(data.message || "Không thể lấy danh sách dự án");
+        throw new Error(data.message || "Failed to fetch projects");
       }
 
       setTransferConfirm(null);
       setActionMenu(null);
     } catch (err) {
-      setError(err.message || "Lỗi khi chuyển leader");
+      setError(err.message || "Error transferring leader");
       console.error("Transfer leader error:", err);
     }
   };
@@ -630,41 +616,41 @@ const MyProjects = () => {
   };
 
   const statusOptions = [
-    { value: "all", label: "Tất cả trạng thái", icon: "fas fa-list" },
-    { value: "Đang hoạt động", label: "Đang hoạt động", icon: "fas fa-play-circle" },
-    { value: "Đã hoàn thành", label: "Đã hoàn thành", icon: "fas fa-check-circle" },
-    { value: "Tạm hoãn", label: "Tạm hoãn", icon: "fas fa-pause-circle" },
-    { value: "Đang lập kế hoạch", label: "Đang lập kế hoạch", icon: "fas fa-clock" },
+    { value: "all", label: "All Statuses", icon: "fas fa-list" },
+    { value: "Active", label: "Active", icon: "fas fa-play-circle" },
+    { value: "Completed", label: "Completed", icon: "fas fa-check-circle" },
+    { value: "On Hold", label: "On Hold", icon: "fas fa-pause-circle" },
+    { value: "Planning", label: "Planning", icon: "fas fa-clock" },
   ];
 
   const typeOptions = [
-    { value: "all", label: "Tất cả loại", icon: "fas fa-th" },
+    { value: "all", label: "All Types", icon: "fas fa-th" },
     { value: "Kanban", label: "Kanban", icon: "fas fa-columns" },
     { value: "Scrum", label: "Scrum", icon: "fas fa-bolt" },
-    { value: "Simple", label: "Đơn giản", icon: "fas fa-check-circle" },
+    { value: "Simple", label: "Simple", icon: "fas fa-check-circle" },
   ];
 
   const sortOptions = [
-    { value: "name", label: "Tên (A-Z)", icon: "fas fa-sort-alpha-down" },
-    { value: "name-desc", label: "Tên (Z-A)", icon: "fas fa-sort-alpha-up" },
+    { value: "name", label: "Name (A-Z)", icon: "fas fa-sort-alpha-down" },
+    { value: "name-desc", label: "Name (Z-A)", icon: "fas fa-sort-alpha-up" },
     {
       value: "progress",
-      label: "Tiến độ (Thấp-Cao)",
+      label: "Progress (Low-High)",
       icon: "fas fa-sort-numeric-down",
     },
     {
       value: "progress-desc",
-      label: "Tiến độ (Cao-Thấp)",
+      label: "Progress (High-Low)",
       icon: "fas fa-sort-numeric-up",
     },
     {
       value: "creation-date",
-      label: "Ngày tạo (Cũ-Mới)",
+      label: "Creation Date (Old-New)",
       icon: "fas fa-calendar-alt",
     },
     {
       value: "creation-date-desc",
-      label: "Ngày tạo (Mới-Cũ)",
+      label: "Creation Date (New-Old)",
       icon: "fas fa-calendar-alt",
     },
   ];
@@ -681,25 +667,25 @@ const MyProjects = () => {
           <div className="project-list-container">
             <div className="page-header">
               <div className="page-title-section">
-                <h1 className="section-title">Dự án của tôi</h1>
+                <h1 className="section-title">My Projects</h1>
                 <p className="page-subtitle">
-                  Quản lý và theo dõi tất cả dự án của bạn tại một nơi
+                  Manage and track all your projects in one place
                 </p>
               </div>
               <div className="page-actions">
                 <button
                   className="btn btn-secondary"
                   onClick={handleClearFilters}
-                  aria-label="Xóa bộ lọc"
+                  aria-label="Clear Filters"
                 >
-                  <i className="fas fa-filter"></i>Xóa Bộ lọc
+                  <i className="fas fa-filter"></i>Clear Filters
                 </button>
                 <button
                   className="btn btn-primary"
                   onClick={() => navigate("/create-project")}
-                  aria-label="Tạo dự án mới"
+                  aria-label="Create New Project"
                 >
-                  <i className="fas fa-plus"></i>Tạo Dự án Mới
+                  <i className="fas fa-plus"></i>Create New Project
                 </button>
               </div>
             </div>
@@ -717,21 +703,21 @@ const MyProjects = () => {
                   onSearchChange={setSearchQuery}
                 />
                 <Dropdown
-                  label="Lọc theo Trạng thái"
+                  label="Filter by Status"
                   options={statusOptions}
                   selected={statusFilter}
                   onSelect={setStatusFilter}
                   className="filter-dropdown"
                 />
                 <Dropdown
-                  label="Lọc theo Loại"
+                  label="Filter by Type"
                   options={typeOptions}
                   selected={typeFilter}
                   onSelect={setTypeFilter}
                   className="filter-dropdown"
                 />
                 <Dropdown
-                  label="Sắp xếp theo"
+                  label="Sort by"
                   options={sortOptions}
                   selected={sortBy}
                   onSelect={setSortBy}
@@ -743,16 +729,16 @@ const MyProjects = () => {
                   <button
                     className={viewMode === "grid" ? "active" : ""}
                     onClick={() => setViewMode("grid")}
-                    aria-label="Chế độ lưới"
+                    aria-label="Grid View"
                   >
-                    <i className="fas fa-th"></i>Lưới
+                    <i className="fas fa-th"></i>Grid
                   </button>
                   <button
                     className={viewMode === "list" ? "active" : ""}
                     onClick={() => setViewMode("list")}
-                    aria-label="Chế độ danh sách"
+                    aria-label="List View"
                   >
-                    <i className="fas fa-list"></i>Danh sách
+                    <i className="fas fa-list"></i>List
                   </button>
                 </div>
               </div>
@@ -785,7 +771,7 @@ const MyProjects = () => {
                     onClick={() => setDeleteConfirm(actionMenu)}
                     className="action-button"
                   >
-                    Xóa thành viên
+                    Remove Member
                   </button>
                 )}
                 {actionMenu.memberEmail !== currentUserEmail && (
@@ -793,7 +779,7 @@ const MyProjects = () => {
                     onClick={() => setTransferConfirm(actionMenu)}
                     className="action-button"
                   >
-                    Chuyển leader
+                    Transfer Leader
                   </button>
                 )}
               </div>
@@ -802,17 +788,16 @@ const MyProjects = () => {
             {deleteConfirm && deleteConfirm.memberEmail !== currentUserEmail && (
               <div className="modal-overlay">
                 <div className="confirm-dialog">
-                  <h3>Xác nhận xóa thành viên</h3>
+                  <h3>Confirm Member Removal</h3>
                   <p>
-                    Bạn có chắc muốn xóa thành viên {deleteConfirm.memberEmail} khỏi
-                    dự án?
+                    Are you sure you want to remove {deleteConfirm.memberEmail} from the project?
                   </p>
                   <div className="form-buttons">
                     <button
                       onClick={() => setDeleteConfirm(null)}
                       className="cancel-button"
                     >
-                      Hủy
+                      Cancel
                     </button>
                     <button
                       onClick={() =>
@@ -823,7 +808,7 @@ const MyProjects = () => {
                       }
                       className="confirm-button"
                     >
-                      Xác nhận
+                      Confirm
                     </button>
                   </div>
                 </div>
@@ -833,17 +818,16 @@ const MyProjects = () => {
             {transferConfirm && transferConfirm.memberEmail !== currentUserEmail && (
               <div className="modal-overlay">
                 <div className="confirm-dialog">
-                  <h3>Xác nhận chuyển leader</h3>
+                  <h3>Confirm Leader Transfer</h3>
                   <p>
-                    Bạn có chắc muốn chuyển vai trò leader cho{" "}
-                    {transferConfirm.memberEmail}?
+                    Are you sure you want to transfer the leader role to {transferConfirm.memberEmail}?
                   </p>
                   <div className="form-buttons">
                     <button
                       onClick={() => setTransferConfirm(null)}
                       className="cancel-button"
                     >
-                      Hủy
+                      Cancel
                     </button>
                     <button
                       onClick={() =>
@@ -854,7 +838,7 @@ const MyProjects = () => {
                       }
                       className="confirm-button"
                     >
-                      Xác nhận
+                      Confirm
                     </button>
                   </div>
                 </div>
