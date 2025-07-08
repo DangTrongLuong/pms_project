@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { NotificationContext } from "../context/NotificationContext";
 import "../styles/user/login.css";
 import { useUser } from "../context/UserContext";
+
 const AuthMiddleware = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -18,8 +19,10 @@ const AuthMiddleware = ({ children }) => {
   useEffect(() => {
     const refreshAccessToken = async () => {
       const refreshToken = localStorage.getItem("refreshToken");
-      if (!refreshToken || refreshToken === "") {
-        console.log("No valid refresh token available");
+      const authProvider = localStorage.getItem("authProvider");
+
+      if (!refreshToken || refreshToken === "" || authProvider !== "google") {
+        console.log("No valid refresh token or not Google auth");
         return false;
       }
 
@@ -69,6 +72,7 @@ const AuthMiddleware = ({ children }) => {
       const accessToken = localStorage.getItem("accessToken");
       const expiresAt = localStorage.getItem("tokenExpiresAt");
       const authProvider = localStorage.getItem("authProvider");
+      const role = localStorage.getItem("role");
 
       if (!accessToken || !expiresAt) {
         console.log(
@@ -85,16 +89,25 @@ const AuthMiddleware = ({ children }) => {
         return expiresAtNum < Date.now();
       };
 
-      if (isTokenExpired() && authProvider === "google") {
-        console.log("Token expired, attempting to refresh");
-        const refreshed = await refreshAccessToken();
-        if (!refreshed) {
-          console.log("Token refresh failed, redirecting to /login");
+      if (isTokenExpired()) {
+        if (authProvider === "google") {
+          console.log("Token expired for Google, attempting to refresh");
+          const refreshed = await refreshAccessToken();
+          if (!refreshed) {
+            console.log("Token refresh failed, redirecting to /login");
+            navigate("/login", { replace: true });
+            return;
+          }
+        } else {
+          console.log(`Token expired for ${authProvider} login, redirecting to /login`);
           navigate("/login", { replace: true });
           return;
         }
-      } else if (isTokenExpired() && authProvider === "email") {
-        console.log("Token expired for email login, redirecting to /login");
+      }
+
+      // Kiểm tra quyền truy cập admin
+      if (location.pathname.startsWith("/admin") && role !== "ADMIN") {
+        console.log("Access denied: Admin role required");
         navigate("/login", { replace: true });
         return;
       }
@@ -182,6 +195,7 @@ const AuthMiddleware = ({ children }) => {
             avatarUrl: data.avatarUrl || null,
             userName: data.name || null,
             backgroundUrl: data.backgroundUrl || null,
+            role: data.role || "USER",
           });
 
           console.log("=== STORED IN LOCALSTORAGE ===");
@@ -207,63 +221,7 @@ const AuthMiddleware = ({ children }) => {
           console.error("Error fetching user info:", error);
           setDebugInfo(`Error: ${error.message}`);
           setIsLoading(false);
-          // Retry once before redirecting to login
-          if (!hasFetched.current) {
-            hasFetched.current = true;
-            fetch("http://localhost:8080/api/auth/user-info", {
-              method: "GET",
-              credentials: "include",
-              headers: {
-                Accept: "application/json",
-              },
-            })
-              .then((retryResponse) => {
-                if (!retryResponse.ok)
-                  throw new Error(`Retry failed: ${retryResponse.status}`);
-                return retryResponse.json();
-              })
-              .then((retryData) => {
-                localStorage.setItem("accessToken", retryData.accessToken);
-                localStorage.setItem("authProvider", "google");
-                const expiresIn = retryData.expiresIn || 3600;
-                localStorage.setItem(
-                  "tokenExpiresAt",
-                  Date.now() + expiresIn * 1000
-                );
-                if (retryData.refreshToken && retryData.refreshToken !== "") {
-                  localStorage.setItem("refreshToken", retryData.refreshToken);
-                }
-                localStorage.setItem("userId", retryData.userId || "");
-                localStorage.setItem("userName", retryData.name || "User");
-                localStorage.setItem(
-                  "userEmail",
-                  retryData.email || "user@example.com"
-                );
-                localStorage.setItem("avatarUrl", retryData.avatarUrl || "");
-                localStorage.setItem("role", retryData.role || "USER");
-                localStorage.setItem(
-                  "created_at",
-                  retryData.created_at || new Date().toISOString().split("T")[0]
-                );
-                localStorage.setItem(
-                  "backgroundUrl",
-                  retryData.backgroundUrl || null
-                );
-                setUser({
-                  avatarUrl: retryData.avatarUrl || null,
-                  userName: retryData.name || null,
-                  backgroundUrl: retryData.backgroundUrl || null,
-                });
-                triggerSuccess();
-                navigate("/dashboard", { replace: true });
-              })
-              .catch((retryError) => {
-                console.error("Retry failed:", retryError);
-                navigate("/login?error=fetch_failed", { replace: true });
-              });
-          } else {
-            navigate("/login?error=fetch_failed", { replace: true });
-          }
+          navigate("/login?error=fetch_failed", { replace: true });
         })
         .finally(() => {
           console.log("=== CLEANUP ===");

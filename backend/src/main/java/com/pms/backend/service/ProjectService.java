@@ -154,4 +154,21 @@ public class ProjectService {
         projectRepository.delete(project);
         log.info("Project deleted: {}", projectId);
     }
+
+    public List<Project> findAll(String userId, String role) {
+        log.info("Fetching all projects for userId: {}, role: {}", userId, role);
+        if (!"ADMIN".equals(role)) {
+            throw new AppException(ErrorStatus.UNAUTHORIZED);
+        }
+        List<Project> projects = projectRepository.findAll();
+        return projects.stream()
+                .map(project -> {
+                    List<Members> members = memberRepository.findByProjectId(String.valueOf(project.getId()));
+                    project.setMembers(members.stream()
+                            .map(Members::getEmail)
+                            .collect(Collectors.joining(", ")));
+                    return project;
+                })
+                .collect(Collectors.toList());
+    }
 }

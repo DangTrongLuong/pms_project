@@ -21,6 +21,7 @@ function Login() {
   });
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const { triggerSuccess } = useContext(NotificationContext);
+
   const validateEmail = (value) => {
     const emailRegex = /^[^\s@]+@gmail\.com$/;
     return value && !emailRegex.test(value)
@@ -108,11 +109,12 @@ function Login() {
         avatarUrl: result.avatarUrl || null,
         userName: result.name || null,
         backgroundUrl: result.backgroundUrl || null,
+        role: result.role || "USER",
       });
       
-      localStorage.setItem("authProvider", "email");
+      localStorage.setItem("authProvider", result.authProvider || "email");
       triggerSuccess();
-      navigate("/dashboard", { replace: true });
+      navigate(result.role === "ADMIN" ? "/adminuser" : "/dashboard", { replace: true });
     } catch (err) {
       setError((prev) => ({
         ...prev,
