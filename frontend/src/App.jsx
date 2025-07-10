@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-pascal-case */
 import React from "react";
 import "./styles/App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
@@ -13,109 +14,126 @@ import HomePage from "./pages/user/HomePage";
 import Profile from "./pages/user/Profile";
 import Backlog from "./pages/user/Backlog";
 import Progress from "./pages/user/Progress";
+import AdminUsers from "./pages/admin/AdminUser";
+import AdminProject from "./pages/admin/AdminProject";
 import {
   NotificationProvider,
   NotificationContext,
 } from "./context/NotificationContext";
-import "./styles/user/login.css"; // Import login.css for notification styles
+
 import { UserProvider } from "./context/UserContext";
 import ProjectTask from "./components/Project_Task";
 import CustomCursor from "./components/CustomCursor";
+
 function App() {
   return (
     <NotificationProvider>
-      <Router>
-        <Notification />
-        <UserProvider>
-          <div className="App">
-            <CustomCursor />
-            <Routes>
-              {/* Public routes */}
-              <Route path="/" element={<HomePage />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/homepage" element={<HomePage />} />
+        <Router>
+          <Notification />
+          <UserProvider>
+            <div className="App">
+              
+              <Routes>
+                {/* Public routes */}
+                <Route path="/" element={<HomePage />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/homepage" element={<HomePage />} />
 
-              <Route
-                path="/loginSuccess"
-                element={<AuthMiddleware>{null}</AuthMiddleware>}
-              />
+                <Route
+                  path="/loginSuccess"
+                  element={<AuthMiddleware>{null}</AuthMiddleware>}
+                />
 
-              {/* Protected routes */}
-              <Route
-                path="/dashboard"
-                element={
-                  <AuthMiddleware>
-                    <Dashboard />
-                  </AuthMiddleware>
-                }
-              />
-              <Route
-                path="/task"
-                element={
-                  <AuthMiddleware>
-                    <Task />
-                  </AuthMiddleware>
-                }
-              />
-              <Route
-                path="/members"
-                element={
-                  <AuthMiddleware>
-                    <Members />
-                  </AuthMiddleware>
-                }
-              />
-              <Route
-                path="/myProject"
-                element={
-                  <AuthMiddleware>
-                    <MyProject />
-                  </AuthMiddleware>
-                }
-              />
-
-              <Route
-                path="/project-task/:id"
-                element={
-                  <AuthMiddleware>
-                    <ProjectTask />
-                  </AuthMiddleware>
-                }
-              >
-                <Route path="backlog" element={<Backlog />} />
-                <Route path="progress" element={<Progress />} />
-              </Route>
-
-              <Route
-                path="/create-project"
-                element={
-                  <AuthMiddleware>
-                    <Create_Project />
-                  </AuthMiddleware>
-                }
-              />
-              <Route
-                path="/my_profile"
-                element={
-                  <AuthMiddleware>
-                    <Profile />
-                  </AuthMiddleware>
-                }
-              />
-            </Routes>
-          </div>
-        </UserProvider>
-      </Router>
+                {/* Protected routes */}
+                <Route
+                  path="/dashboard"
+                  element={
+                    <AuthMiddleware>
+                      <Dashboard />
+                    </AuthMiddleware>
+                  }
+                />
+                <Route
+                  path="/task"
+                  element={
+                    <AuthMiddleware>
+                      <Task />
+                    </AuthMiddleware>
+                  }
+                />
+                <Route
+                  path="/members"
+                  element={
+                    <AuthMiddleware>
+                      <Members />
+                    </AuthMiddleware>
+                  }
+                />
+                <Route
+                  path="/myProject"
+                  element={
+                    <AuthMiddleware>
+                      <MyProject />
+                    </AuthMiddleware>
+                  }
+                />
+                <Route
+                  path="/project-task/:id"
+                  element={
+                    <AuthMiddleware>
+                      <ProjectTask />
+                    </AuthMiddleware>
+                  }
+                >
+                  <Route path="backlog" element={<Backlog />} />
+                  <Route path="progress" element={<Progress />} />
+                </Route>
+                <Route
+                  path="/create-project"
+                  element={
+                    <AuthMiddleware>
+                      <Create_Project />
+                    </AuthMiddleware>
+                  }
+                />
+                <Route
+                  path="/my_profile"
+                  element={
+                    <AuthMiddleware>
+                      <Profile />
+                    </AuthMiddleware>
+                  }
+                />
+                <Route
+                  path="/adminuser"
+                  element={
+                    <AuthMiddleware>
+                      <AdminUsers />
+                    </AuthMiddleware>
+                  }
+                />
+                <Route
+                  path="/adminprojects"
+                  element={
+                    <AuthMiddleware>
+                      <AdminProject />
+                    </AuthMiddleware>
+                  }
+                />
+              </Routes>
+            </div>
+          </UserProvider>
+        </Router>
     </NotificationProvider>
   );
 }
 
 const Notification = () => {
-  const { showSuccess, successMessage } = React.useContext(NotificationContext);
-  return showSuccess ? (
+  const { showSuccess, successMessage, showError, errorMessage } = React.useContext(NotificationContext);
+  return (showSuccess || showError) ? (
     <div className="success-notification">
-      <div className="success-content">
+      <div className={`success-content ${showSuccess ? "success" : "error"}`}>
         <div className="success-circle">
           <svg
             className="checkmark"
@@ -136,7 +154,7 @@ const Notification = () => {
             />
           </svg>
         </div>
-        <p>{successMessage}</p>
+        <p>{showSuccess ? successMessage : errorMessage}</p>
       </div>
     </div>
   ) : null;

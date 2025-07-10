@@ -1,4 +1,3 @@
-// UserContext.js
 import React, { createContext, useContext, useState, useEffect } from "react";
 
 const UserContext = createContext();
@@ -8,17 +7,17 @@ export const UserProvider = ({ children }) => {
     avatarUrl: localStorage.getItem("avatarUrl") || null,
     userName: localStorage.getItem("userName") || null,
     backgroundUrl: localStorage.getItem("backgroundUrl") || null,
+    role: localStorage.getItem("role") || null,
   });
 
   useEffect(() => {
-    // Cập nhật state khi localStorage thay đổi
     const updateUserFromLocalStorage = () => {
       setUser((prev) => ({
         ...prev,
         avatarUrl: localStorage.getItem("avatarUrl") || prev.avatarUrl,
         userName: localStorage.getItem("userName") || prev.userName,
-        backgroundUrl:
-          localStorage.getItem("backgroundUrl") || prev.backgroundUrl,
+        backgroundUrl: localStorage.getItem("backgroundUrl") || prev.backgroundUrl,
+        role: localStorage.getItem("role") || prev.role,
       }));
     };
 
@@ -33,7 +32,8 @@ export const UserProvider = ({ children }) => {
     localStorage.setItem("avatarUrl", newUser.avatarUrl || "");
     localStorage.setItem("userName", newUser.userName || "");
     localStorage.setItem("backgroundUrl", newUser.backgroundUrl || "");
-    window.dispatchEvent(new Event("storage")); // Trigger storage event
+    localStorage.setItem("role", newUser.role || "");
+    window.dispatchEvent(new Event("storage"));
   };
 
   return (

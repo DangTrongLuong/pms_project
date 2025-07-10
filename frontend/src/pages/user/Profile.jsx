@@ -34,7 +34,7 @@ const ProfileContent = () => {
   const [confirmMessage, setConfirmMessage] = useState("");
 
   useEffect(() => {
-    // Cập nhật state từ localStorage
+    // Update state from localStorage
     const storedName = localStorage.getItem("userName");
     const storedEmail = localStorage.getItem("userEmail");
     const storedAvatar = localStorage.getItem("avatarUrl");
@@ -68,7 +68,7 @@ const ProfileContent = () => {
     if (storedRole) setRole(storedRole);
     if (storedCreatedAt) setCreatedAt(storedCreatedAt);
 
-    // Cập nhật DOM
+    // Update DOM
     document.getElementById("full-name").textContent = storedName || "User";
     document.getElementById("email").textContent =
       storedEmail || "user@example.com";
@@ -114,7 +114,7 @@ const ProfileContent = () => {
     const file = e.target.files[0];
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) {
-      alert("File quá lớn! Vui lòng chọn file nhỏ hơn 5MB.");
+      alert("File is too large! Please select a file smaller than 5MB.");
       return;
     }
 
@@ -159,7 +159,7 @@ const ProfileContent = () => {
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      alert("File quá lớn! Vui lòng chọn file nhỏ hơn 5MB.");
+      alert("File is too large! Please select a file smaller than 5MB.");
       return;
     }
     const storedEmail = localStorage.getItem("userEmail");
@@ -194,7 +194,7 @@ const ProfileContent = () => {
         const coverImg = document.getElementById("cover-img");
         if (coverImg) {
           coverImg.src = newBackgroundUrl;
-          coverImg.classList.add("visible"); // Thêm class visible
+          coverImg.classList.add("visible");
         }
         document.getElementById("remove-cover-btn").style.display = "block";
       } else {
@@ -210,7 +210,7 @@ const ProfileContent = () => {
     const token = localStorage.getItem("accessToken");
     console.log("userEmail:", localStorage.getItem("userEmail"));
     console.log("accessToken:", localStorage.getItem("accessToken"));
-    setConfirmMessage("Bạn có chắc chắn muốn xóa ảnh nền không?");
+    setConfirmMessage("Are you sure you want to remove the background image?");
     setConfirmAction(() => async () => {
       try {
         const headers = {
@@ -254,7 +254,7 @@ const ProfileContent = () => {
     const token = localStorage.getItem("accessToken");
     console.log("userEmail:", localStorage.getItem("userEmail"));
     console.log("accessToken:", localStorage.getItem("accessToken"));
-    setConfirmMessage("Bạn có chắc chắn muốn cập nhật tên?");
+    setConfirmMessage("Are you sure you want to update your name?");
     setConfirmAction(() => async () => {
       try {
         const headers = {
@@ -318,7 +318,7 @@ const ProfileContent = () => {
                   }
                 >
                   <FontAwesomeIcon icon={faPenToSquare} />
-                  Thêm hình nền
+                  Add Background Image
                 </button>
                 <button
                   className="remove-cover-btn"
@@ -327,7 +327,7 @@ const ProfileContent = () => {
                   onClick={handleRemoveBackground}
                 >
                   <FontAwesomeIcon icon={faTrashCan} />
-                  Xóa hình nền
+                  Remove Background Image
                 </button>
               </div>
             </div>
@@ -338,7 +338,7 @@ const ProfileContent = () => {
                   <img
                     id="profile-img"
                     src={avatarUrl}
-                    alt="Ảnh cá nhân"
+                    alt="Profile Picture"
                     className="profile-img"
                   />
                 </div>
@@ -356,21 +356,21 @@ const ProfileContent = () => {
                     document.getElementById("avatar-input").click()
                   }
                 >
-                  Chỉnh sửa ảnh
+                  Edit Picture
                 </button>
                 <button
                   id="edit-info-btn"
                   className="edit-btn-info"
                   onClick={handleEditName}
                 >
-                  Chỉnh sửa thông tin
+                  Edit Information
                 </button>
               </div>
               <div className="profile-info">
-                <h2>Thông tin cá nhân</h2>
+                <h2>Personal Information</h2>
                 <div className="info-field">
                   <label>
-                    Họ và tên: <span id="full-name">{userName}</span>
+                    Full Name: <span id="full-name">{userName}</span>
                   </label>
                 </div>
                 <div className="info-field">
@@ -380,12 +380,12 @@ const ProfileContent = () => {
                 </div>
                 <div className="info-field">
                   <label>
-                    Vai trò: <span id="role">{role}</span>
+                    Role: <span id="role">{role}</span>
                   </label>
                 </div>
                 <div className="info-field">
                   <label>
-                    Ngày tạo: <span id="created-at">{createdAt}</span>
+                    Created At: <span id="created-at">{createdAt}</span>
                   </label>
                 </div>
               </div>
@@ -398,15 +398,15 @@ const ProfileContent = () => {
       {showEditNameForm && (
         <div className="modal">
           <div className="modal-content">
-            <h3>Cập nhật họ tên</h3>
+            <h3>Update Full Name</h3>
             <input
               type="text"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              placeholder="Nhập họ tên mới"
+              placeholder="Enter new full name"
             />
-            <button onClick={handleUpdateName}>Cập nhật</button>
-            <button onClick={() => setShowEditNameForm(false)}>Hủy</button>
+            <button onClick={handleUpdateName}>Update</button>
+            <button onClick={() => setShowEditNameForm(false)}>Cancel</button>
           </div>
         </div>
       )}
@@ -414,10 +414,10 @@ const ProfileContent = () => {
       {showConfirmForm && (
         <div className="modal">
           <div className="modal-content">
-            <h3>Xác nhận</h3>
+            <h3>Confirm</h3>
             <p>{confirmMessage}</p>
-            <button onClick={confirmAction}>Xác nhận</button>
-            <button onClick={() => setShowConfirmForm(false)}>Hủy</button>
+            <button onClick={confirmAction}>Confirm</button>
+            <button onClick={() => setShowConfirmForm(false)}>Cancel</button>
           </div>
         </div>
       )}

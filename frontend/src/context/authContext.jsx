@@ -1,6 +1,7 @@
 export const login = async (email, password) => {
   try {
-    const response = await fetch("http://localhost:8080/api/auth/login", {
+    // Thử đăng nhập local trước
+    let response = await fetch("http://localhost:8080/api/auth/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -8,9 +9,9 @@ export const login = async (email, password) => {
       body: JSON.stringify({ email, password }),
     });
 
-    const data = await response.json();
-    if (data.result.authenticated) {
-      console.log("data", data.result);
+    let data = await response.json();
+    if (data.result && data.result.authenticated) {
+      console.log("Local login data", data.result);
       localStorage.setItem("accessToken", data.result.accessToken);
       localStorage.setItem(
         "tokenExpiresAt",
@@ -18,24 +19,72 @@ export const login = async (email, password) => {
       );
       localStorage.setItem("userId", data.result.id);
       localStorage.setItem("userEmail", data.result.email || email);
-      localStorage.setItem("userName", data.result.name || "User"); // Lưu tên
+      localStorage.setItem("userName", data.result.name || "User");
       localStorage.setItem(
         "avatarUrl",
         data.result.avatarUrl ||
           "http://localhost:8080/uploads/avatars/default-avatar.png"
-      ); // Lưu avatar
+      );
       localStorage.setItem("role", data.result.role || "USER");
       localStorage.setItem(
         "created_at",
         data.result.createdAt || new Date().toISOString().split("T")[0]
       );
       localStorage.setItem("backgroundUrl", data.result.backgroundUrl || null);
-      localStorage.setItem("authProvider", "email"); // Lưu authProvider
+      localStorage.setItem("authProvider", "email");
 
-      return data.result;
-    } else {
-      throw new Error("Login failed");
+      return { ...data.result, authProvider: "email" };
     }
+
+    // Nếu đăng nhập local thất bại, thử đăng nhập admin
+    console.log("Local login failed, attempting admin login");
+    response = await fetch("http://localhost:8080/api/admin/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ email, password }),
+    });
+
+    data = await response.json();
+    if (response.ok && data.token) {
+      console.log("Admin login data", data);
+      localStorage.setItem("accessToken", data.token);
+      localStorage.setItem(
+        "tokenExpiresAt",
+        Date.now() + 3600 * 1000 // 1 hour
+      );
+      localStorage.setItem("userId", data.user.id);
+      localStorage.setItem("userEmail", data.user.email || email);
+      localStorage.setItem("userName", data.user.username || "Admin");
+      localStorage.setItem(
+        "avatarUrl",
+        "http://localhost:8080/uploads/avatars/default-avatar.png"
+      );
+      localStorage.setItem("role", data.user.role || "ADMIN");
+      localStorage.setItem(
+        "created_at",
+        new Date().toISOString().split("T")[0]
+      );
+      localStorage.setItem("backgroundUrl", null);
+      localStorage.setItem("authProvider", "admin");
+
+      return {
+        accessToken: data.token,
+        expiresIn: 3600,
+        id: data.user.id,
+        email: data.user.email,
+        name: data.user.username,
+        avatarUrl: "http://localhost:8080/uploads/avatars/default-avatar.png",
+        role: data.user.role || "ADMIN",
+        createdAt: new Date().toISOString().split("T")[0],
+        backgroundUrl: null,
+        authProvider: "admin",
+      };
+    }
+
+    throw new Error(data.message || "Login failed");
   } catch (error) {
     console.error("Login error:", error);
     throw error;
@@ -54,7 +103,7 @@ export const register = async (name, email, password) => {
 
     const data = await response.json();
     if (response.ok && data.result) {
-      return data.result; // Return user data if needed
+      return data.result;
     } else {
       throw new Error(data.message || "Registration failed");
     }

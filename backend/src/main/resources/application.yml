@@ -11,6 +11,11 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
       enabled: true
+    # session:
+    #   tracking-modes: cookie
+    #   cookie:
+    #     http-only: true
+    #     secure: false
   # MySQL
   datasource:
     url: jdbc:mysql://localhost:3306/pms
@@ -60,3 +65,14 @@ logging:
     com:
       pms:
         backend: DEBUG
+
+#endpoint Prometheus
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus, health
+  metrics:
+    export:
+      prometheus:
+        enabled: true

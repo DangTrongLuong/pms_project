@@ -21,10 +21,11 @@ function Login() {
   });
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const { triggerSuccess } = useContext(NotificationContext);
+
   const validateEmail = (value) => {
     const emailRegex = /^[^\s@]+@gmail\.com$/;
     return value && !emailRegex.test(value)
-      ? "Email phải có định dạng @gmail.com"
+      ? "Email must be a valid @gmail.com address"
       : "";
   };
 
@@ -32,7 +33,7 @@ function Login() {
     const passwordRegex =
       /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{6,}$/;
     return value && !passwordRegex.test(value)
-      ? "Mật khẩu phải có ít nhất 1 chữ hoa, 1 số, 1 ký tự đặc biệt và dài 6 ký tự"
+      ? "Password must contain at least 1 uppercase letter, 1 number, 1 special character, and be 6 characters long"
       : "";
   };
 
@@ -40,7 +41,7 @@ function Login() {
     const value = e.target.value;
     setEmail(value);
     const emailError =
-      value === "" ? "Vui lòng nhập email" : validateEmail(value);
+      value === "" ? "Please enter email" : validateEmail(value);
     setError((prev) => ({
       ...prev,
       email: emailError,
@@ -52,7 +53,7 @@ function Login() {
     const value = e.target.value;
     setPassword(value);
     const passwordError =
-      value === "" ? "Vui lòng nhập mật khẩu" : validatePassword(value);
+      value === "" ? "Please enter password" : validatePassword(value);
     setError((prev) => ({
       ...prev,
       password: passwordError,
@@ -86,9 +87,9 @@ function Login() {
 
     setError({ general: "", email: "", password: "" });
 
-    const emailError = !email ? "Vui lòng nhập email" : validateEmail(email);
+    const emailError = !email ? "Please enter email" : validateEmail(email);
     const passwordError = !password
-      ? "Vui lòng nhập mật khẩu"
+      ? "Please enter password"
       : validatePassword(password);
 
     if (emailError || passwordError) {
@@ -108,15 +109,16 @@ function Login() {
         avatarUrl: result.avatarUrl || null,
         userName: result.name || null,
         backgroundUrl: result.backgroundUrl || null,
+        role: result.role || "USER",
       });
       
-      localStorage.setItem("authProvider", "email");
+      localStorage.setItem("authProvider", result.authProvider || "email");
       triggerSuccess();
-      navigate("/dashboard", { replace: true });
+      navigate(result.role === "ADMIN" ? "/adminuser" : "/dashboard", { replace: true });
     } catch (err) {
       setError((prev) => ({
         ...prev,
-        general: "Email hoặc mật khẩu không chính xác, vui lòng nhập lại",
+        general: "Incorrect email or password, please try again",
       }));
       shakeInputs();
     } finally {
@@ -183,9 +185,9 @@ function Login() {
     const support1Element = textRefs[1].current;
     const support2Element = textRefs[2].current;
     const texts = [
-      "Kết nối mọi team, nhiệm vụ và dự án cùng nhau bằng PMS!",
-      "Tạo dự án dễ dàng chỉ bằng 1 cú Click",
-      "Thêm thành viên cho dự án của bạn",
+      "Connect every team, task, and project together with PMS!",
+      "Create projects easily with just one click",
+      "Add members to your project",
     ];
     let indices = [0, 0, 0];
     let isPaused = [false, false, false];
@@ -245,7 +247,7 @@ function Login() {
           <ul className="homepage-navbar-support-list-login">
             <li className="homepage-navbar-support-item-login">
               <a href="#" className="home" onClick={handleHomePage}>
-                TRANG CHỦ
+                HOME
               </a>
             </li>
             <li className="homepage-navbar-support-item-login">
@@ -255,15 +257,7 @@ function Login() {
             </li>
           </ul>
         </div>
-        <div className="homepage-navbar-register-btn">
-          <button
-            type="submit"
-            className="homepage-btn-register"
-            onClick={handleRegisterClick}
-          >
-            ĐĂNG KÝ
-          </button>
-        </div>
+        
       </div>
       <div className="login-home">
         <div className="login-home-1">
@@ -303,7 +297,7 @@ function Login() {
                     required
                     autoComplete="password"
                   />
-                  <label htmlFor="password">Mật khẩu</label>
+                  <label htmlFor="password">Password</label>
                   <div className="err">
                     {error.password && (
                       <p className="error-message">{error.password}</p>
@@ -319,7 +313,7 @@ function Login() {
                   onClick={handleLocalLogin}
                   disabled={isLoggingIn}
                 >
-                  ĐĂNG NHẬP
+                  LOGIN
                 </button>
               </div>
               <div className="err-general">
@@ -330,7 +324,7 @@ function Login() {
                 )}
               </div>
               <div className="divider">
-                <span>Hoặc</span>
+                <span>Or</span>
               </div>
 
               <div className="login-google">
@@ -345,13 +339,13 @@ function Login() {
                     alt="Google Logo"
                     className="google-logo"
                   />
-                  Đăng nhập bằng Google
+                  Login with Google
                 </button>
               </div>
               <div className="register">
-                <p>Bạn chưa có tài khoản?</p>
+                <p>Don't have an account?</p>
                 <a href="#" onClick={handleRegisterClick}>
-                  Đăng ký ngay nhé !
+                  Register now!
                 </a>
               </div>
             </form>

@@ -24,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AuthenticationGoogleService {
+
     final UserRepository userRepository;
     final OAuth2AuthorizedClientService authorizedClientService;
 
@@ -70,13 +71,13 @@ public class AuthenticationGoogleService {
                 user.setGoogle_id(googleId);
             }
             if (user.getName() == null || !user.getName().equals(name)) {
-                user.setName(name); 
+                user.setName(name);
             }
             if (user.getAvatar_url() != null && !user.getAvatar_url().contains("google")) {
-            // Giữ avatar tùy chỉnh nếu đã upload
+                // Giữ avatar tùy chỉnh nếu đã upload
             } else {
-            user.setAvatar_url(avatar); // Cập nhật avatar Google nếu chưa có tùy chỉnh
-        }
+                user.setAvatar_url(avatar); // Cập nhật avatar Google nếu chưa có tùy chỉnh
+            }
             if (user.getAccess_token() == null || !user.getAccess_token().equals(accessToken)) {
                 user.setAccess_token(accessToken);
             }

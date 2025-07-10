@@ -3,6 +3,7 @@ package com.pms.backend.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,26 +18,29 @@ import com.pms.backend.dto.request.ApiResponsive;
 import com.pms.backend.dto.request.ProjectCreationRequest;
 import com.pms.backend.dto.request.ProjectUpdateRequest;
 import com.pms.backend.dto.response.ProjectResponse;
+import com.pms.backend.entity.Project;
 import com.pms.backend.service.ProjectService;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 @RestController
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequestMapping("/api/projects")
 public class ProjectController {
+
     ProjectService projectService;
 
     @PostMapping("/create-project")
     public ApiResponsive<ProjectResponse> createProject(
             @RequestBody ProjectCreationRequest request,
             @RequestHeader("userId") String userId
-            ) {
-            String userName = request.getUserName();
-            if (userName == null || userName.trim().isEmpty()) {
+    ) {
+        String userName = request.getUserName();
+        if (userName == null || userName.trim().isEmpty()) {
             throw new IllegalArgumentException("userName is required");
         }
         ProjectResponse projectResponse = projectService.createProject(request, userId, userName);
@@ -46,10 +50,18 @@ public class ProjectController {
     }
 
     @GetMapping("/my-projects")
-public ResponseEntity<List<ProjectResponse>> getMyProjects(@RequestHeader("userId") String userId) {
-    List<ProjectResponse> projects = projectService.getProjectsByUser(userId);
-    return ResponseEntity.ok(projects);
-}
+    public ResponseEntity<List<ProjectResponse>> getMyProjects(@RequestHeader("userId") String userId) {
+        List<ProjectResponse> projects = projectService.getProjectsByUser(userId);
+        return ResponseEntity.ok(projects);
+    }
+
+    @GetMapping("/find-all")
+    public ResponseEntity<List<Project>> findAllProjects(
+            @RequestHeader("userId") String userId,
+            @RequestHeader(value = "role", required = false) String role) {
+        List<Project> projects = projectService.findAll(userId, role);
+        return ResponseEntity.ok(projects);
+    }
 
     @GetMapping("/{projectId}")
     public ResponseEntity<ProjectResponse> getProject(

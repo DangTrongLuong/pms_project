@@ -1,105 +1,264 @@
-/* Existing styles */
-.main-container h2 {
-  font-size: 34px;
-  margin: 20px 0 -5px 15px;
-}
-
-.project-list {
+/* src/styles/project-list.css */
+.content {
+  flex: 1;
+  padding: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
   width: 100%;
-  height: 100vh;
-  padding: 25px;
-  margin-top: 5px;
 }
 
-.project-list .project-item {
-  margin-bottom: 20px;
-  width: 48%;
-  height: 300px;
-  padding: 10px 0 15px 10px;
-  border-radius: 5px;
-  float: left;
-  margin-right: 20px;
-  box-shadow: 2px 2px 5px rgb(142, 142, 142, 0.5);
-  border-left: 3px solid blue;
-  transition: all 0.3s ease-in-out;
-  font-size: 16px;
-  overflow-y: auto;
-  scrollbar-width: thin; /* Firefox */
-  scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
+.project-list-container {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 32px;
+  margin-bottom: 32px;
 }
 
-.project-list .project-item p {
-  margin-top: 5px;
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #172b4d;
+  margin-bottom: 16px;
 }
 
-.project-list .project-item strong {
-  margin-right: 5px;
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
 }
 
-.project-list .project-item:hover {
-  transform: translateY(-2px);
+.project-card {
+  background: #ffffff;
+  border: 1px solid #dfe1e6;
+  border-radius: 6px;
+  padding: 20px;
+  transition: all 0.2s;
+  cursor: pointer;
 }
 
-.member-list ul {
+.project-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border-color: #b3d4ff;
+}
+
+.project-card-title {
+  font-weight: 600;
+  color: #172b4d;
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.project-card-description {
+  color: #6b778c;
+  font-size: 14px;
+  line-height: 1.4;
+  margin-bottom: 16px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.project-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.project-type-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.project-type-badge.kanban {
+  background: #e3fcef;
+  color: #00875a;
+}
+
+.project-type-badge.scrum {
+  background: #e9f2ff;
+  color: #0052cc;
+}
+
+.project-type-badge.simple {
+  background: #f3e5f5;
+  color: #8777d9;
+}
+
+.project-card-date {
+  color: #97a0af;
+  font-size: 12px;
+}
+
+@media (max-width: 768px) {
+  .content {
+    padding: 16px;
+  }
+
+  .project-list-container {
+    padding: 20px;
+  }
+
+  .projects-grid {
+    grid-template-columns: 1fr;
+  }
+}
+/* Thêm vào my_project.css */
+.search-container {
+  position: relative;
   width: 100%;
-  height: auto;
-  padding: 10px;
-  margin-top: -5px;
-  list-style: none;
+  max-width: 300px;
 }
 
-.member-list ul li {
-  padding: 3px 0;
+.search-input {
+  width: 100%;
+  padding: 8px 8px 8px 32px;
+  border: 1px solid #dfe1e6;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b778c;
+}
+
+.dropdown {
+  position: relative;
+  min-width: 150px;
+}
+
+.dropdown-button {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #dfe1e6;
+  border-radius: 4px;
+  background: #fff;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 3px;
+  font-size: 14px;
 }
 
-.member-list ul li .action-delete-change {
-  display: flex;
-  justify-content: end;
-  width: auto;
+.dropdown-button.active {
+  border-color: #0052cc;
 }
 
-.view-button {
-  width: 120px;
-  height: 33px;
-  margin-top: 8px;
-  border-radius: 5px;
-  outline: none;
-  border: none;
-  background-color: rgb(0, 173, 75);
-  color: white;
-  font-size: 17px;
-  font-weight: 550;
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #dfe1e6;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+}
+
+.dropdown-item {
+  padding: 8px 12px;
   cursor: pointer;
-  transition: all 0.3s ease-in-out;
+}
+
+.dropdown-item:hover {
+  background: #f4f5f7;
+}
+
+.stats-bar {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-item {
+  flex: 1;
+  text-align: center;
+  padding: 16px;
+  background: #f4f5f7;
+  border-radius: 6px;
+}
+
+.stat-number {
+  font-size: 24px;
+  font-weight: 600;
+  color: #172b4d;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #6b778c;
+}
+
+.view-toggle {
+  display: flex;
+  gap: 8px;
+}
+
+.view-toggle button {
+  padding: 8px 12px;
+  border: 1px solid #dfe1e6;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.view-toggle button.active {
+  background: #0052cc;
+  color: #fff;
+  border-color: #0052cc;
+}
+
+.btn {
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: #0052cc;
+  color: #fff;
+  border: none;
+}
+
+.btn-secondary {
+  background: #f4f5f7;
+  color: #172b4d;
+  border: 1px solid #dfe1e6;
 }
 
 .action-menu {
   position: absolute;
-  background-color: #fff;
+  background: #fff;
+  border: 1px solid #dfe1e6;
   border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  padding: 10px;
-  z-index: 1000;
-  min-width: 150px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 10;
 }
 
 .action-button {
   display: block;
   width: 100%;
   padding: 8px 12px;
-  background: none;
   border: none;
+  background: none;
   text-align: left;
   cursor: pointer;
-  font-size: 14px;
 }
 
 .action-button:hover {
-  background-color: #f0f0f0;
+  background: #f4f5f7;
 }
 
 .modal-overlay {
@@ -108,51 +267,97 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 100;
 }
 
 .confirm-dialog {
-  background-color: #fff;
-  border-radius: 8px;
+  background: #fff;
   padding: 20px;
-  width: 400px;
-  text-align: center;
+  border-radius: 6px;
+  max-width: 400px;
+  width: 100%;
 }
 
 .form-buttons {
   display: flex;
-  justify-content: space-between;
-  margin-top: 20px;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.cancel-button,
+.confirm-button {
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 .cancel-button {
-  padding: 8px 16px;
-  background-color: #ccc;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+  background: #f4f5f7;
+  border: 1px solid #dfe1e6;
 }
 
 .confirm-button {
-  padding: 8px 16px;
-  background-color: #007bff;
+  background: #0052cc;
   color: #fff;
   border: none;
-  border-radius: 4px;
+}
+
+.team-label {
+  font-size: 14px;
+  color: #6b778c;
+  margin-bottom: 8px;
+}
+
+.team-avatars {
+  display: flex;
+  gap: 4px;
+}
+
+.team-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #dfe1e6;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 12px;
+  color: #172b4d;
+}
+
+.team-more {
+  background: #f4f5f7;
+}
+
+.action-delete-change {
+  position: absolute;
+  top: -8px;
+  right: -8px;
   cursor: pointer;
 }
 
-@media (max-width: 768px) {
-  .project-list .project-item {
-    width: 100%;
-    font-size: 15px;
-  }
+.loading-state,
+.empty-state {
+  text-align: center;
+  padding: 32px;
+  color: #6b778c;
+}
 
-  .action-menu {
-    min-width: 120px;
-  }
+.spinner {
+  border: 4px solid #f4f5f7;
+  border-top: 4px solid #0052cc;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }

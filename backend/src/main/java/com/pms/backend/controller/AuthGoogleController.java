@@ -35,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RequestMapping("/api/auth")
 public class AuthGoogleController {
+
     final UserService userService;
     final AuthenticationGoogleService authenticationGoogleService;
 
@@ -46,8 +47,8 @@ public class AuthGoogleController {
 
     @GetMapping("/loginSuccess")
     public void handleGoogleSuccess(OAuth2AuthenticationToken auth2AuthenticationToken,
-                                    HttpServletResponse response,
-                                    HttpSession session) throws IOException {
+            HttpServletResponse response,
+            HttpSession session) throws IOException {
 
         log.info("=== LOGIN SUCCESS ENDPOINT HIT ===");
 
@@ -133,10 +134,10 @@ public class AuthGoogleController {
             HttpURLConnection conn = (HttpURLConnection) new URL("https://oauth2.googleapis.com/token").openConnection();
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-            String body = "client_id=23955059535-ms7k1vo9hcgjdfhkoup7u3i01pqecq4u.apps.googleusercontent.com" +
-                    "&client_secret=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" +
-                    "&refresh_token=" + refreshToken +
-                    "&grant_type=refresh_token";
+            String body = "client_id=23955059535-ms7k1vo9hcgjdfhkoup7u3i01pqecq4u.apps.googleusercontent.com"
+                    + "&client_secret=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"
+                    + "&refresh_token=" + refreshToken
+                    + "&grant_type=refresh_token";
             conn.setDoOutput(true);
             conn.getOutputStream().write(body.getBytes());
 
