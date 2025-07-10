@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useEffect, useState, useRef } from "react";
 import { SidebarProvider, useSidebar } from "../../context/SidebarContext";
 import "../../styles/user/dashboard.css";
@@ -29,7 +30,6 @@ const mapStatusToFrontend = (backendStatus) => {
   const statusMap = {
     IN_PROGRESS: "Đang hoạt động",
     COMPLETED: "Đã hoàn thành",
-    ON_HOLD: "Tạm hoãn",
     PLANNING: "Đang lập kế hoạch",
   };
   return statusMap[backendStatus] || "Đang lập kế hoạch";
@@ -114,7 +114,6 @@ const StatsBar = ({ projects }) => {
     total: projects.length,
     active: projects.filter((p) => p.status === "Đang hoạt động").length,
     completed: projects.filter((p) => p.status === "Đã hoàn thành").length,
-    onHold: projects.filter((p) => p.status === "Tạm hoãn").length,
   };
 
   return (
@@ -130,10 +129,6 @@ const StatsBar = ({ projects }) => {
       <div className="stat-item">
         <div className="stat-number">{stats.completed}</div>
         <div className="stat-label">Đã hoàn thành</div>
-      </div>
-      <div className="stat-item">
-        <div className="stat-number">{stats.onHold}</div>
-        <div className="stat-label">Tạm hoãn</div>
       </div>
     </div>
   );
@@ -633,15 +628,13 @@ const MyProjects = () => {
     { value: "all", label: "Tất cả trạng thái", icon: "fas fa-list" },
     { value: "Đang hoạt động", label: "Đang hoạt động", icon: "fas fa-play-circle" },
     { value: "Đã hoàn thành", label: "Đã hoàn thành", icon: "fas fa-check-circle" },
-    { value: "Tạm hoãn", label: "Tạm hoãn", icon: "fas fa-pause-circle" },
     { value: "Đang lập kế hoạch", label: "Đang lập kế hoạch", icon: "fas fa-clock" },
   ];
 
   const typeOptions = [
     { value: "all", label: "Tất cả loại", icon: "fas fa-th" },
-    { value: "Kanban", label: "Kanban", icon: "fas fa-columns" },
     { value: "Scrum", label: "Scrum", icon: "fas fa-bolt" },
-    { value: "Simple", label: "Đơn giản", icon: "fas fa-check-circle" },
+
   ];
 
   const sortOptions = [
@@ -670,14 +663,14 @@ const MyProjects = () => {
   ];
 
   return (
-    <div className="container">
+    <div className="my-project-container">
       <Navbar />
       <div id="global-progress-bar" className="progress-bar"></div>
       <div className="content-container">
         <div className={`sidebar ${!isSidebarOpen ? "hidden" : ""}`}>
           <Sidebar />
         </div>
-        <div className="content">
+        <div className="my-project-content">
           <div className="project-list-container">
             <div className="page-header">
               <div className="page-title-section">
@@ -686,14 +679,8 @@ const MyProjects = () => {
                   Quản lý và theo dõi tất cả dự án của bạn tại một nơi
                 </p>
               </div>
+              <div className="page-actions-container">
               <div className="page-actions">
-                <button
-                  className="btn btn-secondary"
-                  onClick={handleClearFilters}
-                  aria-label="Xóa bộ lọc"
-                >
-                  <i className="fas fa-filter"></i>Xóa Bộ lọc
-                </button>
                 <button
                   className="btn btn-primary"
                   onClick={() => navigate("/create-project")}
@@ -701,6 +688,7 @@ const MyProjects = () => {
                 >
                   <i className="fas fa-plus"></i>Tạo Dự án Mới
                 </button>
+              </div>
               </div>
             </div>
 
@@ -721,7 +709,7 @@ const MyProjects = () => {
                   options={statusOptions}
                   selected={statusFilter}
                   onSelect={setStatusFilter}
-                  className="filter-dropdown"
+                 r className="filter-dropdown"
                 />
                 <Dropdown
                   label="Lọc theo Loại"
@@ -737,24 +725,6 @@ const MyProjects = () => {
                   onSelect={setSortBy}
                   className="sort-dropdown"
                 />
-              </div>
-              <div className="controls-right">
-                <div className="view-toggle">
-                  <button
-                    className={viewMode === "grid" ? "active" : ""}
-                    onClick={() => setViewMode("grid")}
-                    aria-label="Chế độ lưới"
-                  >
-                    <i className="fas fa-th"></i>Lưới
-                  </button>
-                  <button
-                    className={viewMode === "list" ? "active" : ""}
-                    onClick={() => setViewMode("list")}
-                    aria-label="Chế độ danh sách"
-                  >
-                    <i className="fas fa-list"></i>Danh sách
-                  </button>
-                </div>
               </div>
             </div>
 

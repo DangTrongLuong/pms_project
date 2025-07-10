@@ -3,7 +3,7 @@
   height: auto;
   padding: 30px;
   border-radius: 10px;
-  box-shadow: 1px 1px 2px gray;
+  box-shadow: 2px 2px 2px gray;
 }
 .create-project-header {
   width: 100%;
@@ -25,6 +25,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  margin: 10px 0;
 }
 .create-project-input label {
   font-size: 17px;
@@ -33,7 +34,7 @@
 .create-project-input input {
   height: 40px;
   border-radius: 8px;
-  border: 1px solid black;
+  border: 1px solid rgb(180, 180, 180);
   outline: none;
   padding: 10px;
   margin-bottom: 10px;
@@ -47,7 +48,7 @@
 
 .create-project-input textarea {
   border-radius: 8px;
-  border: 1px solid black;
+  border: 1px solid rgb(180, 180, 180);;
   outline: none;
   padding: 10px;
   font-size: 16px;
@@ -92,4 +93,17 @@
 .project-button .btn-add:hover {
   background-color: #11a3cf;
   transform: translateY(-2px);
+}
+
+.date{
+  display: flex;
+}
+
+.start-date{
+  width: 49%;
+  margin-right: 20px;
+}
+
+.end-date{
+  width: 49%;
 }
