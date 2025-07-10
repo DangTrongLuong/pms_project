@@ -36,9 +36,9 @@ const Create_Project_Content = () => {
         ? "description"
         : id]: value,
     }));
-    // Validation cho project_name
+    // Validation for project_name
     if (id === "project-name" && !value.trim()) {
-      setErrors((prev) => ({ ...prev, project_name: "Tên dự án là bắt buộc" }));
+      setErrors((prev) => ({ ...prev, project_name: "Project name is required" }));
     } else if (id === "project-name") {
       setErrors((prev) => ({ ...prev, project_name: "" }));
     }
@@ -46,18 +46,18 @@ const Create_Project_Content = () => {
 
   const handleDateChange = (e) => {
     const { id, value } = e.target;
-    // Validation ngay khi nhập
+    // Validation on input
     let errorMsg = "";
     if (value) {
       const [year, month, day] = value.split("-").map(Number);
       if (year < 1900 || year > 2100) {
-        errorMsg = "Năm không hợp lệ.";
+        errorMsg = "Invalid year.";
       } else if (month < 1 || month > 12) {
-        errorMsg = "Tháng phải từ 1 đến 12.";
+        errorMsg = "Month must be between 1 and 12.";
       } else {
         const daysInMonth = new Date(year, month, 0).getDate();
         if (day < 1 || day > daysInMonth) {
-          errorMsg = "Ngày không hợp lệ cho tháng này.";
+          errorMsg = "Invalid day for this month.";
         }
       }
     }
@@ -75,11 +75,11 @@ const Create_Project_Content = () => {
       ...prev,
       project_type: e.target.checked ? "Scrum" : "",
     }));
-    // Validation cho project_type
+    // Validation for project_type
     if (!e.target.checked) {
       setErrors((prev) => ({
         ...prev,
-        project_type: "Vui lòng chọn loại dự án",
+        project_type: "Please select a project type",
       }));
     } else {
       setErrors((prev) => ({ ...prev, project_type: "" }));
@@ -88,28 +88,28 @@ const Create_Project_Content = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Kiểm tra lỗi trước khi submit
+    // Check for errors before submitting
     const newErrors = {
       project_name: !formData.project_name.trim()
-        ? "Tên dự án là bắt buộc"
+        ? "Project name is required"
         : "",
-      project_type: !formData.project_type ? "Vui lòng chọn loại dự án" : "",
+      project_type: !formData.project_type ? "Please select a project type" : "",
       start_date: formData.start_date
         ? validateDate(formData.start_date)
           ? ""
-          : "Ngày bắt đầu không hợp lệ."
+          : "Invalid start date."
         : "",
       end_date: formData.end_date
         ? validateDate(formData.end_date)
           ? ""
-          : "Ngày kết thúc không hợp lệ."
+          : "Invalid end date."
         : "",
     };
     setErrors(newErrors);
 
     if (Object.values(newErrors).some((error) => error)) return;
 
-    // Kiểm tra thứ tự ngày
+    // Check date order
     if (
       formData.start_date &&
       formData.end_date &&
@@ -117,7 +117,7 @@ const Create_Project_Content = () => {
     ) {
       setErrors((prev) => ({
         ...prev,
-        end_date: "Ngày kết thúc phải sau ngày bắt đầu.",
+        end_date: "End date must be after start date.",
       }));
       return;
     }
@@ -168,7 +168,7 @@ const Create_Project_Content = () => {
     } catch (err) {
       setErrors((prev) => ({
         ...prev,
-        general: err.message || "Đã có lỗi xảy ra khi tạo dự án",
+        general: err.message || "An error occurred while creating the project",
       }));
       console.error("Create project error:", err);
     } finally {
@@ -177,7 +177,7 @@ const Create_Project_Content = () => {
   };
 
   const validateDate = (dateStr) => {
-    if (!dateStr) return true; // Cho phép trống
+    if (!dateStr) return true; // Allow empty
     const [year, month, day] = dateStr.split("-").map(Number);
     return (
       year >= 1900 &&
@@ -226,9 +226,9 @@ const Create_Project_Content = () => {
           <div className="create-project-container">
             <div className="create-project-header">
               <div className="create-project-title">
-                <h2>Tạo dự án mới</h2>
+                <h2>Create New Project</h2>
                 <p>
-                  Điền thông tin dự án ở phía dưới để hoàn thiện việc tạo dự án
+                  Fill in the project details below to complete the project creation
                 </p>
               </div>
               {errors.general && (
@@ -237,12 +237,12 @@ const Create_Project_Content = () => {
               <form onSubmit={handleSubmit} className="create-project-form">
                 <div className="create-project-input">
                   <label htmlFor="project-name">
-                    Tên dự án <span style={{ color: "red" }}>*</span>
+                    Project Name <span style={{ color: "red" }}>*</span>
                   </label>
                   <input
                     type="text"
                     id="project-name"
-                    placeholder="Tên dự án"
+                    placeholder="Project Name"
                     value={formData.project_name}
                     onChange={handleInputChange}
                   />
@@ -261,11 +261,11 @@ const Create_Project_Content = () => {
                 </div>
                 <div className="create-project-input">
                   <label htmlFor="project-description">
-                    Mô tả dự án của bạn
+                    Project Description
                   </label>
                   <textarea
                     id="project-description"
-                    placeholder="Mô tả dự án"
+                    placeholder="Project Description"
                     rows="3"
                     value={formData.description}
                     onChange={handleInputChange}
@@ -321,7 +321,7 @@ const Create_Project_Content = () => {
                 </div>
                 <div className="create-project-input-type">
                   <label htmlFor="project-type">
-                    Loại dự án <span style={{ color: "red" }}>*</span>
+                    Project Type <span style={{ color: "red" }}>*</span>
                   </label>
                   <div className="project-type-group">
                     <input
@@ -333,8 +333,7 @@ const Create_Project_Content = () => {
                     <div className="type">
                       <h3>Scrum</h3>
                       <p>
-                        Tiến nhanh tới mục tiêu dự án của bạn bằng bảng, danh
-                        sách công việc tồn đọng và mốc thời gian
+                        Move quickly toward your project goals with boards, backlogs, and timelines
                       </p>
                     </div>
                   </div>
@@ -367,7 +366,7 @@ const Create_Project_Content = () => {
                           }}
                         ></span>
                       ) : (
-                        "Tạo dự án"
+                        "Create"
                       )}
                     </button>
                   </div>

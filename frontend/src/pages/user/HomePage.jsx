@@ -1,7 +1,6 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable no-unused-vars */
 /* eslint-disable jsx-a11y/anchor-is-valid */
-// src/pages/Register.js
 import React, { useState, useContext, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -76,9 +75,9 @@ const HomePage = () => {
     const support1Element = textRefs[1].current;
     const support2Element = textRefs[2].current;
     const texts = [
-      "Chào mừng bạn đến với PMS! Hãy tạo tài khoản để bắt đầu hành trình quản lý dự án của bạn !",
-      "Tùy chỉnh cách thức làm việc của nhóm bạn.",
-      "Thiết lập, dọn dẹp và tự động hóa ngay cả những quy trình làm việc phức tạp nhất của dự án.",
+      "Welcome to PMS! Create an account to start your project management journey!",
+      "Customize your team's workflow.",
+      "Set up, streamline, and automate even the most complex project workflows.",
     ];
     let indices = [0, 0, 0];
     let isPaused = [false, false, false];
@@ -118,7 +117,6 @@ const HomePage = () => {
       }, 500);
     };
 
-    // Kích hoạt gõ chữ ngay khi trang tải
     if (titleElement) type(titleElement, texts[0], 0, 0);
     if (support1Element) type(support1Element, texts[1], 1, 1);
     if (support2Element) type(support2Element, texts[2], 2, 2);
@@ -140,7 +138,7 @@ const HomePage = () => {
             <ul className="homepage-navbar-support-list">
               <li className="homepage-navbar-support-item">
                 <a href="#" className="home">
-                  TRANG CHỦ
+                  HOME
                 </a>
               </li>
               <li className="homepage-navbar-support-item">
@@ -156,7 +154,7 @@ const HomePage = () => {
               className="homepage-btn-login"
               onClick={handleLoginClick}
             >
-              ĐĂNG NHẬP
+              LOGIN
             </button>
           </div>
           <div className="homepage-navbar-register-btn">
@@ -165,7 +163,7 @@ const HomePage = () => {
               className="homepage-btn-register"
               onClick={handleRegisterClick}
             >
-              ĐĂNG KÝ
+              SIGN UP
             </button>
           </div>
         </div>
@@ -177,11 +175,10 @@ const HomePage = () => {
             <div className="bg-overlay-content">
               <div className="bg-overlay-content-title">
                 <h1>
-                  Ghi lại, sắp xếp và giải quyết việc cần làm từ bất cứ đâu.
+                  Track, organize, and resolve tasks from anywhere.
                 </h1>
                 <p>
-                  Thoát khỏi tình trạng lộn xộn và hỗn loạn – giải phóng năng
-                  suất của bạn bằng PMS.
+                  Break free from clutter and chaos – unleash your productivity with PMS.
                 </p>
               </div>
               <div className="bg-overlay-content-buttons">
@@ -190,7 +187,7 @@ const HomePage = () => {
                   className="homepage-btn-login"
                   onClick={handleLoginClick}
                 >
-                  TÌM HIỂU NGAY THÔI NÀO
+                  EXPLORE NOW
                 </button>
               </div>
             </div>
@@ -230,7 +227,7 @@ const HomePage = () => {
             <h3>Contact Us</h3>
             <p>Email: kienlocdanluong@gmail.com</p>
             <p>Phone: +84 974541156</p>
-            <p>Address: Quận Hà Đông, Hà Nội</p>
+            <p>Address: Hà Đông District, Hanoi</p>
           </div>
           <div className="footer-column">
             <h3>Quick Links</h3>

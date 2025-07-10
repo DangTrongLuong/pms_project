@@ -32,6 +32,7 @@ function App() {
           <Notification />
           <UserProvider>
             <div className="App">
+              
               <Routes>
                 {/* Public routes */}
                 <Route path="/" element={<HomePage />} />

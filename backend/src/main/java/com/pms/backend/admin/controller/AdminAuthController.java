@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.pms.backend.admin.dto.AdminLoginDTO;
 import com.pms.backend.admin.dto.AdminUserDTO;
-import com.pms.backend.admin.service.AdminUserService;
+import com.pms.backend.admin.Service.AdminUserService;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;

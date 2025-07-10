@@ -108,7 +108,7 @@ const Sidebar = () => {
         <div className="sidebar-icon">
           <FontAwesomeIcon icon={faHouse} />
         </div>
-        <p className="sidebar-home">Trang chủ</p>
+        <p className="sidebar-home">Home</p>
       </div>
       <div
         className={`sidebar-item ${
@@ -119,7 +119,7 @@ const Sidebar = () => {
         <div className="sidebar-icon">
           <FontAwesomeIcon icon={faDiagramProject} />
         </div>
-        <p className="sidebar-project">Dự án của tôi</p>
+        <p className="sidebar-project">My projects</p>
       </div>
       <div
         className={`sidebar-item ${focusedItem === "/task" ? "focused" : ""}`}
@@ -128,7 +128,7 @@ const Sidebar = () => {
         <div className="sidebar-icon">
           <FontAwesomeIcon icon={faListCheck} />
         </div>
-        <p className="sidebar-task">Nhiệm vụ</p>
+        <p className="sidebar-task">My tasks</p>
       </div>
       <div
         className={`sidebar-item ${
@@ -139,7 +139,7 @@ const Sidebar = () => {
         <div className="sidebar-icon">
           <FontAwesomeIcon icon={faUsers} />
         </div>
-        <p className="sidebar-member">Thành viên</p>
+        <p className="sidebar-member">Members</p>
       </div>
 
       <hr />
@@ -152,7 +152,7 @@ const Sidebar = () => {
           <div className="sidebar-icon">
             <FontAwesomeIcon icon={faRocket} />
           </div>
-          <p className="sidebar-common-project-title">Dự án</p>
+          <p className="sidebar-common-project-title">Project</p>
         </div>
         <div
           className="sidebar-add-project"
