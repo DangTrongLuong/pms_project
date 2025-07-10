@@ -160,7 +160,7 @@ const HomePage = () => {
               className="homepage-btn-register"
               onClick={handleRegisterClick}
             >
-              Sign up
+              SIGN UP
             </button>
           </div>
         </div>
