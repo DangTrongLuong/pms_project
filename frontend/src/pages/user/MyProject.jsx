@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useEffect, useState, useRef } from "react";
 import { SidebarProvider, useSidebar } from "../../context/SidebarContext";
 import "../../styles/user/dashboard.css";
@@ -29,7 +30,6 @@ const mapStatusToFrontend = (backendStatus) => {
   const statusMap = {
     IN_PROGRESS: "Active",
     COMPLETED: "Completed",
-    ON_HOLD: "On Hold",
     PLANNING: "Planning",
   };
   return statusMap[backendStatus] || "Planning";
@@ -112,7 +112,6 @@ const StatsBar = ({ projects }) => {
     total: projects.length,
     active: projects.filter((p) => p.status === "Active").length,
     completed: projects.filter((p) => p.status === "Completed").length,
-    onHold: projects.filter((p) => p.status === "On Hold").length,
   };
 
   return (
@@ -128,10 +127,6 @@ const StatsBar = ({ projects }) => {
       <div className="stat-item">
         <div className="stat-number">{stats.completed}</div>
         <div className="stat-label">Completed</div>
-      </div>
-      <div className="stat-item">
-        <div className="stat-number">{stats.onHold}</div>
-        <div className="stat-label">On Hold</div>
       </div>
     </div>
   );
@@ -656,14 +651,14 @@ const MyProjects = () => {
   ];
 
   return (
-    <div className="container">
+    <div className="my-project-container">
       <Navbar />
       <div id="global-progress-bar" className="progress-bar"></div>
       <div className="content-container">
         <div className={`sidebar ${!isSidebarOpen ? "hidden" : ""}`}>
           <Sidebar />
         </div>
-        <div className="content">
+        <div className="my-project-content">
           <div className="project-list-container">
             <div className="page-header">
               <div className="page-title-section">
@@ -672,14 +667,8 @@ const MyProjects = () => {
                   Manage and track all your projects in one place
                 </p>
               </div>
+              <div className="page-actions-container">
               <div className="page-actions">
-                <button
-                  className="btn btn-secondary"
-                  onClick={handleClearFilters}
-                  aria-label="Clear Filters"
-                >
-                  <i className="fas fa-filter"></i>Clear Filters
-                </button>
                 <button
                   className="btn btn-primary"
                   onClick={() => navigate("/create-project")}
@@ -687,6 +676,7 @@ const MyProjects = () => {
                 >
                   <i className="fas fa-plus"></i>Create New Project
                 </button>
+              </div>
               </div>
             </div>
 
@@ -707,7 +697,7 @@ const MyProjects = () => {
                   options={statusOptions}
                   selected={statusFilter}
                   onSelect={setStatusFilter}
-                  className="filter-dropdown"
+                 r className="filter-dropdown"
                 />
                 <Dropdown
                   label="Filter by Type"
@@ -723,24 +713,6 @@ const MyProjects = () => {
                   onSelect={setSortBy}
                   className="sort-dropdown"
                 />
-              </div>
-              <div className="controls-right">
-                <div className="view-toggle">
-                  <button
-                    className={viewMode === "grid" ? "active" : ""}
-                    onClick={() => setViewMode("grid")}
-                    aria-label="Grid View"
-                  >
-                    <i className="fas fa-th"></i>Grid
-                  </button>
-                  <button
-                    className={viewMode === "list" ? "active" : ""}
-                    onClick={() => setViewMode("list")}
-                    aria-label="List View"
-                  >
-                    <i className="fas fa-list"></i>List
-                  </button>
-                </div>
               </div>
             </div>
 

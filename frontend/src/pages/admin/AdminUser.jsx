@@ -151,7 +151,7 @@ const AdminUsers = () => {
           </button>
           <button className="nav-button" onClick={() => navigate("/adminprojects")}>
            <FontAwesomeIcon icon={faFile} />
-            <span>Projects</span>
+            <span>Projects Management</span>
           </button>
           <button className="nav-button" onClick={() => navigate("/hompage")}>
             

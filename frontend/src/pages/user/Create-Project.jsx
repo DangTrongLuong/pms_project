@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-pascal-case */
 import React, { useEffect, useState } from "react";
 import { SidebarProvider, useSidebar } from "../../context/SidebarContext";
 import { useNavigate } from "react-router-dom";
@@ -270,51 +271,53 @@ const Create_Project_Content = () => {
                     onChange={handleInputChange}
                   />
                 </div>
-                <div className="create-project-input">
-                  <label htmlFor="start_date">
-                    Start Date <span style={{ color: "red" }}>*</span>
-                  </label>
-                  <input
-                    type="date"
-                    id="start_date"
-                    value={formData.start_date}
-                    onChange={handleDateChange}
-                  />
-                  {errors.start_date && (
-                    <p
-                      style={{
-                        color: "red",
-                        marginTop: -12,
-                        marginBottom: 6,
-                        fontSize: 15,
-                      }}
-                    >
-                      {errors.start_date}
-                    </p>
-                  )}
-                </div>
-                <div className="create-project-input">
-                  <label htmlFor="end_date">
-                    End Date <span style={{ color: "red" }}>*</span>
-                  </label>
-                  <input
-                    type="date"
-                    id="end_date"
-                    value={formData.end_date}
-                    onChange={handleDateChange}
-                  />
-                  {errors.end_date && (
-                    <p
-                      style={{
-                        color: "red",
-                        marginTop: -12,
-                        marginBottom: 6,
-                        fontSize: 15,
-                      }}
-                    >
-                      {errors.end_date}
-                    </p>
-                  )}
+                <div className="date">
+                  <div className="create-project-input start-date">
+                    <label htmlFor="start_date">
+                      Ngày bắt đầu <span style={{ color: "red" }}>*</span>
+                    </label>
+                    <input
+                      type="date"
+                      id="start_date"
+                      value={formData.start_date}
+                      onChange={handleDateChange}
+                    />
+                    {errors.start_date && (
+                      <p
+                        style={{
+                          color: "red",
+                          marginTop: -12,
+                          marginBottom: 6,
+                          fontSize: 15,
+                        }}
+                      >
+                        {errors.start_date}
+                      </p>
+                    )}
+                  </div>
+                  <div className="create-project-input end-date">
+                    <label htmlFor="end_date">
+                      Ngày kết thúc <span style={{ color: "red" }}>*</span>
+                    </label>
+                    <input
+                      type="date"
+                      id="end_date"
+                      value={formData.end_date}
+                      onChange={handleDateChange}
+                    />
+                    {errors.end_date && (
+                      <p
+                        style={{
+                          color: "red",
+                          marginTop: -12,
+                          marginBottom: 6,
+                          fontSize: 15,
+                        }}
+                      >
+                        {errors.end_date}
+                      </p>
+                    )}
+                  </div>
                 </div>
                 <div className="create-project-input-type">
                   <label htmlFor="project-type">

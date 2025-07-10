@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useState, useRef, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { login } from "../../context/authContext";
@@ -113,7 +114,7 @@ function Login() {
       });
       
       localStorage.setItem("authProvider", result.authProvider || "email");
-      triggerSuccess();
+      triggerSuccess("");
       navigate(result.role === "ADMIN" ? "/adminuser" : "/dashboard", { replace: true });
     } catch (err) {
       setError((prev) => ({
