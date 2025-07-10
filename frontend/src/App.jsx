@@ -16,6 +16,7 @@ import Backlog from "./pages/user/Backlog";
 import Progress from "./pages/user/Progress";
 import AdminUsers from "./pages/admin/AdminUser";
 import AdminProject from "./pages/admin/AdminProject";
+import AboutUs from "./pages/user/AboutUs";
 import {
   NotificationProvider,
   NotificationContext,
@@ -39,6 +40,7 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/homepage" element={<HomePage />} />
+                <Route path="/about" element={<AboutUs />} />
 
                 <Route
                   path="/loginSuccess"
@@ -128,6 +130,7 @@ function App() {
     </NotificationProvider>
   );
 }
+
 
 const Notification = () => {
   const { showSuccess, successMessage, showError, errorMessage } = React.useContext(NotificationContext);
