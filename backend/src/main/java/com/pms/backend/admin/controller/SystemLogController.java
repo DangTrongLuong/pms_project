@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pms.backend.admin.dto.SystemLogDTO;
-import com.pms.backend.admin.service.SystemLogService;
+import com.pms.backend.admin.Service.SystemLogService;
 
 @RestController
 @RequestMapping("/api/admin/logs")

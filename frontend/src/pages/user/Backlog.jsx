@@ -18,7 +18,7 @@ const Backlog = ({ project }) => {
           <div className="backlog-add">
             <di className="backlog-end">
               <div className="backlog-create-sprint">
-                <button className="backlog-create-button">Create sprints</button>
+                <button className="backlog-create-button">Create sprint</button>
               </div>
               <div className="backlog-icon">
                 <FontAwesomeIcon icon={faEllipsis} />
@@ -31,7 +31,7 @@ const Backlog = ({ project }) => {
           <div className="backlog-create-icon">
             <FontAwesomeIcon icon={faPlus} />
           </div>
-          <div className="backlog-create-title">Create tasks</div>
+          <div className="backlog-create-title">Create task</div>
         </div>
       </div>
     </div>

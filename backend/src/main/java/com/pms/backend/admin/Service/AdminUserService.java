@@ -1,4 +1,4 @@
-package com.pms.backend.admin.service;
+package com.pms.backend.admin.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
