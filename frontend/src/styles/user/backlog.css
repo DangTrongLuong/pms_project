@@ -10,11 +10,111 @@
   border-radius: 5px;
   margin-top: 5px;
 }
+.backlog-start-container-info {
+  width: 99%;
+  height: auto;
+  background-color: rgba(241, 241, 241, 0.5);
+  border-radius: 5px;
+  margin-top: 5px;
+}
+.backlog-add-info {
+  position: relative;
+  width: 76%;
+  height: 200px;
+  margin-left: 6px;
+  padding: 10px 5px;
+  background-color: rgb(250, 250, 250);
+  box-shadow: 1px 1px 3px rgb(128, 128, 128, 0.5);
+}
+.backlog-end-info {
+  width: 100%;
+  height: 25px;
+  font-size: 16px;
+  font-weight: 600;
+}
+.backlog-list-tast-create {
+  width: 99%;
+  height: 25px;
+  position: absolute;
+  bottom: 10px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.backlog-list-tast-create:hover {
+  background-color: rgb(237, 237, 237);
+}
+.backlog-list-task-empty {
+  width: 100%;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 40px;
+  display: none;
+  border: 1px dashed rgb(140, 139, 139);
+}
+.backlog-list-task-list {
+  width: 100%;
+  height: 125px;
+  background-color: white;
+  overflow-y: scroll;
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
+}
+.backlog-task-in-list {
+  width: 100%;
+  height: 45px;
+  margin-bottom: 1px;
+  cursor: pointer;
+  padding: 0 5px;
+  border: 0.5px solid rgb(128, 128, 128, 0.3);
+}
 .backlog-header {
   width: 100%;
-  height: 35px;
+  height: auto;
   display: flex;
   padding: 5px;
+}
+.backlog-header-info {
+  width: 100%;
+  height: auto;
+  display: flex;
+  padding: 5px;
+}
+.backlog-start-info {
+  width: 23%;
+  height: 200px;
+  padding: 5px 10px;
+  box-shadow: 1px 1px 3px rgb(128, 128, 128, 0.3);
+  background-color: rgb(250, 250, 250);
+}
+.backlog-add-title-info {
+  display: flex;
+  gap: 10px;
+  margin: 5px 0 0 0;
+  position: relative;
+}
+.backlog-info-name {
+  font-size: 17px;
+  font-weight: 550;
+}
+.backlog-add-date,
+.backlog-add-work-items {
+  margin: 5px 0 0 0;
+}
+.backlog-create-button-action-info {
+  padding: 2px 5px;
+  margin: 5px 0 5px 0;
+  font-size: 15px;
+  height: 30px;
+  cursor: pointer;
+  border: none;
+  border-radius: 3px;
+  background-color: rgba(0, 194, 19);
+  box-shadow: 1px 1px 3px rgba(0, 194, 19);
+  color: white;
 }
 .backlog-start {
   width: 49.5%;
@@ -35,7 +135,6 @@
   margin-right: 3px;
   opacity: 0.8;
 }
-
 .backlog-add {
   display: flex;
   width: 49%;
@@ -53,13 +152,12 @@
   border-radius: 3px;
   border: 1px solid rgb(151, 151, 151);
   cursor: pointer;
+  margin-right: -6px;
 }
-
 .backlog-create-button:hover {
   background-color: rgba(197, 197, 197, 0.5);
 }
-
-.backlog-end .backlog-icon {
+.backlog-add-title-info .backlog-icon {
   width: 22px;
   height: 22px;
   margin-right: 10px;
@@ -68,9 +166,10 @@
   justify-content: center;
   align-items: center;
   border-radius: 2px;
-  border: 1px solid gray;
+  border: none;
+  cursor: pointer;
 }
-.backlog-end .backlog-icon:hover {
+.backlog-add-title-info .backlog-icon:hover {
   background-color: rgba(197, 197, 197, 0.5);
   transition: all 0.3s ease;
 }
@@ -95,4 +194,188 @@
 }
 .backlog-create:hover {
   background-color: rgba(218, 218, 218, 0.5);
+}
+.backlog-create-container {
+  width: 40%;
+  height: 55%;
+  border-radius: 2px;
+  padding: 10px 20px;
+  background-color: rgb(255, 255, 255);
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.backlog-header-form h3 {
+  font-size: 20px;
+}
+.form-add-backlog {
+  width: 100%;
+  height: auto;
+  padding: 10px 0;
+}
+.backlog-field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 5px;
+}
+.backlog-field label,
+.backlog-field-date label {
+  font-size: 15px;
+}
+.backlog-field input,
+.backlog-field-date .backlog-field-date-start input,
+.backlog-field-date .backlog-field-date-end input,
+.backlog-field select {
+  width: 100%;
+  height: 33px;
+  border-radius: 4px;
+  border: 1px solid rgb(128, 128, 128);
+  outline: none;
+  font-size: 15px;
+  padding: 5px 5px;
+}
+.backlog-field input:focus,
+.backlog-field-date .backlog-field-date-start input:focus,
+.backlog-field-date .backlog-field-date-end input:focus,
+.backlog-field select:focus {
+  border: 1px solid rgb(12, 92, 241);
+  box-shadow: 1px 1px 2px rgb(12, 92, 241), -1px -1px 2px rgb(12, 92, 241);
+}
+.backlog-field-date {
+  width: 100%;
+  display: flex;
+}
+.backlog-field-date .backlog-field-date-start {
+  margin-right: 10px;
+}
+.backlog-field-date .backlog-field-date-start,
+.backlog-field-date .backlog-field-date-end {
+  display: flex;
+  flex-direction: column;
+  width: 49%;
+  margin-bottom: 5px;
+}
+.backlog-field textarea {
+  width: 100%;
+  border-radius: 4px;
+  border: 1px solid gray;
+  outline: none;
+  padding: 3px;
+}
+.backlog-create-btn {
+  width: 100%;
+  height: auto;
+  padding: 5px 0;
+  display: flex;
+  justify-content: end;
+  gap: 10px;
+}
+.backlog-create-btn .btn-create,
+.backlog-create-btn .btn-cancel {
+  width: 100px;
+  height: 33px;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  font-size: 16px;
+  color: white;
+}
+.backlog-create-btn .btn-create {
+  background-color: rgb(1, 172, 41);
+  box-shadow: 1px 1px 3px rgb(1, 172, 41);
+}
+.backlog-create-btn .btn-cancel {
+  background-color: rgb(252, 27, 27);
+  box-shadow: 1px 1px 3px rgb(252, 27, 27);
+}
+.backlog-create-btn .btn-create:hover,
+.backlog-create-btn .btn-cancel:hover {
+  transform: translateY(-2px);
+}
+.delete-confirm-container {
+  width: 30%;
+  height: auto;
+  border-radius: 2px;
+  padding: 20px;
+  background-color: rgb(255, 255, 255);
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.edit-form-container {
+  width: 40%;
+  height: 55%;
+  border-radius: 2px;
+  padding: 10px 20px;
+  background-color: rgb(255, 255, 255);
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.action-menu {
+  position: absolute;
+  top: 100%;
+  left: 30% !important;
+  background-color: white;
+  border: 0.5px solid rgb(128, 128, 128, 0.5);
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  min-width: 120px;
+}
+.action-menu div {
+  padding: 5px 10px;
+  cursor: pointer;
+}
+.action-menu div:hover {
+  background-color: #f0f0f0;
+}
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+.delete-confirm {
+  padding: 10px;
+}
+.delete-confirm p {
+  margin: 0 0 10px 0;
+}
+.delete-confirm button {
+  margin-right: 10px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  border: none;
+}
+.delete-confirm .delete-bg {
+  background-color: rgb(250, 18, 18);
+  color: white;
+  border: none;
+}
+@media (max-width: 768px) {
+  .backlog-create-container {
+    width: 70%;
+  }
+  .edit-form-container {
+    width: 70%;
+  }
+  .delete-confirm-container {
+    width: 60%;
+  }
+  .action-menu {
+    left: -20px;
+  }
 }

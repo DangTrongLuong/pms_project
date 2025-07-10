@@ -37,9 +37,10 @@
   width: auto;
   height: 26.5px;
   padding: 0 6px;
-  margin-right: 8px;
+  margin-right: 20px;
   cursor: pointer;
   font-size: 17px;
+  font-weight: 400;
 }
 .project-header .project-header-navbar-items.focused {
   color: rgb(10, 125, 226);

@@ -304,9 +304,6 @@ const ProjectTaskContent = () => {
           ) : selectedProject ? (
             <div className="project-container-select">
               <div className="project-header">
-                <div className="project-header-title" style={{ fontSize: 17 }}>
-                  Dự án
-                </div>
                 <div className="project-header-name">
                   <div
                     className="project-header-bg"

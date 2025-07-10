@@ -15,7 +15,7 @@ public enum ErrorStatus {
     UNAUTHORIZED(400, "Unauthorized!"),
     MEMBER_NOT_FOUND(404, "Member not found"),
     MEMBER_ALREADY_EXISTS(409, "Thành viên đã tồn tại trong dự án!"),
-
+    NOT_FOUND(400,"Backlog not found"),
     ;
 
     private int status;
