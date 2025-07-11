@@ -1,6 +1,9 @@
 package com.pms.backend.controller;
 
+import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -87,4 +90,19 @@ public class ProjectController {
         projectService.deleteProject(projectId, userId);
         return ResponseEntity.ok("Project deleted successfully");
     }
+    @GetMapping("/count")
+    public ResponseEntity<Integer> getProjectCount() {
+        return ResponseEntity.ok(projectService.getProjectCount());
+    }
+    @GetMapping("/daily-count")
+    public ResponseEntity<Map<String, Integer>> getDailyProjectCount() {
+        Map<String, Integer> dailyCount = new HashMap<>();
+        LocalDate today = LocalDate.now(); // 11/07/2025
+        for (int i = 5; i >= 0; i--) {
+            LocalDate date = today.minusDays(i);
+            dailyCount.put(date.toString(), projectService.countProjectsByDate(date));
+        }
+        return ResponseEntity.ok(dailyCount);
+    }
 }
+

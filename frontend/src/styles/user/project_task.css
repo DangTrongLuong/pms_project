@@ -37,9 +37,10 @@
   width: auto;
   height: 26.5px;
   padding: 0 6px;
-  margin-right: 8px;
+  margin-right: 20px;
   cursor: pointer;
   font-size: 17px;
+  font-weight: 400;
 }
 .project-header .project-header-navbar-items.focused {
   color: rgb(10, 125, 226);
@@ -147,18 +148,22 @@
   margin-bottom: 20px;
 }
 
-.search-container {
+.search-container-name-email {
   position: relative;
 }
 
-.search-input {
+.search-container-name-email .search-input-name-email {
   width: 100%;
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
   margin-bottom: 10px;
 }
-
+.search-container-name-email .search-input-name-email:focus {
+  border: 1px solid #0c9acd;
+  outline: #0c9acd;
+  box-shadow: 1px 1px 1px #0c9acd, -1px -1px 1px #0c9acd;
+}
 .suggestions-list {
   position: absolute;
   top: 100%;

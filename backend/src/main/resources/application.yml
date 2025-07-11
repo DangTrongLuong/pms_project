@@ -52,6 +52,7 @@ spring:
             token-uri: https://oauth2.googleapis.com/token
             jwk-set-uri: https://www.googleapis.com/oauth2/v3/certs
             user-name-attribute: sub
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
 
 # Logging
 logging:

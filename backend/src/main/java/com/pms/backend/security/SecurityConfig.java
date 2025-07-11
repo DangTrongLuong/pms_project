@@ -35,9 +35,20 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .addFilterBefore(tokenFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(requests -> requests
-                .requestMatchers("/uploads/**", "/api/auth/**", "/oauth2/**", "/login/oauth2/code/**", "/", "/api/projects/**", "/api/members/**", "/api/admin/auth/login").permitAll()
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                .anyRequest().authenticated())
+                        .requestMatchers("/uploads/**").permitAll()
+                        .requestMatchers(
+                                "/api/**",
+                                "/api/auth/**",                              
+                                "/oauth2/**",
+                                "/login/oauth2/code/**",
+                                "/",
+                                "/api/projects/**",
+                                "/api/members/**",
+                                "/api/backlog/**"
+
+                        ).permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .anyRequest().authenticated())
                 .oauth2Login(oauth2 -> oauth2
                 .loginPage("/api/auth/login/google")
                 .authorizationEndpoint(authorization -> authorization

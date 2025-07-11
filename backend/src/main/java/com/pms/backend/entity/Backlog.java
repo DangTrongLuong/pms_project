@@ -34,4 +34,6 @@ public class Backlog {
     String sprint_goal;
     String create_by_id;
     String create_by_name;
+    @Column(name = "project_id")
+    int project_id;
 }
