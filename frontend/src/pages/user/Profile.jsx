@@ -1,3 +1,5 @@
+/* eslint-disable jsx-a11y/alt-text */
+/* eslint-disable jsx-a11y/img-redundant-alt */
 import React, { useState, useEffect } from "react";
 import { SidebarProvider, useSidebar } from "../../context/SidebarContext";
 import Sidebar from "../../components/Sidebar";
@@ -108,7 +110,7 @@ const ProfileContent = () => {
     return () => {
       delete window.progressCallback;
     };
-  }, [userName, userEmail, avatarUrl, backgroundUrl, role, createdAt]);
+  }, [userName, userEmail, avatarUrl, backgroundUrl, role, createdAt, user.userName, user.avatarUrl, user.backgroundUrl]);
 
   const handleAvatarChange = async (e) => {
     const file = e.target.files[0];

@@ -142,7 +142,7 @@ const HomePage = () => {
                 </a>
               </li>
               <li className="homepage-navbar-support-item">
-                <a href="#" className="about_us">
+                <a href="/about" className="about_us">
                   ABOUT US
                 </a>
               </li>
