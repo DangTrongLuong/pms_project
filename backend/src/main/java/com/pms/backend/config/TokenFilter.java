@@ -19,13 +19,17 @@ public class TokenFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         String path = request.getRequestURI();
-        // Skip public endpoints
-        if (path.startsWith("/api/auth/")
-                || path.equals("/")
-                || path.startsWith("/uploads/")              
-                || path.startsWith("/api/projects/")
-                || path.startsWith("/api/members/")) {
+        String method = request.getMethod();
 
+        // Bỏ qua các yêu cầu OPTIONS và endpoint công khai
+        if (method.equals("OPTIONS") ||
+            path.startsWith("/api/auth/") ||
+            path.equals("/") ||
+            path.startsWith("/uploads/") ||
+            path.startsWith("/api/projects/") ||
+            path.startsWith("/api/members/") ||
+            path.startsWith("/api/backlog/")) {
+            response.setStatus(HttpServletResponse.SC_OK);
             filterChain.doFilter(request, response);
             return;
         }
@@ -36,19 +40,22 @@ public class TokenFilter extends OncePerRequestFilter {
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             if (userId != null && userName != null) {
-                // Set headers for downstream use
                 request.setAttribute("userId", userId);
                 request.setAttribute("userName", userName);
                 filterChain.doFilter(request, response);
                 return;
             }
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Missing or invalid token");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"status\": 401, \"message\": \"Missing or invalid token\"}");
             return;
         }
 
         String accessToken = authHeader.substring(7);
         if (accessToken.isEmpty()) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid token");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"status\": 401, \"message\": \"Invalid token\"}");
             return;
         }
 
@@ -58,18 +65,23 @@ public class TokenFilter extends OncePerRequestFilter {
                 HttpURLConnection conn = (HttpURLConnection) new URL(
                         "https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=" + accessToken).openConnection();
                 conn.setRequestMethod("GET");
+                conn.setConnectTimeout(5000);
+                conn.setReadTimeout(5000);
                 int responseCode = conn.getResponseCode();
                 if (responseCode != 200) {
-                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid Google token");
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"status\": 401, \"message\": \"Invalid Google token\"}");
                     return;
                 }
             } catch (Exception e) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Error validating Google token");
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json");
+                response.getWriter().write("{\"status\": 401, \"message\": \"Error validating Google token: " + e.getMessage() + "\"}");
                 return;
             }
         }
 
-        // Set userId and userName from session
         if (userId != null && userName != null) {
             request.setAttribute("userId", userId);
             request.setAttribute("userName", userName);

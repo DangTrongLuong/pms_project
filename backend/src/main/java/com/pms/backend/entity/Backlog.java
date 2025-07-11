@@ -1,37 +1,52 @@
 package com.pms.backend.entity;
 
+import com.pms.backend.enums.SprintStatus;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDate;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.experimental.FieldDefaults;
-
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
 @Entity
 @Table(name = "backlog")
-@FieldDefaults(level = AccessLevel.PRIVATE)
+@Getter
+@Setter
 public class Backlog {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "backlog_id", updatable = false, nullable = false)
-    int id;
-    String backlog_name;
-    LocalDate start_date;
-    LocalDate end_date;
-    int work_items;
-    String duration;
-    String status;
-    String sprint_goal;
-    String create_by_id;
-    String create_by_name;
+    @Column(name = "backlog_id")
+    private Integer id;
+
+    @Column(name = "backlog_name")
+    private String backlogName;
+
+    @Column(name = "create_by_id")
+    private String createById;
+
+    @Column(name = "create_by_name")
+    private String createByName;
+
+    @Column(name = "duration")
+    private String duration;
+
+    @Column(name = "end_date")
+    private LocalDate endDate;
+
+    @Column(name = "sprint_goal")
+    private String sprintGoal;
+
+    @Column(name = "start_date")
+    private LocalDate startDate;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private SprintStatus status;
+
+    @Column(name = "work_items")
+    private Integer workItems;
+
+    @ManyToOne
+    @JoinColumn(name = "project_id", nullable = false)
+    private Project project;
 }

@@ -13,14 +13,21 @@ import HomePage from "./pages/user/HomePage";
 import Profile from "./pages/user/Profile";
 import Backlog from "./pages/user/Backlog";
 import Progress from "./pages/user/Progress";
+import Summary from "./pages/user/Summary";
+import Timeline from "./pages/user/Timeline";
+import Comments from "./pages/user/Comments";
+import Documents from "./pages/user/Documents";
+import People from "./pages/user/People";
 import {
   NotificationProvider,
   NotificationContext,
 } from "./context/NotificationContext";
-import "./styles/user/login.css"; // Import login.css for notification styles
+import "./styles/user/login.css";
 import { UserProvider } from "./context/UserContext";
 import ProjectTask from "./components/Project_Task";
 import CustomCursor from "./components/CustomCursor";
+import TaskDetails from "./pages/user/TaskDetail";
+
 function App() {
   return (
     <NotificationProvider>
@@ -59,6 +66,14 @@ function App() {
                 }
               />
               <Route
+                path="/task/:id"
+                element={
+                  <AuthMiddleware>
+                    <TaskDetails />
+                  </AuthMiddleware>
+                }
+              />
+              <Route
                 path="/members"
                 element={
                   <AuthMiddleware>
@@ -83,8 +98,13 @@ function App() {
                   </AuthMiddleware>
                 }
               >
+                <Route path="summary" element={<Summary />} />
                 <Route path="backlog" element={<Backlog />} />
                 <Route path="progress" element={<Progress />} />
+                <Route path="timeline" element={<Timeline />} />
+                <Route path="comments" element={<Comments />} />
+                <Route path="documents" element={<Documents />} />
+                <Route path="people" element={<People />} />
               </Route>
 
               <Route
