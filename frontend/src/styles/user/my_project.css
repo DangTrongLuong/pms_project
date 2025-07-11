@@ -249,17 +249,18 @@
   border-color: #0052cc;
 }
 
-.btn {
+.btn-create {
   padding: 8px 16px;
   border-radius: 4px;
   font-size: 14px;
   cursor: pointer;
 }
 
-.btn-primary {
+.btn-primary-create {
   background: #0052cc;
   color: #fff;
   border: none;
+  width: 200px;
 }
 
 .btn-secondary {

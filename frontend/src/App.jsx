@@ -14,6 +14,11 @@ import HomePage from "./pages/user/HomePage";
 import Profile from "./pages/user/Profile";
 import Backlog from "./pages/user/Backlog";
 import Progress from "./pages/user/Progress";
+import Summary from "./pages/user/Summary";
+import Timeline from "./pages/user/Timeline";
+import Comments from "./pages/user/Comments";
+import Documents from "./pages/user/Documents";
+import People from "./pages/user/People";
 import AdminUsers from "./pages/admin/AdminUser";
 import AdminProject from "./pages/admin/AdminProject";
 // import Aboutus from "./pages/user/AboutUs";
@@ -24,6 +29,8 @@ import {
 
 import { UserProvider } from "./context/UserContext";
 import ProjectTask from "./components/Project_Task";
+import CustomCursor from "./components/CustomCursor";
+import TaskDetails from "./pages/user/TaskDetail";
 // import CustomCursor from "./components/CustomCursor";
 
 function App() {
@@ -40,7 +47,6 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/homepage" element={<HomePage />} />
-                {/* <Route path="/about" element={<Aboutus />} /> */}
 
                 <Route
                   path="/loginSuccess"
@@ -61,6 +67,14 @@ function App() {
                   element={
                     <AuthMiddleware>
                       <Task />
+                    </AuthMiddleware>
+                  }
+                />
+                <Route
+                  path="/task/:id"
+                  element={
+                    <AuthMiddleware>
+                      <TaskDetails />
                     </AuthMiddleware>
                   }
                 />
@@ -88,8 +102,13 @@ function App() {
                     </AuthMiddleware>
                   }
                 >
+                  <Route path="summary" element={<Summary />} />
                   <Route path="backlog" element={<Backlog />} />
                   <Route path="progress" element={<Progress />} />
+                  <Route path="timeline" element={<Timeline />} />
+                  <Route path="comments" element={<Comments />} />
+                  <Route path="documents" element={<Documents />} />
+                  <Route path="people" element={<People />} />
                 </Route>
                 <Route
                   path="/create-project"

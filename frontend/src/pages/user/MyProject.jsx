@@ -670,7 +670,7 @@ const MyProjects = () => {
               <div className="page-actions-container">
               <div className="page-actions">
                 <button
-                  className="btn btn-primary"
+                  className="btn-create btn-primary-create"
                   onClick={() => navigate("/create-project")}
                   aria-label="Create New Project"
                 >

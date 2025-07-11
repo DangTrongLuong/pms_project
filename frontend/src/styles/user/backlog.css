@@ -1,381 +1,467 @@
-.backlog-container {
-  width: 99%;
-  height: auto;
-  margin: 5px 10px 0;
+/* Variables */
+:root {
+  --primary-color: #0052cc;
+  --primary-dark: #0747a6;
+  --success-color: #00875a;
+  --success-dark: #006644;
+  --text-white: #ffffff;
+  --text-primary: #172b4d;
+  --text-muted: #6b778c;
+  --bg-white: #ffffff;
+  --bg-light: #f4f5f7;
+  --bg-lighter: #dfe1e6;
+  --border-color: #dfe1e6;
+  --focus-shadow: rgba(0, 82, 204, 0.2);
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --spacing-xxs: 4px;
+  --spacing-xs: 8px;
+  --spacing-sm: 12px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --text-xs: 12px;
+  --text-base: 14px;
+  --text-md: 16px;
+  --text-lg: 18px;
+  --text-xl: 20px;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --border-radius: 8px;
+  --border-radius-sm: 6px;
+  --overlay-opacity: 0.5;
+  --z-index-modal: 1000;
+  --modal-max-width: 500px;
+  --modal-max-height: 90vh;
+  --modal-padding: 24px;
+  --comments-max-height: 256px;
+  --avatar-size: 24px;
+  --avatar-size-sm: 20px;
+  --shadow-offset-y: 10px;
+  --shadow-blur: 25px;
+  --max-width-sm: 320px;
+  --btn-min-width: 120px; /* Định nghĩa chiều rộng tối thiểu cho button */
+  --btn-height: 40px; /* Định nghĩa chiều cao cố định cho button */
 }
-.backlog-start-container {
-  width: 99%;
-  height: 130px;
-  background-color: rgba(241, 241, 241, 0.5);
-  border-radius: 5px;
-  margin-top: 5px;
-}
-.backlog-start-container-info {
-  width: 99%;
-  height: auto;
-  background-color: rgba(241, 241, 241, 0.5);
-  border-radius: 5px;
-  margin-top: 5px;
-}
-.backlog-add-info {
-  position: relative;
-  width: 76%;
-  height: 200px;
-  margin-left: 6px;
-  padding: 10px 5px;
-  background-color: rgb(250, 250, 250);
-  box-shadow: 1px 1px 3px rgb(128, 128, 128, 0.5);
-}
-.backlog-end-info {
-  width: 100%;
-  height: 25px;
-  font-size: 16px;
-  font-weight: 600;
-}
-.backlog-list-tast-create {
-  width: 99%;
-  height: 25px;
-  position: absolute;
-  bottom: 10px;
-  font-size: 16px;
-  font-weight: 500;
-  cursor: pointer;
-  border-radius: 4px;
-}
-.backlog-list-tast-create:hover {
-  background-color: rgb(237, 237, 237);
-}
-.backlog-list-task-empty {
-  width: 100%;
-  height: 50px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 40px;
-  display: none;
-  border: 1px dashed rgb(140, 139, 139);
-}
-.backlog-list-task-list {
-  width: 100%;
-  height: 125px;
-  background-color: white;
-  overflow-y: scroll;
-  scrollbar-width: thin; /* Firefox */
-  scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
-}
-.backlog-task-in-list {
-  width: 100%;
-  height: 45px;
-  margin-bottom: 1px;
-  cursor: pointer;
-  padding: 0 5px;
-  border: 0.5px solid rgb(128, 128, 128, 0.3);
-}
-.backlog-header {
-  width: 100%;
-  height: auto;
-  display: flex;
-  padding: 5px;
-}
-.backlog-header-info {
-  width: 100%;
-  height: auto;
-  display: flex;
-  padding: 5px;
-}
-.backlog-start-info {
-  width: 23%;
-  height: 200px;
-  padding: 5px 10px;
-  box-shadow: 1px 1px 3px rgb(128, 128, 128, 0.3);
-  background-color: rgb(250, 250, 250);
-}
-.backlog-add-title-info {
-  display: flex;
-  gap: 10px;
-  margin: 5px 0 0 0;
-  position: relative;
-}
-.backlog-info-name {
-  font-size: 17px;
-  font-weight: 550;
-}
-.backlog-add-date,
-.backlog-add-work-items {
-  margin: 5px 0 0 0;
-}
-.backlog-create-button-action-info {
-  padding: 2px 5px;
-  margin: 5px 0 5px 0;
-  font-size: 15px;
-  height: 30px;
-  cursor: pointer;
-  border: none;
-  border-radius: 3px;
-  background-color: rgba(0, 194, 19);
-  box-shadow: 1px 1px 3px rgba(0, 194, 19);
-  color: white;
-}
-.backlog-start {
-  width: 49.5%;
-  margin-right: 10px;
-}
-.backlog-start .backlog-add-container {
-  display: flex;
-}
-.backlog-start .backlog-add-title {
-  font-size: 17px;
-  font-weight: 550;
-  margin-right: 6px;
-}
-.backlog-start .backlog-add-date,
-.backlog-start .backlog-add-work-items {
-  width: auto;
-  padding: 0 3px;
-  margin-right: 3px;
-  opacity: 0.8;
-}
-.backlog-add {
-  display: flex;
-  width: 49%;
-}
-.backlog-end {
-  width: 100%;
-  display: flex;
-  justify-content: end;
-  align-items: end;
-  gap: 10px;
-}
-.backlog-create-button {
-  width: 100px;
-  font-size: 14px;
-  border-radius: 3px;
-  border: 1px solid rgb(151, 151, 151);
-  cursor: pointer;
-  margin-right: -6px;
-}
-.backlog-create-button:hover {
-  background-color: rgba(197, 197, 197, 0.5);
-}
-.backlog-add-title-info .backlog-icon {
-  width: 22px;
-  height: 22px;
-  margin-right: 10px;
-  cursor: pointer;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 2px;
-  border: none;
-  cursor: pointer;
-}
-.backlog-add-title-info .backlog-icon:hover {
-  background-color: rgba(197, 197, 197, 0.5);
-  transition: all 0.3s ease;
-}
-.backlog-empty {
-  width: 99%;
-  height: 50px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 2px auto;
-  border: 1px dashed gray;
-  border-radius: 3px;
-}
-.backlog-create {
-  width: 99%;
-  margin: 3px auto;
-  display: flex;
-  padding: 2px 3px;
-  gap: 5px;
-  border-radius: 3px;
-  cursor: pointer;
-}
-.backlog-create:hover {
-  background-color: rgba(218, 218, 218, 0.5);
-}
-.backlog-create-container {
-  width: 40%;
-  height: 55%;
-  border-radius: 2px;
-  padding: 10px 20px;
-  background-color: rgb(255, 255, 255);
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-.backlog-header-form h3 {
-  font-size: 20px;
-}
-.form-add-backlog {
-  width: 100%;
-  height: auto;
-  padding: 10px 0;
-}
-.backlog-field {
+
+/* Backlog Section Styles */
+.backlog-section {
+  padding: var(--spacing-md);
   display: flex;
   flex-direction: column;
-  margin-bottom: 5px;
+  gap: var(--spacing-md);
 }
-.backlog-field label,
-.backlog-field-date label {
-  font-size: 15px;
-}
-.backlog-field input,
-.backlog-field-date .backlog-field-date-start input,
-.backlog-field-date .backlog-field-date-end input,
-.backlog-field select {
-  width: 100%;
-  height: 33px;
-  border-radius: 4px;
-  border: 1px solid rgb(128, 128, 128);
-  outline: none;
-  font-size: 15px;
-  padding: 5px 5px;
-}
-.backlog-field input:focus,
-.backlog-field-date .backlog-field-date-start input:focus,
-.backlog-field-date .backlog-field-date-end input:focus,
-.backlog-field select:focus {
-  border: 1px solid rgb(12, 92, 241);
-  box-shadow: 1px 1px 2px rgb(12, 92, 241), -1px -1px 2px rgb(12, 92, 241);
-}
-.backlog-field-date {
-  width: 100%;
+
+.section-header {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
 }
-.backlog-field-date .backlog-field-date-start {
-  margin-right: 10px;
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
 }
-.backlog-field-date .backlog-field-date-start,
-.backlog-field-date .backlog-field-date-end {
+
+.header-actions .btn {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  min-width: var(--btn-min-width); /* Sử dụng biến chiều rộng tối thiểu */
+  height: var(--btn-height); /* Đặt chiều cao cố định */
+  width: var(--btn-min-width); /* Đặt chiều rộng cố định */
+  justify-content: center; /* Căn giữa nội dung */
+}
+
+.header-actions .btn-primary {
+  background-color: var(--primary-color);
+  color: var(--text-white);
+}
+
+.header-actions .btn-primary:hover {
+  background-color: var(--primary-dark);
+}
+
+.header-actions .btn-success {
+  background-color: var(--success-color);
+  color: var(--text-white);
+}
+
+.header-actions .btn-success:hover {
+  background-color: var(--success-dark);
+}
+
+.filters-section {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.search-container-section {
+  position: relative;
+  flex: 1;
+  max-width: var(--max-width-sm);
+}
+
+.search-icon {
+  position: absolute;
+  top: 50%;
+  left: var(--spacing-xs);
+  transform: translateY(-50%);
+  color: var(--text-muted);
+}
+
+.search-input {
+  width: 100%;
+  padding: var(--spacing-xs) var(--spacing-sm) var(--spacing-xs)
+    calc(var(--spacing-sm) + var(--spacing-md));
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-size: var(--text-base);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background-color: var(--bg-white);
+}
+
+.search-input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px var(--focus-shadow);
+}
+
+.filter-select {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-size: var(--text-base);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background-color: var(--bg-white);
+}
+
+.filter-select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px var(--focus-shadow);
+}
+
+.sprints-container {
   display: flex;
   flex-direction: column;
-  width: 49%;
-  margin-bottom: 5px;
+  gap: var(--spacing-lg);
 }
-.backlog-field textarea {
-  width: 100%;
-  border-radius: 4px;
-  border: 1px solid gray;
-  outline: none;
-  padding: 3px;
+
+.sprint-card {
+  background-color: var(--bg-white);
+  border-radius: var(--border-radius);
+  box-shadow: 0 1px 3px var(--shadow-color);
+  border: 1px solid var(--border-color);
 }
-.backlog-create-btn {
-  width: 100%;
-  height: auto;
-  padding: 5px 0;
+
+.sprint-header {
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.sprint-title-row {
   display: flex;
-  justify-content: end;
-  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-xs);
 }
-.backlog-create-btn .btn-create,
-.backlog-create-btn .btn-cancel {
-  width: 100px;
-  height: 33px;
-  cursor: pointer;
+
+.sprint-title {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+}
+
+.sprint-dates {
+  font-size: var(--text-base);
+  color: var(--text-muted);
+}
+
+.more-button {
+  padding: var(--spacing-xxs);
+  background: none;
   border: none;
-  outline: none;
-  border-radius: 4px;
-  transition: all 0.3s ease;
-  font-size: 16px;
-  color: white;
-}
-.backlog-create-btn .btn-create {
-  background-color: rgb(1, 172, 41);
-  box-shadow: 1px 1px 3px rgb(1, 172, 41);
-}
-.backlog-create-btn .btn-cancel {
-  background-color: rgb(252, 27, 27);
-  box-shadow: 1px 1px 3px rgb(252, 27, 27);
-}
-.backlog-create-btn .btn-create:hover,
-.backlog-create-btn .btn-cancel:hover {
-  transform: translateY(-2px);
-}
-.delete-confirm-container {
-  width: 30%;
-  height: auto;
-  border-radius: 2px;
-  padding: 20px;
-  background-color: rgb(255, 255, 255);
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-.edit-form-container {
-  width: 40%;
-  height: 55%;
-  border-radius: 2px;
-  padding: 10px 20px;
-  background-color: rgb(255, 255, 255);
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-.action-menu {
-  position: absolute;
-  top: 100%;
-  left: 30% !important;
-  background-color: white;
-  border: 0.5px solid rgb(128, 128, 128, 0.5);
-  border-radius: 4px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
-  min-width: 120px;
-}
-.action-menu div {
-  padding: 5px 10px;
+  border-radius: var(--border-radius-sm);
   cursor: pointer;
+  color: var(--text-muted);
+  transition: background-color 0.2s;
 }
-.action-menu div:hover {
-  background-color: #f0f0f0;
+
+.more-button:hover {
+  background-color: var(--bg-light);
 }
+
+.sprint-stats {
+  display: flex;
+  gap: var(--spacing-sm);
+  font-size: var(--text-base);
+  color: var(--text-muted);
+}
+
+.sprint-content {
+  padding: var(--spacing-md);
+}
+
+.tasks-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.empty-state {
+  text-align: center;
+  padding: calc(var(--spacing-lg) / 2) var(--spacing-md);
+  color: var(--text-muted);
+}
+
+/* Modal Styles (không thay đổi vì đã tách sang file riêng) */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, var(--overlay-opacity));
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: 1000;
+  justify-content: center;
+  padding: var(--spacing-md);
+  z-index: var(--z-index-modal);
+  overflow-y: auto;
 }
-.delete-confirm {
-  padding: 10px;
+
+.centered-modal {
+  background-color: var(--bg-white);
+  border-radius: var(--border-radius);
+  max-width: var(--modal-max-width);
+  width: 100%;
+  max-height: var(--modal-max-height);
+  overflow-y: auto;
+  box-shadow: 0 var(--shadow-offset-y) var(--shadow-blur) var(--shadow-color);
+  display: flex;
+  flex-direction: column;
+  padding: var(--modal-padding);
 }
-.delete-confirm p {
-  margin: 0 0 10px 0;
+
+.modal-header {
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
 }
-.delete-confirm button {
-  margin-right: 10px;
-  padding: 5px 10px;
-  border-radius: 5px;
+
+.modal-title {
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+}
+
+.close-button {
+  padding: var(--spacing-sm);
+  background: none;
+  border: none;
+  border-radius: var(--border-radius-sm);
   cursor: pointer;
-  border: none;
+  transition: background-color 0.2s, color 0.2s;
+  color: var(--text-muted);
 }
-.delete-confirm .delete-bg {
-  background-color: rgb(250, 18, 18);
-  color: white;
-  border: none;
+
+.close-button:hover {
+  background-color: var(--bg-light);
+  color: var(--text-primary);
 }
+
+.modal-content {
+  padding: var(--spacing-lg) 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.form-group {
+  margin-bottom: var(--spacing-md);
+  width: 100%;
+  max-width: 400px;
+}
+
+.form-label {
+  display: block;
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-xs);
+  text-align: left;
+}
+
+.form-input,
+.form-textarea,
+.form-select {
+  width: 100%;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-size: var(--text-base);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+  background-color: var(--bg-white);
+}
+
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px var(--focus-shadow);
+  background-color: var(--bg-light);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-md);
+  width: 100%;
+  max-width: 800px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-lg);
+  width: 100%;
+  max-width: 800px;
+}
+
+.btn {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  min-width: var(--btn-min-width);
+  height: var(--btn-height);
+  width: var(--btn-min-width);
+  justify-content: center;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: var(--text-white);
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+.btn-success {
+  background-color: var(--success-color);
+  color: var(--text-white);
+}
+
+.btn-success:hover {
+  background-color: var(--success-dark);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background-color: var(--bg-light);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+  background-color: var(--bg-lighter);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  transform: translateY(-1px);
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
-  .backlog-create-container {
-    width: 70%;
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
   }
-  .edit-form-container {
-    width: 70%;
+  .filters-section {
+    flex-direction: column;
+    gap: var(--spacing-md);
   }
-  .delete-confirm-container {
-    width: 60%;
+  .search-container-section {
+    max-width: 100%;
   }
-  .action-menu {
-    left: -20px;
+  .sprint-header {
+    padding: var(--spacing-sm);
+  }
+  .sprint-content {
+    padding: var(--spacing-sm);
+  }
+  .centered-modal {
+    width: 90%;
+    padding: var(--spacing-md);
+    max-width: 90%;
+  }
+  .modal-header {
+    padding: var(--spacing-md);
+  }
+  .modal-content {
+    padding: var(--spacing-md) 0;
+  }
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+    max-width: 100%;
+  }
+  .form-actions {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    max-width: 100%;
+  }
+  .btn {
+    width: 100%; /* Khi responsive, button chiếm toàn bộ chiều rộng */
+    min-width: 100%; /* Đảm bảo chiều rộng tối thiểu bằng chiều rộng container */
+    height: var(--btn-height); /* Giữ chiều cao cố định */
+  }
+}
+
+@media (max-width: 480px) {
+  .sprint-title {
+    font-size: var(--text-md);
+  }
+  .sprint-dates {
+    font-size: var(--text-sm);
+  }
+  .sprint-stats {
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+  .modal-title {
+    font-size: var(--text-lg);
+  }
+  .close-button {
+    padding: var(--spacing-xs);
   }
 }

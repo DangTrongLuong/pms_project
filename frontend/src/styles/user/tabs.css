@@ -1,0 +1,38 @@
+/* Tabs */
+.tabs {
+  display: flex;
+  background-color: white;
+  border-bottom: 1px solid #e5e7eb; /* Thanh gạch ngang sát tab */
+  padding: 0 20px;
+  margin: 0; /* Loại bỏ khoảng trắng trên */
+}
+
+.tab {
+  padding: 6px 14px; /* Padding nhỏ gọn */
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  color: #6b7280; /* Chữ xám cho tab không active */
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px; /* Giảm gap để gọn hơn */
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  background: none;
+  border: none;
+}
+
+.tab:hover {
+  color: #7f4ce7; /* Màu tím khi hover */
+}
+
+.tab.active {
+  color: #3b82f6; /* Màu tím đậm cho tab active */
+  border-bottom-color: #3b82f6; /* Viền dưới rõ nét */
+}
+
+/* Tab content */
+.tab-content {
+  padding: 0 20px 20px; /* Loại bỏ padding-top */
+}

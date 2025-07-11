@@ -1,11 +1,14 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { SidebarProvider, useSidebar } from "../../context/SidebarContext";
+import { useNavigate } from "react-router-dom";
 import "../../styles/user/dashboard.css";
 import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
 
 const TaskContent = () => {
   const { isSidebarOpen } = useSidebar();
+  const navigate = useNavigate();
+  const [tasks, setTasks] = useState([]);
 
   useEffect(() => {
     window.progressCallback = (navigateCallback) => {
@@ -32,6 +35,43 @@ const TaskContent = () => {
     };
   }, []);
 
+  useEffect(() => {
+    // Giả định fetch danh sách task từ API (cần endpoint backend)
+    const fetchTasks = async () => {
+      try {
+        const userId = localStorage.getItem("userId");
+        const accessToken = localStorage.getItem("accessToken");
+
+        if (!userId || !accessToken) {
+          throw new Error("User not authenticated");
+        }
+
+        const response = await fetch(
+          "http://localhost:8080/api/backlog/tasks", // Cần endpoint thực tế
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${accessToken}`,
+              userId: userId,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch tasks");
+        }
+
+        const data = await response.json();
+        setTasks(data);
+      } catch (err) {
+        console.error("Fetch tasks error:", err);
+      }
+    };
+
+    fetchTasks();
+  }, []);
+
   return (
     <div className="container">
       <Navbar />
@@ -41,7 +81,18 @@ const TaskContent = () => {
           <Sidebar />
         </div>
         <div className={`main-container ${!isSidebarOpen ? "full" : ""}`}>
-          <h1>Đây là task</h1>
+          <h1>Danh Sách Nhiệm Vụ</h1>
+          {tasks.length > 0 ? (
+            <ul>
+              {tasks.map((task) => (
+                <li key={task.id} onClick={() => navigate(`/task/${task.id}`)}>
+                  {task.title} (Trạng thái: {task.status})
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>Không có nhiệm vụ nào.</p>
+          )}
         </div>
       </div>
     </div>
