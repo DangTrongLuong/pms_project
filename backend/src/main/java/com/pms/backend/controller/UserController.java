@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -233,5 +235,20 @@ public class UserController {
             response.put("message", "Unexpected error: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
+    }
+     @GetMapping("/count")
+    public ResponseEntity<Integer> getUserCount() {
+        return ResponseEntity.ok(userService.getUserCount());
+    }
+    @GetMapping("/monthly-count")
+    public ResponseEntity<Map<String, Integer>> getMonthlyUserCount() {
+        Map<String, Integer> monthlyCount = new HashMap<>();
+        LocalDate today = LocalDate.now();
+        for (int i = 5; i >= 0; i--) {
+            YearMonth month = YearMonth.from(today.minusMonths(i));
+            String monthKey = month.getMonth().toString().toLowerCase() + "-" + month.getYear(); 
+            monthlyCount.put(monthKey, userService.countUsersByMonth(month));
+        }
+        return ResponseEntity.ok(monthlyCount);
     }
 }

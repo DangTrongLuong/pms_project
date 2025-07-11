@@ -24,4 +24,5 @@ public class BacklogResponse {
     String sprint_goal;
     String create_by_id;
     String create_by_name;
+    int project_id;
 }

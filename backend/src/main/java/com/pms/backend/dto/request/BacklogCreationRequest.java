@@ -20,4 +20,5 @@ public class BacklogCreationRequest {
      LocalDate start_date;
     LocalDate end_date;
     String sprint_goal;
+    int project_id;
 }

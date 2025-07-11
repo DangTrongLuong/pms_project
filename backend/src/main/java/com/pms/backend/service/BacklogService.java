@@ -1,3 +1,4 @@
+
 package com.pms.backend.service;
 
 import java.time.LocalDate;
@@ -15,6 +16,8 @@ import com.pms.backend.exception.AppException;
 import com.pms.backend.exception.ErrorStatus;
 import com.pms.backend.mapper.BacklogMapper;
 import com.pms.backend.repository.BacklogRepository;
+import com.pms.backend.repository.ProjectRepository;
+import com.pms.backend.repository.UserRepository;
 
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
@@ -25,17 +28,26 @@ public class BacklogService {
 
     BacklogRepository backlogRepository;
     BacklogMapper backlogMapper;
+    ProjectRepository projectRepository;
+    UserRepository userRepository;
 
     @Autowired
-    public BacklogService(BacklogRepository backlogRepository, BacklogMapper backlogMapper) {
+    public BacklogService(BacklogRepository backlogRepository, BacklogMapper backlogMapper,
+                          ProjectRepository projectRepository, UserRepository userRepository) {
         this.backlogRepository = backlogRepository;
         this.backlogMapper = backlogMapper;
+        this.projectRepository = projectRepository;
+        this.userRepository = userRepository;
     }
 
     public BacklogResponse createBacklog(BacklogCreationRequest request, String userId) {
+        // Kiểm tra project_id có hợp lệ
+        projectRepository.findById(request.getProject_id())
+                .orElseThrow(() -> new AppException(ErrorStatus.PROJECT_NOT_FOUND));
+
         Backlog backlog = backlogMapper.toBacklog(request);
         backlog.setCreate_by_id(userId);
-        backlog.setCreate_by_name(getCurrentUserName(userId)); // Assume method to get user name
+        backlog.setCreate_by_name(getCurrentUserName(userId));
         if ("custom".equals(request.getDuration())) {
             if (request.getStart_date() == null || request.getEnd_date() == null) {
                 throw new AppException(ErrorStatus.INVALID_INPUT);
@@ -56,8 +68,11 @@ public class BacklogService {
         return backlogMapper.toBacklogResponse(backlog);
     }
 
-    public Iterable<BacklogResponse> getAllBacklogs() {
-        return backlogRepository.findAll().stream()
+    public List<BacklogResponse> getBacklogsByProject(int projectId) {
+        projectRepository.findById(projectId)
+                .orElseThrow(() -> new AppException(ErrorStatus.PROJECT_NOT_FOUND));
+        
+        return backlogRepository.findByProject_id(projectId).stream()
                 .map(backlogMapper::toBacklogResponse)
                 .collect(Collectors.toList());
     }
@@ -82,7 +97,8 @@ public class BacklogService {
     }
 
     private String getCurrentUserName(String userId) {
-        // Assume this method retrieves the user name from UserRepository
-        return "UserName"; // Placeholder, implement with actual logic
+        return userRepository.findById(userId)
+                .map(user -> user.getName())
+                .orElse("Unknown User");
     }
 }

@@ -1,6 +1,7 @@
 package com.pms.backend.service;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.UUID;
 
@@ -81,5 +82,16 @@ public class UserService {
         return userMapper.toUserResponse(userRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorStatus.USER_NOTFOUND)));
     }
-
+    public int getUserCount() {
+        return (int) userRepository.count();
+    }
+    public int countUsersByMonth(YearMonth month) {
+        LocalDate startOfMonth = month.atDay(1);
+        LocalDate endOfMonth = month.atEndOfMonth();
+        return (int) userRepository.findAll().stream()
+                .filter(user -> user.getCreatedAt() != null &&
+                        !user.getCreatedAt().isBefore(startOfMonth) &&
+                        !user.getCreatedAt().isAfter(endOfMonth))
+                .count();
+    }
 }

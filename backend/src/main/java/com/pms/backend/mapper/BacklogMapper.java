@@ -18,6 +18,7 @@ public class BacklogMapper {
         backlog.setSprint_goal(request.getSprint_goal());
         backlog.setWork_items(0); // Default value
         backlog.setStatus("NOT_STARTED"); // Default status
+        backlog.setProject_id(request.getProject_id()); // Ánh xạ project_id
         return backlog;
     }
 
@@ -42,6 +43,7 @@ public class BacklogMapper {
         response.setSprint_goal(backlog.getSprint_goal());
         response.setCreate_by_id(backlog.getCreate_by_id());
         response.setCreate_by_name(backlog.getCreate_by_name());
+        response.setProject_id(backlog.getProject_id()); // Thêm project_id vào response
         return response;
     }
 }

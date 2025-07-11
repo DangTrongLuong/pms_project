@@ -18,22 +18,27 @@ const Backlog = ({ project }) => {
     start_date: null,
     end_date: null,
     sprint_goal: "",
+    project_id: project.id, // Không cần chuyển thành chuỗi
   });
   const [isActionOpen, setIsActionOpen] = useState(null);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(null);
   const [isEditFormOpen, setIsEditFormOpen] = useState(null);
   const userId = localStorage.getItem("userId");
+  const accessToken = localStorage.getItem("accessToken");
 
   useEffect(() => {
     fetchSprints();
-  }, []);
+  }, [project.id]);
 
   const fetchSprints = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8080/api/backlog/get-all-backlogs",
+        `http://localhost:8080/api/backlog/project/${project.id}`,
         {
-          headers: { userId },
+          headers: {
+            userId,
+            Authorization: `Bearer ${accessToken}`,
+          },
         }
       );
       setSprints(response.data);
@@ -49,6 +54,7 @@ const Backlog = ({ project }) => {
       start_date: null,
       end_date: null,
       sprint_goal: "",
+      project_id: project.id,
     });
     setIsCreateSprintOpen(true);
   };
@@ -89,7 +95,10 @@ const Backlog = ({ project }) => {
               .split("T")[0],
         },
         {
-          headers: { userId },
+          headers: {
+            userId,
+            Authorization: `Bearer ${accessToken}`,
+          },
         }
       );
       setSprints((prev) => [response.data, ...prev]);
@@ -100,6 +109,7 @@ const Backlog = ({ project }) => {
         start_date: null,
         end_date: null,
         sprint_goal: "",
+        project_id: project.id,
       });
     } catch (error) {
       console.error("Error creating sprint:", error);
@@ -118,7 +128,10 @@ const Backlog = ({ project }) => {
   const handleDelete = async (id) => {
     try {
       await axios.delete(`http://localhost:8080/api/backlog/${id}`, {
-        headers: { userId },
+        headers: {
+          userId,
+          Authorization: `Bearer ${accessToken}`,
+        },
       });
       setSprints((prev) => prev.filter((sprint) => sprint.id !== id));
       setIsDeleteConfirmOpen(null);
@@ -134,6 +147,7 @@ const Backlog = ({ project }) => {
       start_date: sprint.start_date,
       end_date: sprint.end_date,
       sprint_goal: sprint.sprint_goal,
+      project_id: sprint.project_id,
     });
     setIsEditFormOpen(sprint.id);
     setIsActionOpen(null);
@@ -150,7 +164,10 @@ const Backlog = ({ project }) => {
           end_date: formData.end_date || new Date().toISOString().split("T")[0],
         },
         {
-          headers: { userId },
+          headers: {
+            userId,
+            Authorization: `Bearer ${accessToken}`,
+          },
         }
       );
       setSprints((prev) =>
@@ -163,6 +180,7 @@ const Backlog = ({ project }) => {
         start_date: null,
         end_date: null,
         sprint_goal: "",
+        project_id: project.id,
       });
     } catch (error) {
       console.error("Error updating sprint:", error);

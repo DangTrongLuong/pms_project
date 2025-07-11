@@ -1,5 +1,6 @@
 package com.pms.backend.service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -170,5 +171,11 @@ public class ProjectService {
                     return project;
                 })
                 .collect(Collectors.toList());
+    }
+     public int getProjectCount() {
+        return (int) projectRepository.count();
+    }
+    public int countProjectsByDate(LocalDate date) {
+        return projectRepository.findByCreatedAt(date).size(); // Sử dụng phương thức từ repository
     }
 }

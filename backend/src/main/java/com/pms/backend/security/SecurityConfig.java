@@ -37,12 +37,13 @@ public class SecurityConfig {
                 .authorizeHttpRequests(requests -> requests
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers(
+                                "/api/**",
                                 "/api/auth/**",                              
                                 "/oauth2/**",
                                 "/login/oauth2/code/**",
                                 "/",
                                 "/api/projects/**",
-                                "api/members/**",
+                                "/api/members/**",
                                 "/api/backlog/**"
 
                         ).permitAll()

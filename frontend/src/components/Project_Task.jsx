@@ -340,7 +340,7 @@ const ProjectTaskContent = () => {
                     <div className="sidebar-icon-header">
                       <FontAwesomeIcon icon={faBarsProgress} />
                     </div>
-                    <p className="sidebar-progress">Bảng nhiệm vụ</p>
+                    <p className="sidebar-progress">Board</p>
                   </div>
                   <div
                     className="project-header-navbar-items"
@@ -349,7 +349,7 @@ const ProjectTaskContent = () => {
                     <div className="sidebar-icon-header">
                       <FontAwesomeIcon icon={faUserPlus} />
                     </div>
-                    <p className="sidebar-progress">Thêm thành viên</p>
+                    <p className="sidebar-progress">Add members</p>
                   </div>
                 </div>
               </div>
@@ -390,14 +390,14 @@ const ProjectTaskContent = () => {
       {isAddMemberOpen && (
         <div className="modal-overlay">
           <div className="add-member-form" ref={searchRef}>
-            <h3>Thêm thành viên</h3>
-            <div className="search-container">
+            <h3>Add Member For Project</h3>
+            <div className="search-container-name-email">
               <input
                 type="text"
-                placeholder="Nhập tên hoặc email..."
+                placeholder="Enter a name or a email..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="search-input"
+                className="search-input-name-email"
               />
               {suggestions.length > 0 && (
                 <ul className="suggestions-list">
@@ -444,14 +444,14 @@ const ProjectTaskContent = () => {
                 onClick={() => setIsAddMemberOpen(false)}
                 className="cancel-button"
               >
-                Hủy
+                Cancel
               </button>
               <button
                 onClick={() => setIsConfirmOpen(true)}
                 className="confirm-button"
                 disabled={selectedMembers.length === 0}
               >
-                Thêm
+                Add
               </button>
             </div>
           </div>
