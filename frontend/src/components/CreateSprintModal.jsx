@@ -10,6 +10,7 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
     sprintGoal: "",
     duration: "",
   });
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const today = new Date();
@@ -22,6 +23,8 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isLoading) return;
+    setIsLoading(true);
     try {
       const userId = localStorage.getItem("userId");
       const userName = localStorage.getItem("userName") || "Anonymous";
@@ -68,6 +71,8 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
         window.location.href = "/login";
       }
       alert(err.message || "Không thể tạo sprint. Vui lòng thử lại.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -181,8 +186,9 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
             <button
               type="submit"
               className="create-sprint-btn create-sprint-btn-primary"
+              disabled={isLoading}
             >
-              Create Sprint
+              {isLoading ? "Creating..." : "Create Sprint"}
             </button>
           </div>
         </form>

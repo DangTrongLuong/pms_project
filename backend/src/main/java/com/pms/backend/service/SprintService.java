@@ -44,14 +44,12 @@ public class SprintService {
     TaskMapper taskMapper;
 
     public Sprint createSprint(Integer projectId, SprintCreationRequest request, String userId, String userName) {
+        log.info("Bắt đầu tạo sprint cho projectId: {}, userId: {}, userName: {}, request: {}", projectId, userId, userName, request);
         if (request.getName() == null || request.getName().trim().isEmpty()) {
             throw new AppException(ErrorStatus.INVALID_INPUT, "Tên sprint không được để trống");
         }
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new AppException(ErrorStatus.PROJECT_NOT_FOUND));
-        if (sprintRepository.findByProjectIdAndName((long) projectId, request.getName()).isPresent()) {
-            throw new AppException(ErrorStatus.SPRINT_ALREADY_EXISTS);
-        }
         Sprint sprint = SprintMapper.INSTANCE.toSprint(request);
         sprint.setStatus(SprintStatus.PLANNED);
         sprint.setCreateById(userId);
@@ -59,7 +57,7 @@ public class SprintService {
         sprint.setProject(project);
         sprint.setWorkItems(0);
         Sprint savedSprint = sprintRepository.save(sprint);
-        log.info("Sprint được tạo: {}", savedSprint);
+        log.info("Sprint được tạo thành công: {}", savedSprint);
         return savedSprint;
     }
 
@@ -161,9 +159,9 @@ public class SprintService {
         task.setAssignee(assignee);
         task.setSprint(null);
         task.setProject(project);
-        Task savedTask = taskRepository.save(task);
-        log.info("Task được tạo trong backlog: {}", savedTask);
-        return savedTask;
+        Task savedSprint = taskRepository.save(task);
+        log.info("Task được tạo trong backlog: {}", savedSprint);
+        return savedSprint;
     }
 
     public void deleteTask(Integer taskId, String userId) {

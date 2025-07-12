@@ -35,33 +35,25 @@ public class TokenFilter extends OncePerRequestFilter {
             response.setHeader("Access-Control-Allow-Credentials", "true");
             return;
         }
-        // Skip public endpoints
+
+        // Bỏ qua các endpoint công khai
         if (path.startsWith("/api/auth/")
                 || path.equals("/")
                 || path.startsWith("/uploads/")
                 || path.startsWith("/api/projects/")
                 || path.startsWith("/api/members/")
                 || path.startsWith("/api/sprints/")
-                || path.startsWith("/api/admin/auth/login")) {
-
-        // Bỏ qua các yêu cầu OPTIONS, endpoint công khai và OAuth2 redirect
-        if (method.equals("OPTIONS") ||
-            path.startsWith("/api/auth/") ||
-            path.equals("/") ||
-            path.startsWith("/uploads/") ||
-            path.startsWith("/api/projects/") ||
-            path.startsWith("/api/members/") ||
-            path.startsWith("/api/sprints/") ||
-            path.startsWith("/oauth2/") ||
-            path.startsWith("/login/oauth2/code/")) {
+                || path.startsWith("/api/admin/auth/login")
+                || path.startsWith("/oauth2/")
+                || path.startsWith("/login/oauth2/code/")) {
             filterChain.doFilter(request, response);
             return;
         }
 
         String authHeader = request.getHeader("Authorization");
-        String userId = (String) request.getSession().getAttribute("userId");
-        String userName = (String) request.getSession().getAttribute("name");
-        String role = (String) request.getSession().getAttribute("role");
+        String userId = request.getHeader("userId"); // Lấy từ header thay vì session
+        String userName = request.getHeader("userName"); // Lấy từ header thay vì session
+        String role = request.getHeader("role"); // Lấy từ header thay vì session
 
         if (path.startsWith("/api/admin/") && !"ADMIN".equals(role)) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied: Admin role required");
@@ -83,36 +75,12 @@ public class TokenFilter extends OncePerRequestFilter {
                     filterChain.doFilter(request, response);
                     return;
                 } catch (Exception e) {
-                    // Validate Google token if JWT fails
-                    if (accessToken.startsWith("ya29.") || accessToken.length() > 200) {
-                        try {
-                            HttpURLConnection conn = (HttpURLConnection) new URL(
-                                    "https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=" + accessToken).openConnection();
-                            conn.setRequestMethod("GET");
-                            int responseCode = conn.getResponseCode();
-                            if (responseCode != 200) {
-                                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid Google token");
-                                return;
-                            }
-                            request.setAttribute("userId", userId);
-                            request.setAttribute("userName", userName);
-                            request.setAttribute("role", role);
-                            filterChain.doFilter(request, response);
-                            return;
-                        } catch (IOException ex) {
-                            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Error validating Google token");
-                            return;
-                        }
-                    } else {
-                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT token");
-                        return;
-                    }
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT token: " + e.getMessage());
+                    return;
                 }
             }
-        }
-
-        // Allow requests if userId and userName are present in session
-        if (userId != null && userName != null) {
+        } else if (userId != null && userName != null) {
+            // Cho phép nếu có userId và userName trong header (dùng session không đáng tin cậy)
             request.setAttribute("userId", userId);
             request.setAttribute("userName", userName);
             request.setAttribute("role", role);
@@ -122,5 +90,4 @@ public class TokenFilter extends OncePerRequestFilter {
 
         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Missing or invalid token");
     }
-}
 }
