@@ -1,5 +1,6 @@
 package com.pms.backend.security;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
@@ -11,7 +12,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class CorsConfig {
-
+    @Value("${frontend.url}")
+    private String frontendUrl;
     @Bean
     public WebMvcConfigurer webMvcConfigurer() {
         return new WebMvcConfigurer() {
@@ -19,7 +21,7 @@ public class CorsConfig {
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                        .allowedOrigins("http://localhost:3000")
+                        .allowedOrigins(frontendUrl)
                         .allowedHeaders("Authorization", "userId", "Content-Type", "role") // Thêm "role"
                         .exposedHeaders("Access-Control-Allow-Origin", "Access-Control-Allow-Credentials");
             }

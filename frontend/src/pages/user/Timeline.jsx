@@ -26,7 +26,7 @@ const Timeline = () => {
       }
 
       const sprintResponse = await fetch(
-        `http://localhost:8080/api/backlog/sprints/${selectedProject.id}`,
+        `${process.env.REACT_APP_API_URL}/api/backlog/sprints/${selectedProject.id}`,
         {
           method: "GET",
           headers: {
@@ -53,7 +53,7 @@ const Timeline = () => {
       }
 
       const taskResponse = await fetch(
-        `http://localhost:8080/api/backlog/tasks/${activeSprint.id}`,
+        `${process.env.REACT_APP_API_URL}/api/backlog/tasks/${activeSprint.id}`,
         {
           method: "GET",
           headers: {

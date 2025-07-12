@@ -31,7 +31,7 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
       }
 
       const response = await fetch(
-        `http://localhost:8080/api/backlog/sprint/${selectedProject.id}`,
+        `${process.env.REACT_APP_API_URL}/api/backlog/sprint/${selectedProject.id}`,
         {
           method: "POST",
           headers: {

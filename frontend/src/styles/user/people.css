@@ -14,6 +14,7 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
   position: relative;
   overflow: hidden;
+  margin-bottom: 10px;
 }
 
 .add-people-form::before {
@@ -23,7 +24,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  background: linear-gradient(90deg, #3b5ae6 0%, #1b55f3 50%, #062af5 100%);
 }
 
 .add-people-form h3 {
@@ -38,12 +39,13 @@
 }
 
 .form-row {
-  display: grid;
-  grid-template-columns: 2fr 1fr auto;
-  gap: 20px;
-  align-items: end;
+  display: flex;
+  gap: 10px;
 }
-
+.form-group-add-member {
+  display: flex;
+  width: auto;
+}
 .form-group {
   display: flex;
   flex-direction: column;
@@ -64,38 +66,41 @@
   font-size: 14px;
 }
 
-.form-input:focus,
-.form-select:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+.email-suggestions-add {
+  height: 180px;
+  overflow-y: scroll;
+  scrollbar-width: thin; /* "auto", "thin", "none" */
+  scrollbar-color: #888 #f1f1f1;
 }
 
 .form-actions-inline {
   display: flex;
+  justify-content: center;
+  align-items: center;
   gap: 10px;
 }
 
 .btn-primary {
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  background: #01b638;
   color: #fff;
-  padding: 12px 20px;
+  padding: 10px 15px;
   border: none;
   border-radius: 10px;
   font-weight: 600;
   cursor: pointer;
+
   transition: all 0.3s ease;
 }
 
 .btn-primary:hover {
-  background: linear-gradient(90deg, #7483ea 0%, #8b5cf6 100%);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  background: #00ac34;
+  box-shadow: 0 4px 12px rgba(2, 179, 81, 0.3);
 }
 
 .btn-secondary {
   background: #e2e8f0;
   color: #4a5568;
-  padding: 10px 16px;
+  padding: 10px 15px;
   border: none;
   border-radius: 10px;
   font-weight: 500;
@@ -108,6 +113,15 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.action-menu {
+  position: absolute;
+  top: 0;
+  right: 100px;
+  background: white;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+}
 /* People Container */
 .people-container {
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
@@ -139,7 +153,7 @@
   gap: 8px;
   padding: 10px 20px;
   border-radius: 12px;
-  background: linear-gradient(90deg, #7f4ce7 0%, #a155e9 100%);
+  background: linear-gradient(90deg, #4380e9 0%, #166be1 100%);
   color: #fff;
   font-weight: 600;
   border: none;
@@ -149,8 +163,8 @@
 }
 
 .add-member-btn:hover {
-  background: linear-gradient(90deg, #8b5cf6 0%, #b794f4 100%);
-  box-shadow: 0 4px 8px rgba(127, 76, 231, 0.3);
+  background: linear-gradient(90deg, #2d55e7 0%, #142eef 100%);
+  box-shadow: 0 4px 8px rgba(30, 110, 239, 0.3);
 }
 
 .add-member-btn .btn-icon {
@@ -186,7 +200,7 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  background: linear-gradient(90deg, #294ded 0%, #2260e7 50%, #065fee 100%);
   transform: scaleX(0);
   transition: transform 0.3s ease;
 }
@@ -196,7 +210,7 @@
 }
 
 .person-item:hover {
-  border-color: #667eea;
+  border-color: #0b5cf2;
   transform: translateY(-3px);
   box-shadow: 0 12px 30px rgba(102, 126, 234, 0.15);
 }
@@ -213,15 +227,14 @@
 .person-avatar {
   width: 56px;
   height: 56px;
+  border: 1px solid rgb(92, 92, 92);
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   font-size: 18px;
   font-weight: 700;
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
   position: relative;
 }
 
@@ -231,9 +244,15 @@
   inset: -2px;
   border-radius: 50%;
   padding: 2px;
-  background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask-composite: exclude;
+}
+
+.person-avatar img {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 /* Person Info */
@@ -584,30 +603,30 @@
     justify-content: center; /* Căn giữa nội dung nút */
   }
   .email-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 8px;
-}
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+  }
 
-.email-chip {
-  display: flex;
-  align-items: center;
-  background: #e0e0e0;
-  border-radius: 16px;
-  padding: 4px 8px;
-  font-size: 14px;
-}
+  .email-chip {
+    display: flex;
+    align-items: center;
+    background: #e0e0e0;
+    border-radius: 16px;
+    padding: 4px 8px;
+    font-size: 14px;
+  }
 
-.email-chip button {
-  margin-left: 8px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  display: flex;
-  align-items: center;
-}
+  .email-chip button {
+    margin-left: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+  }
 }
 
 @media (max-width: 480px) {

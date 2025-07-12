@@ -3,7 +3,6 @@
   height: auto;
   padding: 30px;
   border-radius: 10px;
-  box-shadow: 3px 3px 3px gray;
 }
 .create-project-header {
   width: 100%;
@@ -48,7 +47,7 @@
 
 .create-project-input textarea {
   border-radius: 8px;
-  border: 1px solid rgb(180, 180, 180);;
+  border: 1px solid rgb(180, 180, 180);
   outline: none;
   padding: 10px;
   font-size: 16px;
@@ -95,15 +94,15 @@
   transform: translateY(-2px);
 }
 
-.date{
+.date {
   display: flex;
 }
 
-.start-date{
+.start-date {
   width: 49%;
   margin-right: 20px;
 }
 
-.end-date{
+.end-date {
   width: 49%;
 }

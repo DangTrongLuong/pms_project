@@ -37,7 +37,9 @@ const mapStatusToFrontend = (backendStatus) => {
 
 const mapTypeToFrontend = (backendType) => {
   if (!backendType) return "Kanban";
-  return backendType.charAt(0).toUpperCase() + backendType.slice(1).toLowerCase();
+  return (
+    backendType.charAt(0).toUpperCase() + backendType.slice(1).toLowerCase()
+  );
 };
 
 // SearchBar Component
@@ -90,7 +92,9 @@ const Dropdown = ({ label, options, selected, onSelect, className = "" }) => {
           {options.map((option) => (
             <div
               key={option.value}
-              className={`dropdown-item ${selected === option.value ? "selected" : ""}`}
+              className={`dropdown-item ${
+                selected === option.value ? "selected" : ""
+              }`}
               onClick={() => {
                 onSelect(option.value);
                 setIsOpen(false);
@@ -133,13 +137,21 @@ const StatsBar = ({ projects }) => {
 };
 
 // ProjectCard Component
-const ProjectCard = ({ project, onViewDetails, onActionClick, canManageMembers, currentUserEmail }) => {
+const ProjectCard = ({
+  project,
+  onViewDetails,
+  onActionClick,
+  canManageMembers,
+  currentUserEmail,
+}) => {
   const leadName = project.leader || "Unknown";
   const membersList = (project.members || "").split(", ").filter(Boolean);
 
   return (
     <div className="project-card" onClick={() => onViewDetails(project.id)}>
-      <h3 className="project-card-title">{project.project_name || "Unnamed Project"}</h3>
+      <h3 className="project-card-title">
+        {project.project_name || "Unnamed Project"}
+      </h3>
       <div className="project-type-badge">
         {mapTypeToFrontend(project.project_type)}
       </div>
@@ -159,11 +171,7 @@ const ProjectCard = ({ project, onViewDetails, onActionClick, canManageMembers, 
         <div className="team-label">Members</div>
         <div className="team-avatars">
           {membersList.slice(0, 4).map((member, index) => (
-            <div
-              key={index}
-              className="team-avatar"
-              title={member}
-            >
+            <div key={index} className="team-avatar" title={member}>
               {getInitials(member)}
               {canManageMembers && member !== currentUserEmail && (
                 <div className="action-delete-change">
@@ -201,7 +209,7 @@ const ProjectsList = ({
   handleViewDetails,
   handleActionClick,
   canManageMembers,
-  currentUserEmail
+  currentUserEmail,
 }) => {
   if (loading) {
     return (
@@ -311,7 +319,7 @@ const MyProjects = () => {
         }
 
         const response = await fetch(
-          "http://localhost:8080/api/projects/my-projects",
+          `${process.env.REACT_APP_API_URL}/api/projects/my-projects`,
           {
             method: "GET",
             headers: {
@@ -338,7 +346,7 @@ const MyProjects = () => {
           const membersData = {};
           for (const project of data) {
             const membersResponse = await fetch(
-              `http://localhost:8080/api/members/project/${project.id}`,
+              `${process.env.REACT_APP_API_URL}/api/members/project/${project.id}`,
               {
                 method: "GET",
                 headers: {
@@ -358,7 +366,9 @@ const MyProjects = () => {
           throw new Error(data.message || "Failed to fetch projects");
         }
       } catch (err) {
-        setError(err.message || "An error occurred while fetching the project list");
+        setError(
+          err.message || "An error occurred while fetching the project list"
+        );
         console.error("Fetch projects error:", err);
       } finally {
         setLoading(false);
@@ -374,12 +384,16 @@ const MyProjects = () => {
 
       if (searchQuery.trim()) {
         filtered = filtered.filter((project) =>
-          project.project_name?.toLowerCase().includes(searchQuery.toLowerCase())
+          project.project_name
+            ?.toLowerCase()
+            .includes(searchQuery.toLowerCase())
         );
       }
 
       if (statusFilter !== "all") {
-        filtered = filtered.filter((project) => project.status === statusFilter);
+        filtered = filtered.filter(
+          (project) => project.status === statusFilter
+        );
       }
 
       if (typeFilter !== "all") {
@@ -440,7 +454,9 @@ const MyProjects = () => {
       const accessToken = localStorage.getItem("accessToken");
 
       const response = await fetch(
-        `http://localhost:8080/api/members/project/${projectId}/email/${encodeURIComponent(email)}`,
+        `${
+          process.env.REACT_APP_API_URL
+        }/api/members/project/${projectId}/email/${encodeURIComponent(email)}`,
         {
           method: "DELETE",
           headers: {
@@ -457,7 +473,7 @@ const MyProjects = () => {
       }
 
       const fetchResponse = await fetch(
-        "http://localhost:8080/api/projects/my-projects",
+        `${process.env.REACT_APP_API_URL}/api/projects/my-projects`,
         {
           method: "GET",
           headers: {
@@ -482,7 +498,7 @@ const MyProjects = () => {
         localStorage.setItem("projects", JSON.stringify(mappedProjects));
 
         const membersResponse = await fetch(
-          `http://localhost:8080/api/members/project/${projectId}`,
+          `${process.env.REACT_APP_API_URL}/api/members/project/${projectId}`,
           {
             method: "GET",
             headers: {
@@ -517,7 +533,7 @@ const MyProjects = () => {
       const accessToken = localStorage.getItem("accessToken");
 
       const response = await fetch(
-        `http://localhost:8080/api/members/project/${projectId}/transfer-leader`,
+        `${process.env.REACT_APP_API_URL}/api/members/project/${projectId}/transfer-leader`,
         {
           method: "POST",
           headers: {
@@ -535,7 +551,7 @@ const MyProjects = () => {
       }
 
       const fetchResponse = await fetch(
-        "http://localhost:8080/api/projects/my-projects",
+        `${process.env.REACT_APP_API_URL}/api/projects/my-projects`,
         {
           method: "GET",
           headers: {
@@ -560,7 +576,7 @@ const MyProjects = () => {
         localStorage.setItem("projects", JSON.stringify(mappedProjects));
 
         const membersResponse = await fetch(
-          `http://localhost:8080/api/members/project/${projectId}`,
+          `${process.env.REACT_APP_API_URL}/api/members/project/${projectId}`,
           {
             method: "GET",
             headers: {
@@ -668,15 +684,15 @@ const MyProjects = () => {
                 </p>
               </div>
               <div className="page-actions-container">
-              <div className="page-actions">
-                <button
-                  className="btn-create btn-primary-create"
-                  onClick={() => navigate("/create-project")}
-                  aria-label="Create New Project"
-                >
-                  <i className="fas fa-plus"></i>Create New Project
-                </button>
-              </div>
+                <div className="page-actions">
+                  <button
+                    className="btn-create btn-primary-create"
+                    onClick={() => navigate("/create-project")}
+                    aria-label="Create New Project"
+                  >
+                    <i className="fas fa-plus"></i>Create New Project
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -697,7 +713,8 @@ const MyProjects = () => {
                   options={statusOptions}
                   selected={statusFilter}
                   onSelect={setStatusFilter}
-                 r className="filter-dropdown"
+                  r
+                  className="filter-dropdown"
                 />
                 <Dropdown
                   label="Filter by Type"
@@ -757,65 +774,69 @@ const MyProjects = () => {
               </div>
             )}
 
-            {deleteConfirm && deleteConfirm.memberEmail !== currentUserEmail && (
-              <div className="modal-overlay">
-                <div className="confirm-dialog">
-                  <h3>Confirm Member Removal</h3>
-                  <p>
-                    Are you sure you want to remove {deleteConfirm.memberEmail} from the project?
-                  </p>
-                  <div className="form-buttons">
-                    <button
-                      onClick={() => setDeleteConfirm(null)}
-                      className="cancel-button"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={() =>
-                        handleDeleteMember(
-                          deleteConfirm.projectId,
-                          deleteConfirm.memberEmail
-                        )
-                      }
-                      className="confirm-button"
-                    >
-                      Confirm
-                    </button>
+            {deleteConfirm &&
+              deleteConfirm.memberEmail !== currentUserEmail && (
+                <div className="modal-overlay">
+                  <div className="confirm-dialog">
+                    <h3>Confirm Member Removal</h3>
+                    <p>
+                      Are you sure you want to remove{" "}
+                      {deleteConfirm.memberEmail} from the project?
+                    </p>
+                    <div className="form-buttons">
+                      <button
+                        onClick={() => setDeleteConfirm(null)}
+                        className="cancel-button"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() =>
+                          handleDeleteMember(
+                            deleteConfirm.projectId,
+                            deleteConfirm.memberEmail
+                          )
+                        }
+                        className="confirm-button"
+                      >
+                        Confirm
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {transferConfirm && transferConfirm.memberEmail !== currentUserEmail && (
-              <div className="modal-overlay">
-                <div className="confirm-dialog">
-                  <h3>Confirm Leader Transfer</h3>
-                  <p>
-                    Are you sure you want to transfer the leader role to {transferConfirm.memberEmail}?
-                  </p>
-                  <div className="form-buttons">
-                    <button
-                      onClick={() => setTransferConfirm(null)}
-                      className="cancel-button"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={() =>
-                        handleTransferLeader(
-                          transferConfirm.projectId,
-                          transferConfirm.memberEmail
-                        )
-                      }
-                      className="confirm-button"
-                    >
-                      Confirm
-                    </button>
+            {transferConfirm &&
+              transferConfirm.memberEmail !== currentUserEmail && (
+                <div className="modal-overlay">
+                  <div className="confirm-dialog">
+                    <h3>Confirm Leader Transfer</h3>
+                    <p>
+                      Are you sure you want to transfer the leader role to{" "}
+                      {transferConfirm.memberEmail}?
+                    </p>
+                    <div className="form-buttons">
+                      <button
+                        onClick={() => setTransferConfirm(null)}
+                        className="cancel-button"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() =>
+                          handleTransferLeader(
+                            transferConfirm.projectId,
+                            transferConfirm.memberEmail
+                          )
+                        }
+                        className="confirm-button"
+                      >
+                        Confirm
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
           </div>
         </div>
       </div>

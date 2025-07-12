@@ -38,7 +38,10 @@ const Create_Project_Content = () => {
     }));
     // Validation for project_name
     if (id === "project-name" && !value.trim()) {
-      setErrors((prev) => ({ ...prev, project_name: "Project name is required" }));
+      setErrors((prev) => ({
+        ...prev,
+        project_name: "Project name is required",
+      }));
     } else if (id === "project-name") {
       setErrors((prev) => ({ ...prev, project_name: "" }));
     }
@@ -93,7 +96,9 @@ const Create_Project_Content = () => {
       project_name: !formData.project_name.trim()
         ? "Project name is required"
         : "",
-      project_type: !formData.project_type ? "Please select a project type" : "",
+      project_type: !formData.project_type
+        ? "Please select a project type"
+        : "",
       start_date: formData.start_date
         ? validateDate(formData.start_date)
           ? ""
@@ -134,7 +139,7 @@ const Create_Project_Content = () => {
       }
 
       const response = await fetch(
-        "http://localhost:8080/api/projects/create-project",
+        `${process.env.REACT_APP_API_URL}/api/projects/create-project`,
         {
           method: "POST",
           headers: {
@@ -228,7 +233,8 @@ const Create_Project_Content = () => {
               <div className="create-project-title">
                 <h2>Create New Project</h2>
                 <p>
-                  Fill in the project details below to complete the project creation
+                  Fill in the project details below to complete the project
+                  creation
                 </p>
               </div>
               {errors.general && (
@@ -333,7 +339,8 @@ const Create_Project_Content = () => {
                     <div className="type">
                       <h3>Scrum</h3>
                       <p>
-                        Move quickly toward your project goals with boards, backlogs, and timelines
+                        Move quickly toward your project goals with boards,
+                        backlogs, and timelines
                       </p>
                     </div>
                   </div>

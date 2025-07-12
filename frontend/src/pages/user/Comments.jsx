@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Search, MessageSquare, BarChart3, Folder, Circle, Calendar, Users, FileText } from "lucide-react";
+import {
+  Search,
+  MessageSquare,
+  BarChart3,
+  Folder,
+  Circle,
+  Calendar,
+  Users,
+  FileText,
+} from "lucide-react";
 import "../../styles/user/comments.css";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSidebar } from "../../context/SidebarContext";
@@ -32,7 +41,7 @@ const Comments = () => {
       }
 
       const sprintResponse = await fetch(
-        `http://localhost:8080/api/backlog/sprints/${selectedProject.id}`,
+        `${process.env.REACT_APP_API_URL}/api/backlog/sprints/${selectedProject.id}`,
         {
           method: "GET",
           headers: {
@@ -45,7 +54,9 @@ const Comments = () => {
 
       if (!sprintResponse.ok) {
         const errorData = await sprintResponse.json().catch(() => ({}));
-        throw new Error(errorData.message || `Lấy sprint thất bại: ${sprintResponse.status}`);
+        throw new Error(
+          errorData.message || `Lấy sprint thất bại: ${sprintResponse.status}`
+        );
       }
 
       const sprints = await sprintResponse.json();
@@ -57,7 +68,7 @@ const Comments = () => {
       }
 
       const taskResponse = await fetch(
-        `http://localhost:8080/api/backlog/tasks/${activeSprint.id}`,
+        `${process.env.REACT_APP_API_URL}/api/backlog/tasks/${activeSprint.id}`,
         {
           method: "GET",
           headers: {
@@ -70,7 +81,9 @@ const Comments = () => {
 
       if (!taskResponse.ok) {
         const errorData = await taskResponse.json().catch(() => ({}));
-        throw new Error(errorData.message || `Lấy task thất bại: ${taskResponse.status}`);
+        throw new Error(
+          errorData.message || `Lấy task thất bại: ${taskResponse.status}`
+        );
       }
 
       const tasks = await taskResponse.json();
@@ -104,7 +117,7 @@ const Comments = () => {
       }
 
       const response = await fetch(
-        `http://localhost:8080/api/backlog/task/${taskId}/comments`,
+        `${process.env.REACT_APP_API_URL}/api/backlog/task/${taskId}/comments`,
         {
           method: "POST",
           headers: {
@@ -122,7 +135,9 @@ const Comments = () => {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Thêm bình luận thất bại: ${response.status}`);
+        throw new Error(
+          errorData.message || `Thêm bình luận thất bại: ${response.status}`
+        );
       }
 
       setNewComment("");
@@ -140,27 +155,42 @@ const Comments = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case "TODO": return "text-gray-600 bg-gray-100";
-      case "IN_PROGRESS": return "text-blue-600 bg-blue-100";
-      case "IN_REVIEW": return "text-orange-600 bg-orange-100";
-      case "DONE": return "text-green-600 bg-green-100";
-      default: return "text-gray-600 bg-gray-100";
+      case "TODO":
+        return "text-gray-600 bg-gray-100";
+      case "IN_PROGRESS":
+        return "text-blue-600 bg-blue-100";
+      case "IN_REVIEW":
+        return "text-orange-600 bg-orange-100";
+      case "DONE":
+        return "text-green-600 bg-green-100";
+      default:
+        return "text-gray-600 bg-gray-100";
     }
   };
 
   const filteredTasks = tasks.filter(
     (task) =>
       task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (task.description && task.description.toLowerCase().includes(searchQuery.toLowerCase()))
+      (task.description &&
+        task.description.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const renderComments = () => (
     <div className="space-y-6">
       {filteredTasks.map((task) => (
-        <div key={task.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div
+          key={task.id}
+          className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+        >
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">{task.title}</h3>
-            <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(task.status)}`}>
+            <h3 className="text-lg font-semibold text-gray-900">
+              {task.title}
+            </h3>
+            <span
+              className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                task.status
+              )}`}
+            >
               {task.status}
             </span>
           </div>
@@ -170,13 +200,21 @@ const Comments = () => {
                 <div key={comment.id} className="flex space-x-3">
                   <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
                     <span className="text-xs font-medium text-gray-700">
-                      {comment.user.split(" ").map((n) => n[0]).join("").toUpperCase()}
+                      {comment.user
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .toUpperCase()}
                     </span>
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center space-x-2">
-                      <span className="font-medium text-gray-900">{comment.user}</span>
-                      <span className="text-xs text-gray-500">{new Date(comment.timestamp).toLocaleString()}</span>
+                      <span className="font-medium text-gray-900">
+                        {comment.user}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {new Date(comment.timestamp).toLocaleString()}
+                      </span>
                     </div>
                     <p className="text-sm text-gray-700 mt-1">{comment.text}</p>
                   </div>
@@ -223,8 +261,12 @@ const Comments = () => {
           <div className="mb-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">{selectedProject.project_name}</h1>
-                <p className="text-gray-600 mt-1">{selectedProject.description || "Không có mô tả"}</p>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {selectedProject.project_name}
+                </h1>
+                <p className="text-gray-600 mt-1">
+                  {selectedProject.description || "Không có mô tả"}
+                </p>
               </div>
             </div>
           </div>

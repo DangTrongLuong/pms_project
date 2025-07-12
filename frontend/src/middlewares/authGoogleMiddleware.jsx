@@ -28,7 +28,7 @@ const AuthMiddleware = ({ children }) => {
 
       try {
         const response = await fetch(
-          "http://localhost:8080/api/auth/refresh-token",
+          `${process.env.REACT_APP_API_URL}/api/auth/refresh-token`,
           {
             method: "POST",
             headers: {
@@ -99,7 +99,9 @@ const AuthMiddleware = ({ children }) => {
             return;
           }
         } else {
-          console.log(`Token expired for ${authProvider} login, redirecting to /login`);
+          console.log(
+            `Token expired for ${authProvider} login, redirecting to /login`
+          );
           navigate("/login", { replace: true });
           return;
         }
@@ -137,7 +139,7 @@ const AuthMiddleware = ({ children }) => {
       setIsLoading(true);
       setDebugInfo("Starting user info fetch...");
 
-      fetch("http://localhost:8080/api/auth/user-info", {
+      fetch(`${process.env.REACT_APP_API_URL}/api/auth/user-info`, {
         method: "GET",
         credentials: "include",
         headers: {

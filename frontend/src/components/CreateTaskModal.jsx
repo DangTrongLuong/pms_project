@@ -1,7 +1,7 @@
 // (Giữ nguyên từ phiên trước, chỉ cập nhật comment)
-import React, { useState, useEffect, useRef } from 'react';
-import { X, MessageSquare, Send } from 'lucide-react';
-import '../styles/user/create-task-modal.css';
+import React, { useState, useEffect, useRef } from "react";
+import { X, MessageSquare, Send } from "lucide-react";
+import "../styles/user/create-task-modal.css";
 
 const CreateTaskModal = ({
   isOpen,
@@ -59,19 +59,21 @@ const CreateTaskModal = ({
         const accessToken = localStorage.getItem("accessToken");
         if (!userId || !accessToken) throw new Error("Vui lòng đăng nhập lại");
         const response = await fetch(
-          `http://localhost:8080/api/users/suggest?query=${encodeURIComponent(value)}`,
+          `${
+            process.env.REACT_APP_API_URL
+          }/api/users/suggest?query=${encodeURIComponent(value)}`,
           {
-            method: 'GET',
+            method: "GET",
             headers: {
-              'Authorization': `Bearer ${accessToken}`,
-              'userId': userId,
+              Authorization: `Bearer ${accessToken}`,
+              userId: userId,
             },
             credentials: "include",
           }
         );
         if (response.ok) {
           const data = await response.json();
-          setSuggestedEmails(data.map(user => user.email) || []);
+          setSuggestedEmails(data.map((user) => user.email) || []);
           setIsSuggesting(true);
         } else {
           setSuggestedEmails([]);
@@ -106,13 +108,13 @@ const CreateTaskModal = ({
       }
 
       const response = await fetch(
-        `http://localhost:8080/api/backlog/task/${activeBacklogId}`,
+        `${process.env.REACT_APP_API_URL}/api/backlog/task/${activeBacklogId}`,
         {
           method: "POST",
           headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Authorization': `Bearer ${accessToken}`,
-            'userId': userId,
+            "Content-Type": "application/x-www-form-urlencoded",
+            Authorization: `Bearer ${accessToken}`,
+            userId: userId,
           },
           body: new URLSearchParams({
             taskTitle: formData.title,
@@ -127,7 +129,9 @@ const CreateTaskModal = ({
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Tạo nhiệm vụ thất bại: ${response.status}`);
+        throw new Error(
+          errorData.message || `Tạo nhiệm vụ thất bại: ${response.status}`
+        );
       }
 
       const newTask = await response.json();

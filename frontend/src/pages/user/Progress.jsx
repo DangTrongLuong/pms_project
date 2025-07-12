@@ -34,7 +34,7 @@ const Progress = () => {
         throw new Error("User not authenticated");
       }
       const response = await fetch(
-        `http://localhost:8080/api/members/project/${id}`,
+        `${process.env.REACT_APP_API_URL}/api/members/project/${id}`,
         {
           method: "GET",
           headers: {
@@ -72,7 +72,7 @@ const Progress = () => {
       }
 
       const sprintResponse = await fetch(
-        `http://localhost:8080/api/backlog/sprints/${selectedProject.id}`,
+        `${process.env.REACT_APP_API_URL}/api/backlog/sprints/${selectedProject.id}`,
         {
           method: "GET",
           headers: {
@@ -95,13 +95,13 @@ const Progress = () => {
       setActiveSprint(activeSprint);
 
       if (!activeSprint) {
-        setError("Không có sprint active để thêm nhiệm vụ!");
+        setError("There is no sprint active to add tasks to!");
         setTasks([]);
         return;
       }
 
       const taskResponse = await fetch(
-        `http://localhost:8080/api/backlog/tasks/${activeSprint.id}`,
+        `${process.env.REACT_APP_API_URL}/api/backlog/tasks/${activeSprint.id}`,
         {
           method: "GET",
           headers: {
@@ -152,7 +152,7 @@ const Progress = () => {
       }
 
       const response = await fetch(
-        `http://localhost:8080/api/backlog/task/${
+        `${process.env.REACT_APP_API_URL}/api/backlog/task/${
           activeSprint.id
         }?taskTitle=${encodeURIComponent(
           newTaskTitle
@@ -208,7 +208,9 @@ const Progress = () => {
       }
 
       const response = await fetch(
-        `http://localhost:8080/api/backlog/task/${taskId}/status?status=${encodeURIComponent(
+        `${
+          process.env.REACT_APP_API_URL
+        }/api/backlog/task/${taskId}/status?status=${encodeURIComponent(
           newStatus
         )}`,
         {
@@ -481,8 +483,7 @@ const Progress = () => {
           renderBoard()
         ) : (
           <div className="no-active-sprint">
-            Không có sprint active. Vui lòng bắt đầu một sprint trong phần
-            Backlog.
+            There is no active sprint. Please start a sprint in the Backlog.
           </div>
         )}
       </div>

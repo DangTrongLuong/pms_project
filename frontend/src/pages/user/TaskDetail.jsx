@@ -50,7 +50,7 @@ const TaskDetailsContent = () => {
         }
 
         const response = await fetch(
-          `http://localhost:8080/api/backlog/task/${id}`, // Cần endpoint thực tế
+          `${process.env.REACT_APP_API_URL}/api/backlog/task/${id}`, // Cần endpoint thực tế
           {
             method: "GET",
             headers: {

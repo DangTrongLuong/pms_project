@@ -26,11 +26,11 @@ const Summary = () => {
     try {
       const userId = localStorage.getItem("userId");
       if (!userId || !accessToken) {
-        throw new Error("Vui lòng đăng nhập lại để tiếp tục");
+        throw new Error("Please log in again to continue");
       }
 
       const sprintResponse = await fetch(
-        `http://localhost:8080/api/backlog/sprints/${selectedProject.id}`,
+        `${process.env.REACT_APP_API_URL}/api/backlog/sprints/${selectedProject.id}`,
         {
           method: "GET",
           headers: {
@@ -44,7 +44,8 @@ const Summary = () => {
       if (!sprintResponse.ok) {
         const errorData = await sprintResponse.json().catch(() => ({}));
         throw new Error(
-          errorData.message || `Lấy sprint thất bại: ${sprintResponse.status}`
+          errorData.message ||
+            `Failed to fetch sprints: ${sprintResponse.status}`
         );
       }
 
@@ -52,12 +53,12 @@ const Summary = () => {
       const activeSprint = sprints.find((sprint) => sprint.status === "ACTIVE");
       if (!activeSprint) {
         setTasks([]);
-        setError("Không có sprint active để lấy nhiệm vụ!");
+        setError("No active sprint to fetch tasks!");
         return;
       }
 
       const taskResponse = await fetch(
-        `http://localhost:8080/api/backlog/tasks/${activeSprint.id}`,
+        `${process.env.REACT_APP_API_URL}/api/backlog/tasks/${activeSprint.id}`,
         {
           method: "GET",
           headers: {
@@ -71,7 +72,7 @@ const Summary = () => {
       if (!taskResponse.ok) {
         const errorData = await taskResponse.json().catch(() => ({}));
         throw new Error(
-          errorData.message || `Lấy nhiệm vụ thất bại: ${taskResponse.status}`
+          errorData.message || `Failed to fetch tasks: ${taskResponse.status}`
         );
       }
 
@@ -79,9 +80,9 @@ const Summary = () => {
       setTasks(tasks);
       setError("");
     } catch (err) {
-      setError(err.message || "Đã có lỗi xảy ra khi lấy dữ liệu");
+      setError(err.message || "An error occurred while fetching data");
       if (err.message.includes("401") || err.message.includes("403")) {
-        setError("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+        setError("Your session has expired. Please log in again.");
         setTimeout(() => {
           window.location.href = "/login";
         }, 2000);
@@ -94,11 +95,11 @@ const Summary = () => {
     try {
       const userId = localStorage.getItem("userId");
       if (!userId || !accessToken) {
-        throw new Error("Vui lòng đăng nhập lại để tiếp tục");
+        throw new Error("Please log in again to continue");
       }
 
       const response = await fetch(
-        `http://localhost:8080/api/members/project/${selectedProject.id}`,
+        `${process.env.REACT_APP_API_URL}/api/members/project/${selectedProject.id}`,
         {
           method: "GET",
           headers: {
@@ -112,8 +113,7 @@ const Summary = () => {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
-          errorData.message ||
-            `Lấy danh sách thành viên thất bại: ${response.status}`
+          errorData.message || `Failed to fetch members: ${response.status}`
         );
       }
 
@@ -121,9 +121,9 @@ const Summary = () => {
       setMembers(data);
       setError("");
     } catch (err) {
-      setError(err.message || "Đã có lỗi xảy ra khi lấy danh sách thành viên");
+      setError(err.message || "An error occurred while fetching members");
       if (err.message.includes("401") || err.message.includes("403")) {
-        setError("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+        setError("Your session has expired. Please log in again.");
         setTimeout(() => {
           window.location.href = "/login";
         }, 2000);
@@ -162,19 +162,19 @@ const Summary = () => {
       <div className="tab-content">
         <div className="summary-grid">
           <div className="summary-card">
-            <h3>Tổng số nhiệm vụ</h3>
+            <h3>Total Tasks</h3>
             <p className="stat-value">{taskStats.total}</p>
           </div>
           <div className="summary-card">
-            <h3>Hoàn thành</h3>
+            <h3>Completed</h3>
             <p className="stat-value text-green">{taskStats.done}</p>
           </div>
           <div className="summary-card">
-            <h3>Đang thực hiện</h3>
+            <h3>In Progress</h3>
             <p className="stat-value text-blue">{taskStats.inProgress}</p>
           </div>
           <div className="summary-card">
-            <h3>Tiến độ</h3>
+            <h3>Progress</h3>
             <p className="stat-value text-purple">{progressPercentage}%</p>
             <div className="progress-bar">
               <div
@@ -187,22 +187,22 @@ const Summary = () => {
 
         <div className="summary-details">
           <div className="detail-section">
-            <h3>Thông tin dự án</h3>
+            <h3>Project Information</h3>
             <div className="detail-list">
               <div className="detail-item">
-                <span className="detail-label">Ngày tạo</span>
+                <span className="detail-label">Created Date</span>
                 <span className="detail-value">
                   {new Date(selectedProject.created_at).toLocaleDateString()}
                 </span>
               </div>
               <div className="detail-item">
-                <span className="detail-label">Trưởng dự án</span>
+                <span className="detail-label">Project Lead</span>
                 <span className="detail-value">
-                  {selectedProject.lead || "Chưa xác định"}
+                  {selectedProject.lead || "Not specified"}
                 </span>
               </div>
               <div className="detail-item">
-                <span className="detail-label">Trạng thái</span>
+                <span className="detail-label">Status</span>
                 <span className="detail-value">
                   {selectedProject.status || "Active"}
                 </span>
@@ -211,22 +211,22 @@ const Summary = () => {
           </div>
 
           <div className="detail-section">
-            <h3>Phân bổ nhiệm vụ</h3>
+            <h3>Task Allocation</h3>
             <div className="detail-list">
               <div className="detail-item">
-                <span className="detail-label">Cần làm</span>
+                <span className="detail-label">To Do</span>
                 <span className="detail-value">{taskStats.todo}</span>
               </div>
               <div className="detail-item">
-                <span className="detail-label">Đang thực hiện</span>
+                <span className="detail-label">In Progress</span>
                 <span className="detail-value">{taskStats.inProgress}</span>
               </div>
               <div className="detail-item">
-                <span className="detail-label">Đang xem xét</span>
+                <span className="detail-label">In Review</span>
                 <span className="detail-value">{taskStats.inReview}</span>
               </div>
               <div className="detail-item">
-                <span className="detail-label">Hoàn thành</span>
+                <span className="detail-label">Completed</span>
                 <span className="detail-value">{taskStats.done}</span>
               </div>
             </div>
@@ -235,25 +235,25 @@ const Summary = () => {
 
         <div className="summary-details">
           <div className="detail-section">
-            <h3>Phân loại ưu tiên</h3>
+            <h3>Priority Breakdown</h3>
             <div className="detail-list">
               <div className="detail-item">
-                <span className="detail-label">Ưu tiên cao</span>
+                <span className="detail-label">High Priority</span>
                 <span className="detail-value">{priorityStats.high}</span>
               </div>
               <div className="detail-item">
-                <span className="detail-label">Ưu tiên trung bình</span>
+                <span className="detail-label">Medium Priority</span>
                 <span className="detail-value">{priorityStats.medium}</span>
               </div>
               <div className="detail-item">
-                <span className="detail-label">Ưu tiên thấp</span>
+                <span className="detail-label">Low Priority</span>
                 <span className="detail-value">{priorityStats.low}</span>
               </div>
             </div>
           </div>
 
           <div className="detail-section">
-            <h3>Thành viên nhóm</h3>
+            <h3>Team Members</h3>
             <div className="team-members">
               {members.map((member, index) => (
                 <div key={index} className="team-member">
@@ -274,7 +274,7 @@ const Summary = () => {
         </div>
 
         <div className="summary-card">
-          <h3>Tổng quan tiến độ</h3>
+          <h3>Progress Overview</h3>
           <div className="progress-bar">
             <div
               className="progress-fill"
@@ -282,7 +282,7 @@ const Summary = () => {
             ></div>
           </div>
           <p className="text-sm text-gray">
-            {taskStats.done} / {taskStats.total} nhiệm vụ hoàn thành
+            {taskStats.done} / {taskStats.total} tasks completed
           </p>
         </div>
       </div>

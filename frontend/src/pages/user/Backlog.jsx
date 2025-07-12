@@ -37,7 +37,7 @@ const Backlog = () => {
       }
 
       const backlogResponse = await fetch(
-        `http://localhost:8080/api/backlog/sprints/${selectedProject.id}`,
+        `${process.env.REACT_APP_API_URL}/api/backlog/sprints/${selectedProject.id}`,
         {
           method: "GET",
           headers: {
@@ -70,7 +70,7 @@ const Backlog = () => {
       const activeBacklog = backlogsData.find((b) => b.status === "ACTIVE");
       if (activeBacklog) {
         const taskResponse = await fetch(
-          `http://localhost:8080/api/backlog/tasks/${activeBacklog.id}`,
+          `${process.env.REACT_APP_API_URL}/api/backlog/tasks/${activeBacklog.id}`,
           {
             method: "GET",
             headers: {
@@ -172,7 +172,7 @@ const Backlog = () => {
         <div className="header-actions">
           <button
             onClick={() => setShowSprintForm(true)}
-            className="btn btn-primary"
+            className="btn btn-primary-create"
           >
             <Plus size={20} />
             <span>Create Sprint</span>

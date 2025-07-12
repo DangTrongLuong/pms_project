@@ -38,8 +38,8 @@
   --shadow-offset-y: 10px;
   --shadow-blur: 25px;
   --max-width-sm: 320px;
-  --btn-min-width: 120px; /* Định nghĩa chiều rộng tối thiểu cho button */
-  --btn-height: 40px; /* Định nghĩa chiều cao cố định cho button */
+  --btn-min-width: 120px;
+  --btn-height: 40px;
 }
 
 /* Backlog Section Styles */
@@ -77,17 +77,18 @@
   gap: var(--spacing-sm);
   min-width: var(--btn-min-width); /* Sử dụng biến chiều rộng tối thiểu */
   height: var(--btn-height); /* Đặt chiều cao cố định */
-  width: var(--btn-min-width); /* Đặt chiều rộng cố định */
+  width: 170px; /* Đặt chiều rộng cố định */
   justify-content: center; /* Căn giữa nội dung */
 }
 
-.header-actions .btn-primary {
-  background-color: var(--primary-color);
+.header-actions .btn-primary-create {
+  background-color: var(--primary-color) !important;
   color: var(--text-white);
 }
 
-.header-actions .btn-primary:hover {
-  background-color: var(--primary-dark);
+.header-actions .btn-primary-create:hover {
+  background-color: #0052cc;
+  transform: translateY(-1px);
 }
 
 .header-actions .btn-success {
@@ -96,7 +97,7 @@
 }
 
 .header-actions .btn-success:hover {
-  background-color: var(--success-dark);
+  background-color: #029f51;
 }
 
 .filters-section {
@@ -109,15 +110,7 @@
 .search-container-section {
   position: relative;
   flex: 1;
-  max-width: var(--max-width-sm);
-}
-
-.search-icon {
-  position: absolute;
-  top: 50%;
-  left: var(--spacing-xs);
-  transform: translateY(-50%);
-  color: var(--text-muted);
+  width: 100px;
 }
 
 .search-input {
@@ -367,16 +360,6 @@
   justify-content: center;
 }
 
-.btn-primary {
-  background-color: var(--primary-color);
-  color: var(--text-white);
-}
-
-.btn-primary:hover {
-  background-color: var(--primary-dark);
-  transform: translateY(-1px);
-}
-
 .btn-success {
   background-color: var(--success-color);
   color: var(--text-white);
@@ -410,8 +393,10 @@
     flex-direction: column;
     gap: var(--spacing-md);
   }
-  .search-container-section {
-    max-width: 100%;
+  .search-container-section,
+  .filter-select,
+  .search-input {
+    width: 100% !important;
   }
   .sprint-header {
     padding: var(--spacing-sm);

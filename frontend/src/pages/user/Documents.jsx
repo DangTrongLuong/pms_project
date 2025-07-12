@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { FileText, Upload, Download, Trash2, Plus } from "lucide-react";
 import "../../styles/user/documents.css";
@@ -27,7 +26,7 @@ const Documents = () => {
       }
 
       const response = await fetch(
-        `http://localhost:8080/api/documents/${selectedProject.id}`,
+        `${process.env.REACT_APP_API_URL}/api/documents/${selectedProject.id}`,
         {
           method: "GET",
           headers: {
@@ -112,7 +111,9 @@ const Documents = () => {
       <div className="flex items-center justify-between document-header">
         <div>
           <h2 className="document-title">Documents</h2>
-          <p className="document-subtitle">Manage project files and attachments</p>
+          <p className="document-subtitle">
+            Manage project files and attachments
+          </p>
         </div>
         <div className="flex items-center space-x-2">
           <label className="upload-button flex items-center space-x-2">
@@ -136,7 +137,7 @@ const Documents = () => {
       >
         <Upload className="w-12 h-12 file-upload-icon mx-auto mb-4" />
         <p className="upload-text">
-          Drag and drop files here, or{' '}
+          Drag and drop files here, or{" "}
           <label className="upload-browse-text cursor-pointer hover:underline">
             browse
             <input
@@ -155,7 +156,9 @@ const Documents = () => {
       <div className="document-list">
         <div className="document-list-header">
           <div className="flex items-center justify-between">
-            <h3 className="document-list-title">All Files ({documents.length})</h3>
+            <h3 className="document-list-title">
+              All Files ({documents.length})
+            </h3>
             <div className="flex items-center space-x-2">
               <button className="sort-button">Sort by name</button>
               <button className="sort-button">Sort by date</button>
@@ -198,15 +201,17 @@ const Documents = () => {
         <div className="document-types">
           <h3 className="document-types-title">File Types</h3>
           <div className="space-y-3">
-            {["PDF", "Images", "Documents", "Spreadsheets", "Other"].map((type) => {
-              const count = Math.floor(Math.random() * 5);
-              return (
-                <div key={type} className="flex items-center justify-between">
-                  <span className="type-text">{type}</span>
-                  <span className="count-text">{count}</span>
-                </div>
-              );
-            })}
+            {["PDF", "Images", "Documents", "Spreadsheets", "Other"].map(
+              (type) => {
+                const count = Math.floor(Math.random() * 5);
+                return (
+                  <div key={type} className="flex items-center justify-between">
+                    <span className="type-text">{type}</span>
+                    <span className="count-text">{count}</span>
+                  </div>
+                );
+              }
+            )}
           </div>
         </div>
 
