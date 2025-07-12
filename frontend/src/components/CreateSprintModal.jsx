@@ -23,8 +23,12 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (isLoading) return;
+    if (isLoading) {
+      console.log("Request đang xử lý, bỏ qua submit lặp");
+      return;
+    }
     setIsLoading(true);
+    console.log("Gửi request tạo sprint:", sprintFormData);
     try {
       const userId = localStorage.getItem("userId");
       const userName = localStorage.getItem("userName") || "Anonymous";
@@ -55,6 +59,7 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
         }
       );
 
+      console.log("Phản hồi từ server:", response.status);
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
@@ -63,10 +68,18 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
       }
 
       const newSprint = await response.json();
+      console.log("Sprint mới được tạo:", newSprint);
       onSubmit(newSprint);
+      setSprintFormData({
+        name: "",
+        startDate: new Date().toISOString().slice(0, 10),
+        endDate: "",
+        sprintGoal: "",
+        duration: "",
+      });
       onClose();
     } catch (err) {
-      console.error(err.message || "Đã có lỗi xảy ra khi tạo sprint");
+      console.error("Lỗi khi tạo sprint:", err.message);
       if (err.message.includes("401") || err.message.includes("403")) {
         window.location.href = "/login";
       }
