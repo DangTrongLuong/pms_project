@@ -141,6 +141,49 @@ public class SprintController {
         }
     }
 
+    @PostMapping("/task/backlog/{projectId}")
+    public ResponseEntity<?> createBacklogTask(
+            @PathVariable @NotNull(message = "Project ID cannot be null") Integer projectId,
+            @RequestBody TaskCreationRequest request,
+            @RequestHeader @NotEmpty(message = "User ID cannot be empty") String userId) {
+        try {
+            log.info("Tạo task trong backlog cho projectId: {} với request: {}", projectId, request);
+            Task task = sprintService.createBacklogTask(projectId, request);
+            return ResponseEntity.ok(task);
+        } catch (AppException e) {
+            log.error("Lỗi khi tạo task trong backlog: {}", e.getCustomMessage());
+            return ResponseEntity.status(e.getErrorStatus().getStatus()).body(
+                Map.of("status", e.getErrorStatus().getStatus(), "message", e.getCustomMessage())
+            );
+        } catch (Exception e) {
+            log.error("Lỗi không xác định khi tạo task trong backlog: {}", e.getMessage(), e);
+            return ResponseEntity.status(500).body(
+                Map.of("status", 500, "message", "Lỗi máy chủ nội bộ: " + e.getMessage())
+            );
+        }
+    }
+
+    @DeleteMapping("/task/{taskId}")
+    public ResponseEntity<?> deleteTask(
+            @PathVariable @NotNull(message = "Task ID cannot be null") Integer taskId,
+            @RequestHeader @NotEmpty(message = "User ID cannot be empty") String userId) {
+        try {
+            log.info("Xóa taskId: {} bởi userId: {}", taskId, userId);
+            sprintService.deleteTask(taskId, userId);
+            return ResponseEntity.noContent().build();
+        } catch (AppException e) {
+            log.error("Lỗi khi xóa task: {}", e.getCustomMessage());
+            return ResponseEntity.status(e.getErrorStatus().getStatus()).body(
+                Map.of("status", e.getErrorStatus().getStatus(), "message", e.getCustomMessage())
+            );
+        } catch (Exception e) {
+            log.error("Lỗi không xác định khi xóa task: {}", e.getMessage(), e);
+            return ResponseEntity.status(500).body(
+                Map.of("status", 500, "message", "Lỗi máy chủ nội bộ: " + e.getMessage())
+            );
+        }
+    }
+
     @PutMapping("/task/{taskId}/status")
     public ResponseEntity<?> updateTaskStatus(
             @PathVariable @NotNull(message = "Task ID cannot be null") Integer taskId,

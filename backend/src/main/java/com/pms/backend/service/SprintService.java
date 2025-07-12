@@ -166,6 +166,19 @@ public class SprintService {
         return savedTask;
     }
 
+    public void deleteTask(Integer taskId, String userId) {
+        log.info("Xóa taskId: {} bởi userId: {}", taskId, userId);
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new AppException(ErrorStatus.TASK_NOT_FOUND));
+        if (task.getSprint() != null) {
+            Sprint sprint = task.getSprint();
+            sprint.setWorkItems(Math.max(0, sprint.getWorkItems() != null ? sprint.getWorkItems() - 1 : 0));
+            sprintRepository.save(sprint);
+        }
+        taskRepository.delete(task);
+        log.info("Task đã xóa: {}", taskId);
+    }
+
     public Task updateTaskStatus(Integer taskId, TaskUpdateRequest request, String userId) {
         log.info("Cập nhật trạng thái taskId: {} thành {} bởi userId: {}", taskId, request.getStatus(), userId);
         Task task = taskRepository.findById(taskId)
@@ -204,12 +217,22 @@ public class SprintService {
             if (!sprint.getStatus().equals(SprintStatus.PLANNED) && !sprint.getStatus().equals(SprintStatus.ACTIVE)) {
                 throw new AppException(ErrorStatus.INVALID_SPRINT_STATUS, "Sprint phải ở trạng thái PLANNED hoặc ACTIVE");
             }
+            if (task.getSprint() != null) {
+                Sprint oldSprint = task.getSprint();
+                oldSprint.setWorkItems(Math.max(0, oldSprint.getWorkItems() != null ? oldSprint.getWorkItems() - 1 : 0));
+                sprintRepository.save(oldSprint);
+            }
             task.setSprint(sprint);
             task.setProject(sprint.getProject());
             sprint.setWorkItems(sprint.getWorkItems() != null ? sprint.getWorkItems() + 1 : 1);
             sprintRepository.save(sprint);
         } else {
-            task.setSprint(null);
+            if (task.getSprint() != null) {
+                Sprint oldSprint = task.getSprint();
+                oldSprint.setWorkItems(Math.max(0, oldSprint.getWorkItems() != null ? oldSprint.getWorkItems() - 1 : 0));
+                sprintRepository.save(oldSprint);
+                task.setSprint(null);
+            }
         }
         Task updatedTask = taskRepository.save(task);
         log.info("Task đã cập nhật sprint: {}", updatedTask);

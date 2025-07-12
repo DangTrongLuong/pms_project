@@ -403,6 +403,7 @@ const Backlog = () => {
         );
       }
 
+      // Cập nhật danh sách task sau khi xóa
       await fetchSprintsAndTasks();
       setDeleteTaskModal({ isOpen: false, task: null });
       setSelectedTasks((prev) => {
