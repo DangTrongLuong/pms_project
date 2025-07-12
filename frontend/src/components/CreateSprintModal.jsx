@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import "../styles/user/create-sprint-modal.css";
 
@@ -11,10 +11,11 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
     duration: "",
   });
   const [isLoading, setIsLoading] = useState(false);
+  const hasSubmitted = useRef(false);
 
   useEffect(() => {
     const today = new Date();
-    today.setHours(13, 34, 0, 0); // 01:34 PM +07, 11/07/2025
+    today.setHours(13, 34, 0, 0); // 01:34 PM +07
     setSprintFormData((prev) => ({
       ...prev,
       startDate: today.toISOString().slice(0, 10),
@@ -23,10 +24,11 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (isLoading) {
-      console.log("Request đang xử lý, bỏ qua submit lặp");
+    if (isLoading || hasSubmitted.current) {
+      console.log("Request đang xử lý hoặc đã submit, bỏ qua submit lặp");
       return;
     }
+    hasSubmitted.current = true;
     setIsLoading(true);
     console.log("Gửi request tạo sprint:", sprintFormData);
     try {
@@ -86,6 +88,7 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
       alert(err.message || "Không thể tạo sprint. Vui lòng thử lại.");
     } finally {
       setIsLoading(false);
+      hasSubmitted.current = false;
     }
   };
 
@@ -199,7 +202,7 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
             <button
               type="submit"
               className="create-sprint-btn create-sprint-btn-primary"
-              disabled={isLoading}
+              disabled={isLoading || hasSubmitted.current}
             >
               {isLoading ? "Creating..." : "Create Sprint"}
             </button>

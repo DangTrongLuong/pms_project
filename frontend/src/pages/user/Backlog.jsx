@@ -61,6 +61,7 @@ const Backlog = () => {
         throw new Error("Vui lòng đăng nhập lại để tiếp tục");
       }
 
+      console.log("Fetching sprints for projectId:", selectedProject.id);
       const sprintResponse = await fetch(
         `http://localhost:8080/api/sprints/project/${selectedProject.id}`,
         {
@@ -92,6 +93,7 @@ const Backlog = () => {
 
       let allTasks = [];
       for (const sprint of sprintsData) {
+        console.log("Fetching tasks for sprintId:", sprint.id);
         const taskResponse = await fetch(
           `http://localhost:8080/api/sprints/tasks/${sprint.id}`,
           {
@@ -122,6 +124,7 @@ const Backlog = () => {
         ];
       }
 
+      console.log("Fetching backlog tasks for projectId:", selectedProject.id);
       const backlogTasksResponse = await fetch(
         `http://localhost:8080/api/sprints/tasks/backlog/${selectedProject.id}`,
         {
@@ -144,6 +147,7 @@ const Backlog = () => {
       }
 
       setTasks(allTasks);
+      console.log("Tasks fetched:", allTasks);
     } catch (err) {
       console.error(err.message || "Đã có lỗi xảy ra khi lấy dữ liệu");
       alert(err.message || "Không thể tải dữ liệu. Vui lòng thử lại.");
@@ -155,36 +159,15 @@ const Backlog = () => {
   }, [fetchSprintsAndTasks]);
 
   const handleAddSprint = async (newSprint) => {
+    console.log("handleAddSprint called with:", newSprint);
     try {
-      const userId = localStorage.getItem("userId");
-      const accessToken = localStorage.getItem("accessToken");
-      if (!userId || !accessToken) throw new Error("Vui lòng đăng nhập lại");
-
-      const response = await fetch(
-        `http://localhost:8080/api/sprints/project/${selectedProject.id}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-            userId: userId,
-            userName: localStorage.getItem("userName") || "Unknown",
-          },
-          body: JSON.stringify(newSprint),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.message || `Tạo sprint thất bại: ${response.status}`
-        );
-      }
-
+      // Không gửi lại request POST, chỉ làm mới danh sách sprint
       await fetchSprintsAndTasks();
     } catch (err) {
-      console.error("Lỗi khi tạo sprint:", err);
-      alert(err.message || "Không thể tạo sprint. Vui lòng thử lại.");
+      console.error("Lỗi khi làm mới danh sách sprint:", err);
+      alert(
+        err.message || "Không thể làm mới danh sách sprint. Vui lòng thử lại."
+      );
     }
   };
 
@@ -195,6 +178,7 @@ const Backlog = () => {
       if (!userId || !accessToken) throw new Error("Vui lòng đăng nhập lại");
       if (!newTask.projectId) throw new Error("Project ID không hợp lệ");
 
+      console.log("Creating task:", newTask);
       const taskData = {
         title: newTask.title,
         description: newTask.description,
@@ -248,6 +232,7 @@ const Backlog = () => {
       const accessToken = localStorage.getItem("accessToken");
       if (!userId || !accessToken) throw new Error("Vui lòng đăng nhập lại");
 
+      console.log("Starting sprintId:", sprintId);
       const response = await fetch(
         `http://localhost:8080/api/sprints/${sprintId}/start`,
         {
@@ -283,6 +268,7 @@ const Backlog = () => {
       const accessToken = localStorage.getItem("accessToken");
       if (!userId || !accessToken) throw new Error("Vui lòng đăng nhập lại");
 
+      console.log("Completing sprintId:", sprintId);
       const response = await fetch(
         `http://localhost:8080/api/sprints/${sprintId}/complete`,
         {
@@ -315,6 +301,10 @@ const Backlog = () => {
       const accessToken = localStorage.getItem("accessToken");
       if (!userId || !accessToken) throw new Error("Vui lòng đăng nhập lại");
 
+      console.log("Editing sprint dates for sprintId:", sprintId, {
+        startDate,
+        endDate,
+      });
       const response = await fetch(
         `http://localhost:8080/api/sprints/${sprintId}`,
         {
@@ -350,6 +340,12 @@ const Backlog = () => {
       const accessToken = localStorage.getItem("accessToken");
       if (!userId || !accessToken) throw new Error("Vui lòng đăng nhập lại");
 
+      console.log(
+        "Deleting sprintId:",
+        sprint.id,
+        "moveTasksToBacklog:",
+        moveTasksToBacklog
+      );
       const response = await fetch(
         `http://localhost:8080/api/sprints/${sprint.id}`,
         {
@@ -384,6 +380,7 @@ const Backlog = () => {
       const accessToken = localStorage.getItem("accessToken");
       if (!userId || !accessToken) throw new Error("Vui lòng đăng nhập lại");
 
+      console.log("Deleting taskId:", task.id);
       const response = await fetch(
         `http://localhost:8080/api/sprints/task/${task.id}`,
         {
@@ -403,7 +400,6 @@ const Backlog = () => {
         );
       }
 
-      // Cập nhật danh sách task sau khi xóa
       await fetchSprintsAndTasks();
       setDeleteTaskModal({ isOpen: false, task: null });
       setSelectedTasks((prev) => {
@@ -423,6 +419,12 @@ const Backlog = () => {
       const accessToken = localStorage.getItem("accessToken");
       if (!userId || !accessToken) throw new Error("Vui lòng đăng nhập lại");
 
+      console.log(
+        "Updating task status for taskId:",
+        taskId,
+        "newStatus:",
+        newStatus
+      );
       const response = await fetch(
         `http://localhost:8080/api/sprints/task/${taskId}/status`,
         {
@@ -457,6 +459,12 @@ const Backlog = () => {
       const accessToken = localStorage.getItem("accessToken");
       if (!userId || !accessToken) throw new Error("Vui lòng đăng nhập lại");
 
+      console.log(
+        "Updating assignee for taskId:",
+        taskId,
+        "assigneeEmail:",
+        assigneeEmail
+      );
       const response = await fetch(
         `http://localhost:8080/api/sprints/task/${taskId}/assignee?projectId=${selectedProject.id}`,
         {
@@ -491,6 +499,7 @@ const Backlog = () => {
       const accessToken = localStorage.getItem("accessToken");
       if (!userId || !accessToken) throw new Error("Vui lòng đăng nhập lại");
 
+      console.log("Searching assignees for query:", query, "taskId:", taskId);
       const response = await fetch(
         `http://localhost:8080/api/members/search?query=${encodeURIComponent(
           query
@@ -542,6 +551,14 @@ const Backlog = () => {
       const accessToken = localStorage.getItem("accessToken");
       if (!userId || !accessToken) throw new Error("Vui lòng đăng nhập lại");
 
+      console.log(
+        "Moving task:",
+        task.id,
+        "from sprintId:",
+        sourceSprintId,
+        "to sprintId:",
+        destSprintId
+      );
       if (destSprintId) {
         const sprint = sprints.find((s) => s.id === destSprintId);
         if (!sprint || !["PLANNED", "ACTIVE"].includes(sprint.status)) {
