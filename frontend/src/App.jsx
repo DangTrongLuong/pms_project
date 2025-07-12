@@ -26,7 +26,6 @@ import {
   NotificationProvider,
   NotificationContext,
 } from "./context/NotificationContext";
-
 import { UserProvider } from "./context/UserContext";
 import ProjectTask from "./components/Project_Task";
 import CustomCursor from "./components/CustomCursor";

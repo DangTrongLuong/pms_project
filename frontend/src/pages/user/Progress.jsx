@@ -10,6 +10,7 @@ const Progress = () => {
   const { id } = useParams();
   const { projects } = useSidebar();
   const [selectedProject, setSelectedProject] = useState(null);
+<<<<<<< HEAD
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState("Medium");
@@ -17,6 +18,8 @@ const Progress = () => {
   const [assigneeEmail, setAssigneeEmail] = useState("");
   const [error, setError] = useState("");
   const [activeColumn, setActiveColumn] = useState(null);
+=======
+>>>>>>> minhdan
   const [tasks, setTasks] = useState([]);
   const [activeSprint, setActiveSprint] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
@@ -34,7 +37,11 @@ const Progress = () => {
         throw new Error("User not authenticated");
       }
       const response = await fetch(
+<<<<<<< HEAD
         `${process.env.REACT_APP_API_URL}/api/members/project/${id}`,
+=======
+        `http://localhost:8080/api/members/project/${id}`,
+>>>>>>> minhdan
         {
           method: "GET",
           headers: {
@@ -72,7 +79,11 @@ const Progress = () => {
       }
 
       const sprintResponse = await fetch(
+<<<<<<< HEAD
         `${process.env.REACT_APP_API_URL}/api/backlog/sprints/${selectedProject.id}`,
+=======
+        `http://localhost:8080/api/sprints/project/${selectedProject.id}`,
+>>>>>>> minhdan
         {
           method: "GET",
           headers: {
@@ -95,13 +106,20 @@ const Progress = () => {
       setActiveSprint(activeSprint);
 
       if (!activeSprint) {
+<<<<<<< HEAD
         setError("There is no sprint active to add tasks to!");
+=======
+>>>>>>> minhdan
         setTasks([]);
         return;
       }
 
       const taskResponse = await fetch(
+<<<<<<< HEAD
         `${process.env.REACT_APP_API_URL}/api/backlog/tasks/${activeSprint.id}`,
+=======
+        `http://localhost:8080/api/sprints/tasks/${activeSprint.id}`,
+>>>>>>> minhdan
         {
           method: "GET",
           headers: {
@@ -121,6 +139,7 @@ const Progress = () => {
 
       const tasks = await taskResponse.json();
       setTasks(tasks);
+<<<<<<< HEAD
       setError("");
     } catch (err) {
       setError(err.message || "Đã có lỗi xảy ra khi lấy dữ liệu");
@@ -129,6 +148,12 @@ const Progress = () => {
         setTimeout(() => {
           window.location.href = "/login";
         }, 2000);
+=======
+    } catch (err) {
+      console.error(err.message || "Đã có lỗi xảy ra khi lấy dữ liệu");
+      if (err.message.includes("401") || err.message.includes("403")) {
+        setTimeout(() => (window.location.href = "/login"), 2000);
+>>>>>>> minhdan
       }
     }
   }, [selectedProject, accessToken]);
@@ -137,6 +162,7 @@ const Progress = () => {
     fetchSprintsAndTasks();
   }, [fetchSprintsAndTasks]);
 
+<<<<<<< HEAD
   const handleAddTask = async (column) => {
     if (!newTaskTitle.trim() || !dueDate || !assigneeEmail.trim()) {
       setError(
@@ -145,12 +171,16 @@ const Progress = () => {
       return;
     }
 
+=======
+  const handleAddTask = async (newTask) => {
+>>>>>>> minhdan
     try {
       const userId = localStorage.getItem("userId");
       if (!userId || !accessToken || !activeSprint) {
         throw new Error("Vui lòng đăng nhập lại để tiếp tục");
       }
 
+<<<<<<< HEAD
       const response = await fetch(
         `${process.env.REACT_APP_API_URL}/api/backlog/task/${
           activeSprint.id
@@ -163,6 +193,19 @@ const Progress = () => {
         )}&dueDate=${encodeURIComponent(dueDate)}&priority=${encodeURIComponent(
           priority
         )}`,
+=======
+      const taskData = {
+        title: newTask.title,
+        description: newTask.description,
+        assigneeEmail: newTask.assigneeEmail,
+        dueDate: newTask.dueDate,
+        priority: newTask.priority,
+        projectId: selectedProject.id,
+      };
+
+      const response = await fetch(
+        `http://localhost:8080/api/sprints/task/${activeSprint.id}`,
+>>>>>>> minhdan
         {
           method: "POST",
           headers: {
@@ -170,6 +213,10 @@ const Progress = () => {
             Authorization: `Bearer ${accessToken}`,
             userId: userId,
           },
+<<<<<<< HEAD
+=======
+          body: JSON.stringify(taskData),
+>>>>>>> minhdan
         }
       );
 
@@ -180,6 +227,7 @@ const Progress = () => {
         );
       }
 
+<<<<<<< HEAD
       setNewTaskTitle("");
       setDescription("");
       setPriority("Medium");
@@ -196,6 +244,13 @@ const Progress = () => {
         setTimeout(() => {
           window.location.href = "/login";
         }, 2000);
+=======
+      fetchSprintsAndTasks();
+    } catch (err) {
+      console.error(err.message || "Đã có lỗi xảy ra khi tạo nhiệm vụ");
+      if (err.message.includes("401") || err.message.includes("403")) {
+        setTimeout(() => (window.location.href = "/login"), 2000);
+>>>>>>> minhdan
       }
     }
   };
@@ -208,11 +263,15 @@ const Progress = () => {
       }
 
       const response = await fetch(
+<<<<<<< HEAD
         `${
           process.env.REACT_APP_API_URL
         }/api/backlog/task/${taskId}/status?status=${encodeURIComponent(
           newStatus
         )}`,
+=======
+        `http://localhost:8080/api/sprints/task/${taskId}/status`,
+>>>>>>> minhdan
         {
           method: "PUT",
           headers: {
@@ -220,26 +279,40 @@ const Progress = () => {
             Authorization: `Bearer ${accessToken}`,
             userId: userId,
           },
+<<<<<<< HEAD
+=======
+          body: JSON.stringify({ status: newStatus }),
+>>>>>>> minhdan
         }
       );
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
+<<<<<<< HEAD
           errorData.message ||
             `Cập nhật trạng thái thất bại: ${response.status}`
+=======
+          errorData.message || `Cập nhật trạng thái thất bại: ${response.status}`
+>>>>>>> minhdan
         );
       }
 
       fetchSprintsAndTasks();
       setSelectedTask(null);
     } catch (err) {
+<<<<<<< HEAD
       setError(err.message || "Đã có lỗi xảy ra khi cập nhật trạng thái");
       if (err.message.includes("401") || err.message.includes("403")) {
         setError("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
         setTimeout(() => {
           window.location.href = "/login";
         }, 2000);
+=======
+      console.error(err.message || "Đã có lỗi xảy ra khi cập nhật trạng thái");
+      if (err.message.includes("401") || err.message.includes("403")) {
+        setTimeout(() => (window.location.href = "/login"), 2000);
+>>>>>>> minhdan
       }
     }
   };
@@ -282,12 +355,43 @@ const Progress = () => {
       (task) => filterPriority === "all" || task.priority === filterPriority
     );
 
+<<<<<<< HEAD
+=======
+  const groupTasks = () => {
+    if (groupBy === "status") {
+      return [
+        { id: "TODO", title: "TO DO", tasks: filteredTasks.filter((t) => t.status === "TODO") },
+        { id: "IN_PROGRESS", title: "IN PROGRESS", tasks: filteredTasks.filter((t) => t.status === "IN_PROGRESS") },
+        { id: "IN_REVIEW", title: "IN REVIEW", tasks: filteredTasks.filter((t) => t.status === "IN_REVIEW") },
+        { id: "DONE", title: "DONE ✅", tasks: filteredTasks.filter((t) => t.status === "COMPLETED") },
+      ];
+    } else if (groupBy === "assignee") {
+      const grouped = {};
+      filteredTasks.forEach((task) => {
+        const key = task.assignee?.email || "Unassigned";
+        if (!grouped[key]) grouped[key] = { id: key, title: key, tasks: [] };
+        grouped[key].tasks.push(task);
+      });
+      return Object.values(grouped);
+    } else if (groupBy === "priority") {
+      const grouped = {};
+      filteredTasks.forEach((task) => {
+        const key = task.priority || "No Priority";
+        if (!grouped[key]) grouped[key] = { id: key, title: key, tasks: [] };
+        grouped[key].tasks.push(task);
+      });
+      return Object.values(grouped);
+    }
+  };
+
+>>>>>>> minhdan
   const onDragEnd = (result) => {
     const { source, destination } = result;
     if (!destination) return;
 
     const sourceColumn = source.droppableId;
     const destColumn = destination.droppableId;
+<<<<<<< HEAD
     if (sourceColumn === destColumn && source.index === destination.index)
       return;
 
@@ -307,6 +411,30 @@ const Progress = () => {
       { id: "IN REVIEW", title: "IN REVIEW", color: "bg-yellow" },
       { id: "DONE", title: "DONE ✅", color: "bg-green" },
     ];
+=======
+    if (sourceColumn === destColumn && source.index === destination.index) return;
+
+    const updatedTasks = Array.from(tasks);
+    const [movedTask] = updatedTasks.splice(source.index, 1);
+    if (groupBy === "status") {
+      movedTask.status = destColumn;
+    }
+    updatedTasks.splice(destination.index, 0, movedTask);
+
+    setTasks(updatedTasks);
+    if (groupBy === "status") {
+      handleUpdateTaskStatus(movedTask.id, destColumn);
+    }
+  };
+
+  const renderBoard = () => {
+    const columns = groupBy === "status" ? [
+      { id: "TODO", title: "TO DO", color: "bg-gray" },
+      { id: "IN_PROGRESS", title: "IN PROGRESS", color: "bg-blue" },
+      { id: "IN_REVIEW", title: "IN REVIEW", color: "bg-yellow" },
+      { id: "DONE", title: "DONE ✅", color: "bg-green" },
+    ] : groupTasks();
+>>>>>>> minhdan
 
     return (
       <DragDropContext onDragEnd={onDragEnd}>
@@ -324,7 +452,11 @@ const Progress = () => {
               {members.map((member, index) => (
                 <img
                   key={index}
+<<<<<<< HEAD
                   src={member.avatarUrl}
+=======
+                  src={member.avatarUrl || "/default-avatar.png"}
+>>>>>>> minhdan
                   alt={member.name}
                   title={member.name}
                   className="member-avatar"
@@ -351,7 +483,11 @@ const Progress = () => {
                 <option value="all">All Status</option>
                 <option value="TODO">To Do</option>
                 <option value="IN_PROGRESS">In Progress</option>
+<<<<<<< HEAD
                 <option value="IN REVIEW">In Review</option>
+=======
+                <option value="IN_REVIEW">In Review</option>
+>>>>>>> minhdan
                 <option value="DONE">Done</option>
               </select>
               <select
@@ -379,12 +515,17 @@ const Progress = () => {
                       <h3 className="column-title">{column.title}</h3>
                       <button
                         className="add-task-btn"
+<<<<<<< HEAD
                         onClick={() => setActiveColumn(column.id)}
+=======
+                        onClick={() => setSelectedTask({ status: column.id })}
+>>>>>>> minhdan
                       >
                         <Plus className="w-4 h-4" />
                       </button>
                     </div>
                     <div className="column-tasks">
+<<<<<<< HEAD
                       {column.guidance && (
                         <>
                           <p className="column-guidance">
@@ -404,6 +545,10 @@ const Progress = () => {
                       {filteredTasks
                         .filter((task) => task.status === column.id)
                         .map((task, index) => (
+=======
+                      {(groupBy === "status" ? filteredTasks.filter((task) => task.status === column.id) : column.tasks || []).map(
+                        (task, index) => (
+>>>>>>> minhdan
                           <Draggable
                             key={task.id}
                             draggableId={task.id.toString()}
@@ -419,7 +564,11 @@ const Progress = () => {
                               >
                                 <div className="board-task-meta">
                                   <h4 className="board-task-title">
+<<<<<<< HEAD
                                     {task.title}
+=======
+                                    {selectedProject.shortName}-{task.id} {task.title}
+>>>>>>> minhdan
                                   </h4>
                                   <button className="task-more-btn">
                                     <MoreHorizontal className="w-4 h-4" />
@@ -430,6 +579,7 @@ const Progress = () => {
                                 </p>
                                 <div className="board-task-meta">
                                   <div className="task-type-priority">
+<<<<<<< HEAD
                                     <span
                                       className={`task-type ${getTypeColor(
                                         task.type
@@ -442,11 +592,18 @@ const Progress = () => {
                                         task.priority
                                       )}`}
                                     >
+=======
+                                    <span className={`task-type ${getTypeColor(task.type)}`}>
+                                      {task.type || "Task"}
+                                    </span>
+                                    <span className={`task-priority ${getPriorityColor(task.priority)}`}>
+>>>>>>> minhdan
                                       {task.priority}
                                     </span>
                                   </div>
                                   <div className="task-assignee">
                                     {task.assignee && (
+<<<<<<< HEAD
                                       <div className="assignee-avatar">
                                         <span className="assignee-initials">
                                           {task.assignee.email
@@ -455,13 +612,25 @@ const Progress = () => {
                                             .toUpperCase()}
                                         </span>
                                       </div>
+=======
+                                      <img
+                                        src={task.assignee.avatarUrl || "/default-avatar.png"}
+                                        alt="Assignee"
+                                        className="assignee-avatar"
+                                      />
+>>>>>>> minhdan
                                     )}
                                   </div>
                                 </div>
                               </div>
                             )}
                           </Draggable>
+<<<<<<< HEAD
                         ))}
+=======
+                        )
+                      )}
+>>>>>>> minhdan
                       {provided.placeholder}
                     </div>
                   </div>
@@ -483,6 +652,7 @@ const Progress = () => {
           renderBoard()
         ) : (
           <div className="no-active-sprint">
+<<<<<<< HEAD
             There is no active sprint. Please start a sprint in the Backlog.
           </div>
         )}
@@ -498,11 +668,18 @@ const Progress = () => {
           editingTask={null}
         />
       )}
+=======
+            Không có sprint active. Vui lòng bắt đầu một sprint trong phần Backlog.
+          </div>
+        )}
+      </div>
+>>>>>>> minhdan
       {selectedTask && (
         <CreateTaskModal
           isOpen={!!selectedTask}
           onClose={() => setSelectedTask(null)}
           onSubmit={(updatedTask) => {
+<<<<<<< HEAD
             handleUpdateTaskStatus(selectedTask.id, updatedTask.status);
             fetchSprintsAndTasks(); // Cập nhật lại danh sách sau khi chỉnh sửa
           }}
@@ -511,6 +688,20 @@ const Progress = () => {
         />
       )}
       {error && <div className="error-message">{error}</div>}
+=======
+            if (selectedTask.id) {
+              handleUpdateTaskStatus(selectedTask.id, updatedTask.status);
+            } else {
+              handleAddTask(updatedTask);
+            }
+            fetchSprintsAndTasks();
+          }}
+          selectedProject={selectedProject}
+          editingTask={selectedTask.id ? selectedTask : null}
+          activeSprintId={activeSprint?.id}
+        />
+      )}
+>>>>>>> minhdan
     </div>
   );
 };

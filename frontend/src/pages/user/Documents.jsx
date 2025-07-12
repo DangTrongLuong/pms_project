@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+
+>>>>>>> minhdan
 import React, { useState, useEffect } from "react";
 import { FileText, Upload, Download, Trash2, Plus } from "lucide-react";
 import "../../styles/user/documents.css";
@@ -26,7 +30,11 @@ const Documents = () => {
       }
 
       const response = await fetch(
+<<<<<<< HEAD
         `${process.env.REACT_APP_API_URL}/api/documents/${selectedProject.id}`,
+=======
+        `http://localhost:8080/api/documents/${selectedProject.id}`,
+>>>>>>> minhdan
         {
           method: "GET",
           headers: {
@@ -111,9 +119,13 @@ const Documents = () => {
       <div className="flex items-center justify-between document-header">
         <div>
           <h2 className="document-title">Documents</h2>
+<<<<<<< HEAD
           <p className="document-subtitle">
             Manage project files and attachments
           </p>
+=======
+          <p className="document-subtitle">Manage project files and attachments</p>
+>>>>>>> minhdan
         </div>
         <div className="flex items-center space-x-2">
           <label className="upload-button flex items-center space-x-2">
@@ -137,7 +149,11 @@ const Documents = () => {
       >
         <Upload className="w-12 h-12 file-upload-icon mx-auto mb-4" />
         <p className="upload-text">
+<<<<<<< HEAD
           Drag and drop files here, or{" "}
+=======
+          Drag and drop files here, or{' '}
+>>>>>>> minhdan
           <label className="upload-browse-text cursor-pointer hover:underline">
             browse
             <input
@@ -156,9 +172,13 @@ const Documents = () => {
       <div className="document-list">
         <div className="document-list-header">
           <div className="flex items-center justify-between">
+<<<<<<< HEAD
             <h3 className="document-list-title">
               All Files ({documents.length})
             </h3>
+=======
+            <h3 className="document-list-title">All Files ({documents.length})</h3>
+>>>>>>> minhdan
             <div className="flex items-center space-x-2">
               <button className="sort-button">Sort by name</button>
               <button className="sort-button">Sort by date</button>
@@ -201,6 +221,7 @@ const Documents = () => {
         <div className="document-types">
           <h3 className="document-types-title">File Types</h3>
           <div className="space-y-3">
+<<<<<<< HEAD
             {["PDF", "Images", "Documents", "Spreadsheets", "Other"].map(
               (type) => {
                 const count = Math.floor(Math.random() * 5);
@@ -212,6 +233,17 @@ const Documents = () => {
                 );
               }
             )}
+=======
+            {["PDF", "Images", "Documents", "Spreadsheets", "Other"].map((type) => {
+              const count = Math.floor(Math.random() * 5);
+              return (
+                <div key={type} className="flex items-center justify-between">
+                  <span className="type-text">{type}</span>
+                  <span className="count-text">{count}</span>
+                </div>
+              );
+            })}
+>>>>>>> minhdan
           </div>
         </div>
 

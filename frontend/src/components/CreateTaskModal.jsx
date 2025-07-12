@@ -1,4 +1,3 @@
-// (Giữ nguyên từ phiên trước, chỉ cập nhật comment)
 import React, { useState, useEffect, useRef } from "react";
 import { X, MessageSquare, Send } from "lucide-react";
 import "../styles/user/create-task-modal.css";
@@ -9,21 +8,26 @@ const CreateTaskModal = ({
   onSubmit,
   selectedProject,
   editingTask,
-  activeBacklogId,
+  activeSprintId,
+  sprints,
 }) => {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     priority: "Medium",
-    assignee: "",
+    assigneeEmail: "",
     dueDate: "",
+    projectId: selectedProject?.id || null,
+    sprintId: activeSprintId || null,
   });
 
   const [newComment, setNewComment] = useState("");
   const [comments, setComments] = useState([]);
-  const [suggestedEmails, setSuggestedEmails] = useState([]);
+  const [suggestedMembers, setSuggestedMembers] = useState([]);
   const [isSuggesting, setIsSuggesting] = useState(false);
+  const [selectedMember, setSelectedMember] = useState(null);
   const assigneeInputRef = useRef(null);
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
     if (editingTask) {
@@ -31,69 +35,94 @@ const CreateTaskModal = ({
         title: editingTask.title,
         description: editingTask.description || "",
         priority: editingTask.priority || "Medium",
-        assignee: editingTask.assignee?.email || "",
+        assigneeEmail: editingTask.assignee?.email || "",
         dueDate: editingTask.dueDate
           ? new Date(editingTask.dueDate).toISOString().slice(0, 16)
           : "",
+        projectId: editingTask.project?.id || selectedProject?.id || null,
+        sprintId: editingTask.sprint?.id || null,
       });
+      setSelectedMember(
+        editingTask.assignee
+          ? {
+              email: editingTask.assignee.email,
+              name: editingTask.assignee.name,
+              avatarUrl: editingTask.assignee.avatarUrl,
+            }
+          : null
+      );
       setComments(editingTask.comments || []);
     } else {
       setFormData({
         title: "",
         description: "",
         priority: "Medium",
-        assignee: "",
+        assigneeEmail: "",
         dueDate: "",
+        projectId: selectedProject?.id || null,
+        sprintId: activeSprintId || null,
       });
+      setSelectedMember(null);
       setComments([]);
     }
-  }, [editingTask]);
+  }, [editingTask, selectedProject, activeSprintId]);
 
-  const handleAssigneeChange = async (e) => {
-    const value = e.target.value;
-    setFormData({ ...formData, assignee: value });
-
-    if (value.length > 2) {
-      try {
-        const userId = localStorage.getItem("userId");
-        const accessToken = localStorage.getItem("accessToken");
-        if (!userId || !accessToken) throw new Error("Vui lòng đăng nhập lại");
-        const response = await fetch(
-          `${
-            process.env.REACT_APP_API_URL
-          }/api/users/suggest?query=${encodeURIComponent(value)}`,
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              userId: userId,
-            },
-            credentials: "include",
-          }
-        );
-        if (response.ok) {
-          const data = await response.json();
-          setSuggestedEmails(data.map((user) => user.email) || []);
-          setIsSuggesting(true);
-        } else {
-          setSuggestedEmails([]);
-        }
-      } catch (err) {
-        console.error("Lỗi khi gợi ý email:", err);
-        setSuggestedEmails([]);
-        if (err.message.includes("401") || err.message.includes("403")) {
-          window.location.href = "/login";
-        }
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsSuggesting(false);
       }
-    } else {
-      setSuggestedEmails([]);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleAssigneeSearch = async (query) => {
+    if (query.length < 2) {
+      setSuggestedMembers([]);
       setIsSuggesting(false);
+      return;
+    }
+    try {
+      const userId = localStorage.getItem("userId");
+      const accessToken = localStorage.getItem("accessToken");
+      if (!userId || !accessToken || !selectedProject?.id) {
+        throw new Error("Vui lòng đăng nhập và chọn dự án hợp lệ");
+      }
+      const response = await fetch(
+        `http://localhost:8080/api/members/search?query=${encodeURIComponent(
+          query
+        )}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            userId: userId,
+          },
+          credentials: "include",
+        }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setSuggestedMembers(data || []);
+        setIsSuggesting(true);
+      } else {
+        setSuggestedMembers([]);
+        setIsSuggesting(false);
+      }
+    } catch (err) {
+      console.error("Lỗi khi gợi ý thành viên:", err);
+      setSuggestedMembers([]);
+      setIsSuggesting(false);
+      if (err.message.includes("401") || err.message.includes("403")) {
+        window.location.href = "/login";
+      }
     }
   };
 
-  const handleSelectSuggestion = (email) => {
-    setFormData({ ...formData, assignee: email });
-    setSuggestedEmails([]);
+  const handleSelectMember = (member) => {
+    setFormData({ ...formData, assigneeEmail: member.email });
+    setSelectedMember(member);
     setIsSuggesting(false);
     assigneeInputRef.current.focus();
   };
@@ -103,45 +132,36 @@ const CreateTaskModal = ({
     try {
       const userId = localStorage.getItem("userId");
       const accessToken = localStorage.getItem("accessToken");
-      if (!userId || !accessToken || !activeBacklogId) {
-        throw new Error("Vui lòng đăng nhập và chọn sprint hợp lệ");
+      if (!userId || !accessToken || !formData.projectId) {
+        throw new Error("Vui lòng đăng nhập và chọn dự án hợp lệ");
       }
-
-      const response = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/backlog/task/${activeBacklogId}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            Authorization: `Bearer ${accessToken}`,
-            userId: userId,
-          },
-          body: new URLSearchParams({
-            taskTitle: formData.title,
-            description: formData.description,
-            assigneeEmail: formData.assignee,
-            dueDate: formData.dueDate,
-            priority: formData.priority,
-          }),
-          credentials: "include",
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.message || `Tạo nhiệm vụ thất bại: ${response.status}`
+      if (formData.sprintId) {
+        const sprint = sprints.find(
+          (s) => s.id === parseInt(formData.sprintId)
         );
+        if (!sprint || !["PLANNED", "ACTIVE"].includes(sprint.status)) {
+          throw new Error(
+            "Sprint không hợp lệ hoặc không ở trạng thái PLANNED/ACTIVE"
+          );
+        }
       }
 
-      const newTask = await response.json();
-      onSubmit(newTask);
+      const taskData = {
+        title: formData.title,
+        description: formData.description,
+        assigneeEmail: formData.assigneeEmail,
+        dueDate: formData.dueDate
+          ? new Date(formData.dueDate).toISOString().split("T")[0]
+          : null,
+        priority: formData.priority,
+        projectId: formData.projectId,
+        sprintId: formData.sprintId,
+      };
+
+      onSubmit(taskData);
       onClose();
     } catch (err) {
       console.error(err.message || "Đã có lỗi xảy ra khi tạo nhiệm vụ");
-      if (err.message.includes("401") || err.message.includes("403")) {
-        window.location.href = "/login";
-      }
       alert(err.message || "Không thể tạo nhiệm vụ. Vui lòng thử lại.");
     }
   };
@@ -179,6 +199,27 @@ const CreateTaskModal = ({
         </div>
         <form onSubmit={handleSubmit} className="create-task-modal-content">
           <div className="create-task-form-group">
+            <label className="create-task-form-label">Sprint</label>
+            <select
+              value={formData.sprintId || ""}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  sprintId:
+                    e.target.value === "" ? null : parseInt(e.target.value),
+                })
+              }
+              className="create-task-form-select"
+            >
+              <option value="">Backlog</option>
+              {sprints.map((sprint) => (
+                <option key={sprint.id} value={sprint.id}>
+                  {sprint.name} ({sprint.status})
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="create-task-form-group">
             <label className="create-task-form-label">Title *</label>
             <input
               type="text"
@@ -205,28 +246,56 @@ const CreateTaskModal = ({
           </div>
           <div className="create-task-form-group">
             <label className="create-task-form-label">Assignee</label>
-            <input
-              type="email"
-              ref={assigneeInputRef}
-              value={formData.assignee}
-              onChange={handleAssigneeChange}
-              className="create-task-form-input"
-              placeholder="Enter assignee email"
-              required
-            />
-            {isSuggesting && suggestedEmails.length > 0 && (
-              <ul className="suggestion-list">
-                {suggestedEmails.map((email, index) => (
-                  <li
-                    key={index}
-                    onClick={() => handleSelectSuggestion(email)}
-                    className="suggestion-item"
-                  >
-                    {email}
-                  </li>
-                ))}
-              </ul>
-            )}
+            <div className="assignee-selector" ref={dropdownRef}>
+              {selectedMember ? (
+                <div
+                  className="selected-assignee"
+                  onClick={() => setIsSuggesting(true)}
+                >
+                  <img
+                    src={selectedMember.avatarUrl || "/default-avatar.png"}
+                    alt="Avatar"
+                    className="assignee-avatar"
+                  />
+                  <span className="assignee-name">{selectedMember.name}</span>
+                  <span className="assignee-email">{selectedMember.email}</span>
+                </div>
+              ) : (
+                <input
+                  type="text"
+                  ref={assigneeInputRef}
+                  value={formData.assigneeEmail}
+                  onChange={(e) => {
+                    setFormData({ ...formData, assigneeEmail: e.target.value });
+                    handleAssigneeSearch(e.target.value);
+                  }}
+                  onFocus={() => handleAssigneeSearch(formData.assigneeEmail)}
+                  className="create-task-form-input"
+                  placeholder="Search for a member..."
+                />
+              )}
+              {isSuggesting && suggestedMembers.length > 0 && (
+                <ul className="assignee-suggestion-list">
+                  {suggestedMembers.slice(0, 8).map((member, index) => (
+                    <li
+                      key={index}
+                      onClick={() => handleSelectMember(member)}
+                      className="assignee-suggestion-item"
+                    >
+                      <img
+                        src={member.avatarUrl || "/default-avatar.png"}
+                        alt="Avatar"
+                        className="assignee-avatar"
+                      />
+                      <div className="assignee-info">
+                        <span className="assignee-name">{member.name}</span>
+                        <span className="assignee-email">{member.email}</span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
           <div className="create-task-form-group create-task-form-grid">
             <div className="create-task-form-group">
@@ -324,25 +393,61 @@ const CreateTaskModal = ({
 };
 
 const styles = `
-  .suggestion-list {
+  .assignee-selector {
+    position: relative;
+    width: 100%;
+  }
+  .selected-assignee {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    cursor: pointer;
+    background: #fff;
+  }
+  .assignee-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    margin-right: 8px;
+    object-fit: cover;
+  }
+  .assignee-name {
+    font-weight: 500;
+    color: #172b4d;
+  }
+  .assignee-email {
+    color: #6b778c;
+    font-size: 12px;
+    margin-left: 8px;
+  }
+  .assignee-suggestion-list {
     position: absolute;
     top: 100%;
     left: 0;
     right: 0;
-    background: white;
+    background: #fff;
     border: 1px solid #e0e0e0;
     border-radius: 4px;
-    max-height: 150px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    max-height: 200px;
     overflow-y: auto;
-    z-index: 10;
-    margin-top: 2px;
+    z-index: 1000;
+    margin-top: 4px;
   }
-  .suggestion-item {
+  .assignee-suggestion-item {
+    display: flex;
+    align-items: center;
     padding: 8px 12px;
     cursor: pointer;
   }
-  .suggestion-item:hover {
+  .assignee-suggestion-item:hover {
     background-color: #f0f0f0;
+  }
+  .assignee-info {
+    display: flex;
+    flex-direction: column;
   }
 `;
 const styleSheet = new CSSStyleSheet();

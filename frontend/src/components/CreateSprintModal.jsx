@@ -4,7 +4,7 @@ import "../styles/user/create-sprint-modal.css";
 
 const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
   const [sprintFormData, setSprintFormData] = useState({
-    sprintName: "",
+    name: "",
     startDate: "",
     endDate: "",
     sprintGoal: "",
@@ -30,24 +30,25 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
         throw new Error("Vui lòng đăng nhập và chọn dự án hợp lệ");
       }
 
+      const sprintData = {
+        name: sprintFormData.name,
+        startDate: sprintFormData.startDate,
+        endDate: sprintFormData.endDate,
+        sprintGoal: sprintFormData.sprintGoal,
+        duration: sprintFormData.duration,
+      };
+
       const response = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/backlog/sprint/${selectedProject.id}`,
+        `http://localhost:8080/api/sprints/project/${selectedProject.id}`,
         {
           method: "POST",
           headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
+            "Content-Type": "application/json",
             Authorization: `Bearer ${accessToken}`,
             userId: userId,
             userName: userName,
           },
-          body: new URLSearchParams({
-            sprintName: sprintFormData.sprintName,
-            startDate: sprintFormData.startDate,
-            endDate: sprintFormData.endDate,
-            sprintGoal: sprintFormData.sprintGoal,
-            duration: sprintFormData.duration,
-          }),
-          credentials: "include",
+          body: JSON.stringify(sprintData),
         }
       );
 
@@ -91,11 +92,11 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
             <input
               type="text"
               required
-              value={sprintFormData.sprintName}
+              value={sprintFormData.name}
               onChange={(e) =>
                 setSprintFormData({
                   ...sprintFormData,
-                  sprintName: e.target.value,
+                  name: e.target.value,
                 })
               }
               className="create-sprint-form-input"
@@ -166,7 +167,7 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
                 })
               }
               className="create-sprint-form-input"
-              placeholder="Enter duration (e.g., 2 weeks)"
+              placeholder="Thời gian dự kiến"
             />
           </div>
           <div className="create-sprint-form-actions">

@@ -41,9 +41,19 @@ public class TokenFilter extends OncePerRequestFilter {
                 || path.startsWith("/uploads/")
                 || path.startsWith("/api/projects/")
                 || path.startsWith("/api/members/")
-                || path.startsWith("/api/backlog/")
+                || path.startsWith("/api/sprints/")
                 || path.startsWith("/api/admin/auth/login")) {
 
+        // Bỏ qua các yêu cầu OPTIONS, endpoint công khai và OAuth2 redirect
+        if (method.equals("OPTIONS") ||
+            path.startsWith("/api/auth/") ||
+            path.equals("/") ||
+            path.startsWith("/uploads/") ||
+            path.startsWith("/api/projects/") ||
+            path.startsWith("/api/members/") ||
+            path.startsWith("/api/sprints/") ||
+            path.startsWith("/oauth2/") ||
+            path.startsWith("/login/oauth2/code/")) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -112,4 +122,5 @@ public class TokenFilter extends OncePerRequestFilter {
 
         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Missing or invalid token");
     }
+}
 }

@@ -21,9 +21,10 @@ public class CorsConfig {
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                        .allowedOrigins(frontendUrl)
-                        .allowedHeaders("Authorization", "userId", "Content-Type", "role") // Thêm "role"
-                        .exposedHeaders("Access-Control-Allow-Origin", "Access-Control-Allow-Credentials");
+                        .allowedOrigins("http://localhost:3000")
+                        .allowedHeaders("*")
+                        .allowCredentials(true)
+                        .exposedHeaders("Access-Control-Allow-Origin", "Access-Control-Allow-Methods", "Access-Control-Allow-Headers");
             }
 
             @Override

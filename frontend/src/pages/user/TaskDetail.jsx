@@ -50,7 +50,11 @@ const TaskDetailsContent = () => {
         }
 
         const response = await fetch(
+<<<<<<< HEAD
           `${process.env.REACT_APP_API_URL}/api/backlog/task/${id}`, // Cần endpoint thực tế
+=======
+          `http://localhost:8080/api/backlog/task/${id}`, // Cần endpoint thực tế
+>>>>>>> minhdan
           {
             method: "GET",
             headers: {
@@ -130,4 +134,8 @@ const TaskDetails = () => {
   );
 };
 
+<<<<<<< HEAD
 export default TaskDetails;
+=======
+export default TaskDetails;
+>>>>>>> minhdan

@@ -128,7 +128,11 @@
 
 .summary-grid {
   display: grid;
+<<<<<<< HEAD
   grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+=======
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+>>>>>>> minhdan
   gap: 20px;
   margin-bottom: 30px;
 }
