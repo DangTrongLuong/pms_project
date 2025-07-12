@@ -28,7 +28,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(Customizer.withDefaults())
+                .cors(Customizer.withDefaults()) // Sử dụng cấu hình CORS từ CorsConfig
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .addFilterBefore(tokenFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(requests -> requests
@@ -41,7 +41,7 @@ public class SecurityConfig {
                                 "/",
                                 "/api/projects/**",
                                 "/api/members/**",
-                                "/api/backlog/**"
+                                "/api/sprints/**" // Thêm /api/sprints vào danh sách cho phép
                         ).permitAll()
                         .anyRequest().authenticated())
                 .oauth2Login(oauth2 -> oauth2

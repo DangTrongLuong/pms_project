@@ -21,15 +21,16 @@ public class TokenFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         String method = request.getMethod();
 
-        // Bỏ qua các yêu cầu OPTIONS và endpoint công khai
+        // Bỏ qua các yêu cầu OPTIONS, endpoint công khai và OAuth2 redirect
         if (method.equals("OPTIONS") ||
             path.startsWith("/api/auth/") ||
             path.equals("/") ||
             path.startsWith("/uploads/") ||
             path.startsWith("/api/projects/") ||
             path.startsWith("/api/members/") ||
-            path.startsWith("/api/backlog/")) {
-            response.setStatus(HttpServletResponse.SC_OK);
+            path.startsWith("/api/sprints/") ||
+            path.startsWith("/oauth2/") ||
+            path.startsWith("/login/oauth2/code/")) {
             filterChain.doFilter(request, response);
             return;
         }

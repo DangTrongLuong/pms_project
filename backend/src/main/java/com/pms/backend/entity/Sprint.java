@@ -4,22 +4,23 @@ import com.pms.backend.enums.SprintStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "backlog")
+@Table(name = "sprints")
 @Getter
 @Setter
-public class Backlog {
+public class Sprint {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "backlog_id")
-    private Integer id;
+    @Column(name = "id")
+    private Long id;
 
-    @Column(name = "backlog_name")
-    private String backlogName;
+    @Column(name = "name")
+    private String name;
 
     @Column(name = "create_by_id")
     private String createById;
@@ -46,7 +47,17 @@ public class Backlog {
     @Column(name = "work_items")
     private Integer workItems;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Project project;
+
+    // Thêm phương thức để kiểm tra tính toàn vẹn (tùy chọn)
+    @PrePersist
+    @PreUpdate
+    private void validate() {
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalStateException("Name cannot be null or empty");
+        }
+    }
 }

@@ -3,6 +3,7 @@ package com.pms.backend.entity;
 import com.pms.backend.enums.TaskStatus;
 import jakarta.persistence.*;
 import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.time.LocalDateTime;
 
@@ -27,6 +28,7 @@ public class Task {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assignee_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private User assignee;
 
     @Column(name = "due_date")
@@ -37,6 +39,15 @@ public class Task {
     private TaskStatus status;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "backlog_id")
-    private Backlog backlog;
+    @JoinColumn(name = "sprint_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private Sprint sprint;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "project_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private Project project;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
 }

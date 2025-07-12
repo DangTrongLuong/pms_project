@@ -1,13 +1,4 @@
-/* Board view */
-.board {
-  display: flex;
-  gap: 20px;
-  overflow-x: auto;
-  padding: 20px;
-  min-height: 500px;
-}
-
-/* New Kanban Board Styles */
+/* Kanban Board Styles */
 .kanban-board {
   padding: 0;
 }
@@ -253,17 +244,8 @@
 .assignee-avatar {
   width: 24px;
   height: 24px;
-  background-color: #d1d5db;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.assignee-initials {
-  font-size: 10px;
-  font-weight: 600;
-  color: #374151;
+  object-fit: cover;
 }
 
 /* Progress Container Styles */
@@ -271,51 +253,6 @@
   padding: 24px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
     "Ubuntu", "Cantarell", sans-serif;
-}
-
-/* Progress Header Styles */
-.progress-header {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.create-task-btn {
-  background-color: #2563eb;
-  color: #ffffff;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: background-color 0.2s;
-}
-
-.create-task-btn:hover {
-  background-color: #1e40af;
-}
-
-.column-guidance {
-  font-size: 14px;
-  color: #6b7280;
-  margin-bottom: 16px;
-}
-
-.go-to-backlog-btn {
-  padding: 8px 16px;
-  background-color: #2563eb;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.go-to-backlog-btn:hover {
-  background-color: #1e40af;
 }
 
 /* Progress Content Styles */
@@ -612,15 +549,6 @@
 @media (max-width: 768px) {
   .progress-filters {
     flex-direction: column;
-  }
-
-  .board {
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .board-column {
-    min-width: 100%;
   }
 
   .kanban-columns {
