@@ -47,11 +47,7 @@ const TaskContent = () => {
         }
 
         const response = await fetch(
-<<<<<<< HEAD
           `${process.env.REACT_APP_API_URL}/api/backlog/tasks`, // Cần endpoint thực tế
-=======
-          "http://localhost:8080/api/backlog/tasks", // Cần endpoint thực tế
->>>>>>> minhdan
           {
             method: "GET",
             headers: {
