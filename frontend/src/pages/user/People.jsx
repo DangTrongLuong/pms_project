@@ -162,6 +162,11 @@ const People = () => {
   }, [emailInput]);
 
   const handleAddMember = async () => {
+    if (!isLeader) {
+      triggerError("Chỉ trưởng nhóm mới có thể thêm thành viên");
+      return;
+    }
+
     if (!newMemberEmails.length || !selectedProject) {
       triggerError("Vui lòng nhập ít nhất một email hợp lệ");
       return;
@@ -227,6 +232,61 @@ const People = () => {
     } catch (err) {
       console.error("Add members error:", err);
       triggerError(err.message || "Thêm thành viên thất bại");
+    }
+  };
+
+  const handleRemoveMember = async (projectId, email) => {
+    if (!isLeader) {
+      triggerError("Chỉ trưởng nhóm mới có thể xóa thành viên");
+      return;
+    }
+
+    try {
+      let token = accessToken;
+      if (!userId || !token) {
+        throw new Error("Vui lòng đăng nhập lại để tiếp tục");
+      }
+
+      let response = await fetch(
+        `http://localhost:8080/api/members/project/${projectId}/email/${encodeURIComponent(email)}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+            userId: userId,
+          },
+        }
+      );
+
+      if (response.status === 401) {
+        token = await refreshToken();
+        response = await fetch(
+          `http://localhost:8080/api/members/project/${projectId}/email/${encodeURIComponent(email)}`,
+          {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+              userId: userId,
+            },
+          }
+        );
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message || `Xóa thành viên thất bại: ${response.status}`
+        );
+      }
+
+      await fetchPeople();
+      setActionMenu(null);
+      triggerSuccess(`Đã xóa ${email} khỏi dự án`);
+    } catch (err) {
+      console.error("Remove member error:", err);
+      triggerError(err.message || "Xóa thành viên thất bại");
     }
   };
 
@@ -350,17 +410,80 @@ const People = () => {
 
   return (
     <div className="people-section">
-      {showAddMember && (
+      <div className="people-container">
+        <div className="people-header">
+          <h3>Team Members ({selectedProject?.team?.length || 0})</h3>
+          {isLeader && (
+            <button
+              onClick={() => setShowAddMember(true)}
+              className="add-member-btn"
+            >
+              <UserPlus />
+              <span>Add Member</span>
+            </button>
+          )}
+        </div>
+
+        <div className="people-list">
+          {(selectedProject?.team || []).map((member) => (
+            <div key={member.id} className="person-item">
+              <div className="person-info-section">
+                <div className="person-avatar">{member.avatarUrl ? <img src={member.avatarUrl} alt="Avatar" /> : member.name?.substring(0, 2).toUpperCase()}</div>
+                <div className="person-info">
+                  <div className="person-name-section">
+                    <h4 className="person-name">{member.name}</h4>
+                    {getRoleIcon(member.role)}
+                  </div>
+                  <div className="person-contact">
+                    <Mail />
+                    <p className="person-email">{member.email}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="person-stats">
+                <div className="person-task-stats">
+                  <p className="stat-value">
+                    {getTasksAssigned(member.name)} tasks
+                  </p>
+                  <p className="stat-label">
+                    {getTasksCompleted(member.name)} completed
+                  </p>
+                </div>
+
+                <span
+                  className={`person-role role-${member.role.toLowerCase()}`}
+                >
+                  {member.role === "LEADER" ? "Lead" : "Member"}
+                </span>
+
+                {member.role !== "LEADER" && isLeader && (
+                  <div className="person-actions">
+                    <button
+                      className="person-action-btn"
+                      onClick={(e) => handleActionClick(member, e)}
+                    >
+                      <MoreHorizontal />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {showAddMember && isLeader && (
         <div className="add-people-form">
           <h3>Add Team Member</h3>
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">Email Address</label>
+              <label className="form-label">Email Address (phân tách bằng dấu phẩy)</label>
               <input
                 type="text"
                 value={emailInput}
                 onChange={handleEmailInputChange}
-                placeholder="Enter email"
+                placeholder="user1@company.com, user2@company.com"
                 className="form-input"
                 autoComplete="off"
               />
@@ -419,6 +542,7 @@ const People = () => {
                 className="form-select"
               >
                 <option value="USER">Member</option>
+                <option value="LEADER">Lead</option>
               </select>
             </div>
             <div className="form-actions-inline">
@@ -436,65 +560,6 @@ const People = () => {
         </div>
       )}
 
-      <div className="people-container">
-        <div className="people-header">
-          <h3>Team Members ({selectedProject?.team?.length || 0})</h3>
-          <button
-            onClick={() => setShowAddMember(true)}
-            className="add-member-btn"
-          >
-            <UserPlus />
-            <span>Add Member</span>
-          </button>
-        </div>
-
-        <div className="people-list">
-          {(selectedProject?.team || []).map((member) => (
-            <div key={member.id} className="person-item">
-              <div className="person-info-section">
-                <div className="person-avatar">{member.avatarUrl ? <img src={member.avatarUrl} alt="Avatar" /> : member.name?.substring(0, 2).toUpperCase()}</div>
-                <div className="person-info">
-                  <div className="person-name-section">
-                    <h4 className="person-name">{member.name}</h4>
-                    {getRoleIcon(member.role)}
-                  </div>
-                  <div className="person-contact">
-                    <Mail />
-                    <p className="person-email">{member.email}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="person-stats">
-                <div className="person-task-stats">
-                  <p className="stat-value">
-                    {getTasksAssigned(member.name)} tasks
-                  </p>
-                  <p className="stat-label">
-                    {getTasksCompleted(member.name)} completed
-                  </p>
-                </div>
-
-                <span
-                  className={`person-role role-${member.role.toLowerCase()}`}
-                >
-                  {member.role === "LEADER" ? "Lead" : "Member"}
-                </span>
-
-                <div className="person-actions">
-                  <button
-                    className="person-action-btn"
-                    onClick={(e) => handleActionClick(member, e)}
-                  >
-                    <MoreHorizontal />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {actionMenu && isLeader && (
         <div
           className="action-menu"
@@ -509,6 +574,12 @@ const People = () => {
             zIndex: 1000,
           }}
         >
+          <button
+            onClick={() => handleRemoveMember(actionMenu.projectId, actionMenu.memberEmail)}
+            className="action-button"
+          >
+            Remove Member
+          </button>
           <button
             onClick={() => handleTransferLeader(actionMenu.projectId, actionMenu.memberEmail)}
             className="action-button"
