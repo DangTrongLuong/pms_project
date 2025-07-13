@@ -36,7 +36,7 @@ const ProjectTaskContent = () => {
       }
 
       const response = await fetch(
-        `http://localhost:8080/api/members/project/${id}`,
+        `${process.env.REACT_APP_API_URL}/api/members/project/${id}`,
         {
           method: "GET",
           headers: {
@@ -68,7 +68,7 @@ const ProjectTaskContent = () => {
       }
 
       const response = await fetch(
-        "http://localhost:8080/api/projects/my-projects",
+        `${process.env.REACT_APP_API_URL}/api/projects/my-projects`,
         {
           method: "GET",
           headers: {
@@ -166,20 +166,24 @@ const ProjectTaskContent = () => {
                 }}
               >
                 <div className="flex items-center space-x-4"></div>
-                <div>
-                  <h1 className="project-title">
-                    {selectedProject.project_name}
-                  </h1>
-                  <p className="project-key-display">
-                    {selectedProject.short_name} •{" "}
-                    {selectedProject.description || "Không có mô tả"}
-                  </p>
-                  <div>
-                    <ProjectTabs
-                      activeTab={activeTab}
-                      onTabChange={setActiveTab}
-                    />
+                <div className="project-header-name">
+                  <div
+                    className="project-header-bg"
+                    style={{ backgroundColor: selectedProject.color }}
+                  >
+                    <h3>{selectedProject.short_name}</h3>
                   </div>
+                  <div>
+                    <h1 className="project-title">
+                      {selectedProject.project_name}
+                    </h1>
+                  </div>
+                </div>
+                <div>
+                  <ProjectTabs
+                    activeTab={activeTab}
+                    onTabChange={setActiveTab}
+                  />
                 </div>
               </div>
             </div>

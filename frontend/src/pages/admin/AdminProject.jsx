@@ -47,7 +47,7 @@ const AdminProject = () => {
     try {
       const accessToken = localStorage.getItem("accessToken");
       const userId = localStorage.getItem("userId");
-      const response = await axios.get("http://localhost:8080/api/projects/find-all", {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/projects/find-all`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
           userId: userId,

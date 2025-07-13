@@ -1,13 +1,4 @@
-/* Board view */
-.board {
-  display: flex;
-  gap: 20px;
-  overflow-x: auto;
-  padding: 20px;
-  min-height: 500px;
-}
-
-/* New Kanban Board Styles */
+/* Kanban Board Styles */
 .kanban-board {
   padding: 0;
 }
@@ -27,15 +18,42 @@
   align-items: center;
   justify-content: center;
 }
+
 .search-container .member-avatar {
+  margin: 0 2px; /* Giảm khoảng cách từ 8px xuống 4px */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+}
+.search-container .search-input {
+  margin-right: 5px;
+}
+.member-avatar {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  object-fit: cover;
   border: 2px solid #fff;
-  margin-right: 8px;
-  margin-left: 8px;
+  object-fit: cover;
 }
+
+.search-container .member-avatar-img,
+.search-container .assignee-initials {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.search-container .assignee-initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+}
+
 .search-icon {
   position: absolute;
   top: 50%;
@@ -85,14 +103,6 @@
 .member-avatars {
   display: flex;
   gap: 8px;
-}
-
-.member-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid #fff;
 }
 
 .kanban-columns {
@@ -190,6 +200,36 @@
   color: #6b7280;
 }
 
+.task-dropdown-menu {
+  position: absolute;
+  background: #fff;
+  border: 1px solid #dfe1e6;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  min-width: 150px;
+  right: 0;
+  top: 100%;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #172b4d;
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+}
+
+.dropdown-item:hover {
+  background-color: #f4f5f7;
+}
+
 .task-type-priority {
   display: flex;
   gap: 8px;
@@ -253,11 +293,8 @@
 .assignee-avatar {
   width: 24px;
   height: 24px;
-  background-color: #d1d5db;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  object-fit: cover;
 }
 
 .assignee-initials {
@@ -271,51 +308,6 @@
   padding: 24px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
     "Ubuntu", "Cantarell", sans-serif;
-}
-
-/* Progress Header Styles */
-.progress-header {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.create-task-btn {
-  background-color: #2563eb;
-  color: #ffffff;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: background-color 0.2s;
-}
-
-.create-task-btn:hover {
-  background-color: #1e40af;
-}
-
-.column-guidance {
-  font-size: 14px;
-  color: #6b7280;
-  margin-bottom: 16px;
-}
-
-.go-to-backlog-btn {
-  padding: 8px 16px;
-  background-color: #2563eb;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.go-to-backlog-btn:hover {
-  background-color: #1e40af;
 }
 
 /* Progress Content Styles */
@@ -607,20 +599,31 @@
   margin-top: 16px;
   font-size: 14px;
 }
-
+.assignee-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6); /* Tăng độ mờ cho nền nổi bật hơn */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 24px; /* Thêm padding để tạo khoảng trắng xung quanh */
+}
+.assignee-modal {
+  background: #fff;
+  border-radius: 12px; /* Bo tròn lớn hơn cho giao diện mềm mại */
+  padding: 24px; /* Tăng padding bên trong để thoáng hơn */
+  width: 100%;
+  max-width: 450px; /* Tăng max-width để modal lớn hơn */
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2); /* Bóng đổ nhẹ hơn, hiện đại hơn */
+}
 /* Responsive Design */
 @media (max-width: 768px) {
   .progress-filters {
     flex-direction: column;
-  }
-
-  .board {
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .board-column {
-    min-width: 100%;
   }
 
   .kanban-columns {

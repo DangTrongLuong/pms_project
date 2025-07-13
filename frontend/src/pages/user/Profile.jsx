@@ -20,7 +20,7 @@ const ProfileContent = () => {
   );
   const [avatarUrl, setAvatarUrl] = useState(
     localStorage.getItem("avatarUrl") ||
-      "http://localhost:8080/uploads/avatars/default-avatar.png"
+      `${process.env.REACT_APP_API_URL}/uploads/avatars/default-avatar.png`
   );
   const [backgroundUrl, setBackgroundUrl] = useState(
     localStorage.getItem("backgroundUrl" || "")
@@ -78,7 +78,7 @@ const ProfileContent = () => {
     document.getElementById("created-at").textContent = storedCreatedAt || "";
     document.getElementById("profile-img").src =
       storedAvatar ||
-      "http://localhost:8080/uploads/avatars/default-avatar.png";
+      `${process.env.REACT_APP_API_URL}/uploads/avatars/default-avatar.png`;
     const coverImg = document.getElementById("cover-img");
     if (coverImg) {
       coverImg.src = user.backgroundUrl || "";
@@ -110,7 +110,17 @@ const ProfileContent = () => {
     return () => {
       delete window.progressCallback;
     };
-  }, [userName, userEmail, avatarUrl, backgroundUrl, role, createdAt, user.userName, user.avatarUrl, user.backgroundUrl]);
+  }, [
+    userName,
+    userEmail,
+    avatarUrl,
+    backgroundUrl,
+    role,
+    createdAt,
+    user.userName,
+    user.avatarUrl,
+    user.backgroundUrl,
+  ]);
 
   const handleAvatarChange = async (e) => {
     const file = e.target.files[0];
@@ -133,7 +143,7 @@ const ProfileContent = () => {
         headers.Authorization = `Bearer ${token}`;
       }
       const response = await fetch(
-        "http://localhost:8080/api/auth/upload-avatar",
+        `${process.env.REACT_APP_API_URL}/api/auth/upload-avatar`,
         {
           method: "POST",
           headers: headers,
@@ -179,7 +189,7 @@ const ProfileContent = () => {
         headers.Authorization = `Bearer ${token}`;
       }
       const response = await fetch(
-        "http://localhost:8080/api/auth/upload-background",
+        `${process.env.REACT_APP_API_URL}/api/auth/upload-background`,
         {
           method: "POST",
           headers: headers,
@@ -223,7 +233,7 @@ const ProfileContent = () => {
           headers.Authorization = `Bearer ${token}`;
         }
         const response = await fetch(
-          "http://localhost:8080/api/auth/remove-background",
+          `${process.env.REACT_APP_API_URL}/api/auth/remove-background`,
           {
             method: "POST",
             headers: headers,
@@ -267,7 +277,7 @@ const ProfileContent = () => {
           headers.Authorization = `Bearer ${token}`;
         }
         const response = await fetch(
-          `http://localhost:8080/api/auth/update-user/${storedEmail}`,
+          `${process.env.REACT_APP_API_URL}/api/auth/update-user/${storedEmail}`,
           {
             method: "PUT",
             headers: headers,

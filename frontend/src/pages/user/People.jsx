@@ -41,17 +41,25 @@ const People = () => {
 
   const refreshToken = async () => {
     try {
-      const response = await fetch("http://localhost:8080/api/auth/refresh-token", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ refreshToken: localStorage.getItem("refreshToken") }),
-      });
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/api/auth/refresh-token`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            refreshToken: localStorage.getItem("refreshToken"),
+          }),
+        }
+      );
       const data = await response.json();
       if (response.ok && data.access_token) {
         localStorage.setItem("accessToken", data.access_token);
-        localStorage.setItem("tokenExpiresAt", Date.now() + data.expires_in * 1000);
+        localStorage.setItem(
+          "tokenExpiresAt",
+          Date.now() + data.expires_in * 1000
+        );
         return data.access_token;
       }
       throw new Error("Không thể làm mới token");
@@ -72,7 +80,7 @@ const People = () => {
       }
 
       let response = await fetch(
-        `http://localhost:8080/api/members/project/${selectedProject.id}`,
+        `${process.env.REACT_APP_API_URL}/api/members/project/${selectedProject.id}`,
         {
           method: "GET",
           headers: {
@@ -86,7 +94,7 @@ const People = () => {
       if (response.status === 401) {
         token = await refreshToken();
         response = await fetch(
-          `http://localhost:8080/api/members/project/${selectedProject.id}`,
+          `${process.env.REACT_APP_API_URL}/api/members/project/${selectedProject.id}`,
           {
             method: "GET",
             headers: {
@@ -112,7 +120,9 @@ const People = () => {
         team: Array.isArray(data) ? data : [],
       });
 
-      const currentMember = data.find((member) => member.email === currentUserEmail);
+      const currentMember = data.find(
+        (member) => member.email === currentUserEmail
+      );
       setIsLeader(currentMember && currentMember.role === "LEADER");
     } catch (err) {
       console.error("Fetch error:", err);
@@ -127,7 +137,9 @@ const People = () => {
     }
     try {
       const response = await fetch(
-        `http://localhost:8080/api/members/search?query=${encodeURIComponent(query)}`,
+        `${
+          process.env.REACT_APP_API_URL
+        }/api/members/search?query=${encodeURIComponent(query)}`,
         {
           method: "GET",
           headers: {
@@ -181,7 +193,7 @@ const People = () => {
       const addedMembers = [];
       for (const email of newMemberEmails) {
         let response = await fetch(
-          `http://localhost:8080/api/members/project/${selectedProject.id}`,
+          `${process.env.REACT_APP_API_URL}/api/members/project/${selectedProject.id}`,
           {
             method: "POST",
             headers: {
@@ -196,7 +208,7 @@ const People = () => {
         if (response.status === 401) {
           token = await refreshToken();
           response = await fetch(
-            `http://localhost:8080/api/members/project/${selectedProject.id}`,
+            `${process.env.REACT_APP_API_URL}/api/members/project/${selectedProject.id}`,
             {
               method: "POST",
               headers: {
@@ -211,7 +223,9 @@ const People = () => {
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
-          triggerError(`Thêm ${email} thất bại: ${errorData.message || response.status}`);
+          triggerError(
+            `Thêm ${email} thất bại: ${errorData.message || response.status}`
+          );
           continue;
         }
 
@@ -248,7 +262,9 @@ const People = () => {
       }
 
       let response = await fetch(
-        `http://localhost:8080/api/members/project/${projectId}/email/${encodeURIComponent(email)}`,
+        `${
+          process.env.REACT_APP_API_URL
+        }/api/members/project/${projectId}/email/${encodeURIComponent(email)}`,
         {
           method: "DELETE",
           headers: {
@@ -262,7 +278,11 @@ const People = () => {
       if (response.status === 401) {
         token = await refreshToken();
         response = await fetch(
-          `http://localhost:8080/api/members/project/${projectId}/email/${encodeURIComponent(email)}`,
+          `${
+            process.env.REACT_APP_API_URL
+          }/api/members/project/${projectId}/email/${encodeURIComponent(
+            email
+          )}`,
           {
             method: "DELETE",
             headers: {
@@ -277,16 +297,16 @@ const People = () => {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
-          errorData.message || `Xóa thành viên thất bại: ${response.status}`
+          errorData.message || `Delete member failed: ${response.status}`
         );
       }
 
       await fetchPeople();
       setActionMenu(null);
-      triggerSuccess(`Đã xóa ${email} khỏi dự án`);
+      triggerSuccess(`Successfully removed ${email} from the project`);
     } catch (err) {
       console.error("Remove member error:", err);
-      triggerError(err.message || "Xóa thành viên thất bại");
+      triggerError(err.message || "Delete member failed");
     }
   };
 
@@ -299,11 +319,11 @@ const People = () => {
     try {
       let token = accessToken;
       if (!userId || !token) {
-        throw new Error("Vui lòng đăng nhập lại để tiếp tục");
+        throw new Error("Please login again to continue");
       }
 
       let response = await fetch(
-        `http://localhost:8080/api/members/project/${projectId}/transfer-leader`,
+        `${process.env.REACT_APP_API_URL}/api/members/project/${projectId}/transfer-leader`,
         {
           method: "POST",
           headers: {
@@ -318,7 +338,7 @@ const People = () => {
       if (response.status === 401) {
         token = await refreshToken();
         response = await fetch(
-          `http://localhost:8080/api/members/project/${projectId}/transfer-leader`,
+          `${process.env.REACT_APP_API_URL}/api/members/project/${projectId}/transfer-leader`,
           {
             method: "POST",
             headers: {
@@ -334,16 +354,16 @@ const People = () => {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
-          errorData.message || `Chuyển trưởng nhóm thất bại: ${response.status}`
+          errorData.message || `Team leader transfer failed: ${response.status}`
         );
       }
 
       await fetchPeople();
       setActionMenu(null);
-      triggerSuccess(`Đã chuyển trưởng nhóm cho ${email}`);
+      triggerSuccess(`transferred team leader to ${email}`);
     } catch (err) {
       console.error("Transfer leader error:", err);
-      triggerError(err.message || "Chuyển trưởng nhóm thất bại");
+      triggerError(err.message || "Team leader transfer failed");
     }
   };
 
@@ -369,7 +389,9 @@ const People = () => {
   };
 
   const handleRemoveEmail = (emailToRemove) => {
-    setNewMemberEmails((prev) => prev.filter((email) => email !== emailToRemove));
+    setNewMemberEmails((prev) =>
+      prev.filter((email) => email !== emailToRemove)
+    );
   };
 
   const handleEmailInputChange = (e) => {
@@ -423,12 +445,207 @@ const People = () => {
             </button>
           )}
         </div>
+        {showAddMember && isLeader && (
+          <div className="add-people-form">
+            <h3>Add Team Member</h3>
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label">Email Address</label>
+                <input
+                  type="text"
+                  value={emailInput}
+                  onChange={handleEmailInputChange}
+                  placeholder="Enter a email"
+                  className="form-input"
+                  autoComplete="off"
+                />
+                {emailSuggestions.length > 0 && (
+                  <ul className="email-suggestions-add">
+                    {emailSuggestions.map((suggestion) => (
+                      <li
+                        key={suggestion.email}
+                        onClick={() => handleEmailSelect(suggestion.email)}
+                        className="suggestion-item"
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "10px",
+                          padding: "8px",
+                          cursor: "pointer",
+                          borderBottom: "1px solid #e2e8f0",
+                        }}
+                      >
+                        <div
+                          className="suggestion-avatar"
+                          style={{
+                            width: "32px",
+                            height: "32px",
+                            borderRadius: "50%",
+                            backgroundColor: suggestion.avatarUrl
+                              ? "transparent"
+                              : "#d1d5db",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: "12px",
+                            fontWeight: "500",
+                          }}
+                        >
+                          {suggestion.avatarUrl ? (
+                            <img
+                              src={suggestion.avatarUrl}
+                              alt="Avatar"
+                              style={{
+                                width: "100%",
+                                height: "100%",
+                                borderRadius: "50%",
+                                objectFit: "cover",
+                              }}
+                            />
+                          ) : (
+                            suggestion.name?.substring(0, 2).toUpperCase()
+                          )}
+                        </div>
+                        <div className="suggestion-info">
+                          <span
+                            style={{
+                              fontWeight: "500",
+                              color: "#172b4d",
+                            }}
+                          >
+                            {suggestion.name || "Unknown"}
+                          </span>
+                          <span
+                            style={{
+                              fontSize: "12px",
+                              color: "#6b778c",
+                              display: "block",
+                            }}
+                          >
+                            {suggestion.email}
+                          </span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {newMemberEmails.length > 0 && (
+                  <div
+                    className="email-chips"
+                    style={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: "8px",
+                      marginTop: "8px",
+                    }}
+                  >
+                    {newMemberEmails.map((email) => (
+                      <div
+                        key={email}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          background: "#e0e0e0",
+                          borderRadius: "16px",
+                          padding: "4px 8px",
+                          fontSize: "14px",
+                        }}
+                      >
+                        {email}
+                        <button
+                          onClick={() => handleRemoveEmail(email)}
+                          style={{
+                            marginLeft: "8px",
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            padding: "0",
+                            display: "flex",
+                            alignItems: "center",
+                          }}
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="form-group-add-member">
+                <div className="form-group">
+                  <label className="form-label">Role</label>
+                  <div className="form-actions-inline">
+                    <select
+                      value={newMemberRole}
+                      onChange={(e) => setNewMemberRole(e.target.value)}
+                      className="form-select"
+                    >
+                      <option value="USER">Member</option>
+                    </select>
+
+                    <button onClick={handleAddMember} className="btn-primary">
+                      Add
+                    </button>
+                    <button
+                      onClick={() => setShowAddMember(false)}
+                      className="btn-secondary"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {actionMenu && isLeader && (
+          <div
+            className="action-menu"
+            ref={actionRef}
+            style={{
+              position: "absolute",
+              top: actionMenu.top,
+              left: actionMenu.right,
+              background: "white",
+              border: "1px solid #ccc",
+              boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
+              zIndex: 1000,
+            }}
+          >
+            <button
+              onClick={() =>
+                handleRemoveMember(actionMenu.projectId, actionMenu.memberEmail)
+              }
+              className="action-button"
+            >
+              Remove Member
+            </button>
+            <button
+              onClick={() =>
+                handleTransferLeader(
+                  actionMenu.projectId,
+                  actionMenu.memberEmail
+                )
+              }
+              className="action-button"
+            >
+              Transfer Leader
+            </button>
+          </div>
+        )}
 
         <div className="people-list">
           {(selectedProject?.team || []).map((member) => (
             <div key={member.id} className="person-item">
               <div className="person-info-section">
-                <div className="person-avatar">{member.avatarUrl ? <img src={member.avatarUrl} alt="Avatar" /> : member.name?.substring(0, 2).toUpperCase()}</div>
+                <div className="person-avatar">
+                  {member.avatarUrl ? (
+                    <img src={member.avatarUrl} alt="Avatar" />
+                  ) : (
+                    member.name?.substring(0, 2).toUpperCase()
+                  )}
+                </div>
                 <div className="person-info">
                   <div className="person-name-section">
                     <h4 className="person-name">{member.name}</h4>
@@ -473,122 +690,6 @@ const People = () => {
         </div>
       </div>
 
-      {showAddMember && isLeader && (
-        <div className="add-people-form">
-          <h3>Add Team Member</h3>
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label">Email Address (phân tách bằng dấu phẩy)</label>
-              <input
-                type="text"
-                value={emailInput}
-                onChange={handleEmailInputChange}
-                placeholder="user1@company.com, user2@company.com"
-                className="form-input"
-                autoComplete="off"
-              />
-              {emailSuggestions.length > 0 && (
-                <ul className="email-suggestions">
-                  {emailSuggestions.map((suggestion) => (
-                    <li
-                      key={suggestion.email}
-                      onClick={() => handleEmailSelect(suggestion.email)}
-                      className="suggestion-item"
-                    >
-                      {suggestion.email}
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {newMemberEmails.length > 0 && (
-                <div className="email-chips" style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "8px" }}>
-                  {newMemberEmails.map((email) => (
-                    <div
-                      key={email}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        background: "#e0e0e0",
-                        borderRadius: "16px",
-                        padding: "4px 8px",
-                        fontSize: "14px",
-                      }}
-                    >
-                      {email}
-                      <button
-                        onClick={() => handleRemoveEmail(email)}
-                        style={{
-                          marginLeft: "8px",
-                          background: "none",
-                          border: "none",
-                          cursor: "pointer",
-                          padding: "0",
-                          display: "flex",
-                          alignItems: "center",
-                        }}
-                      >
-                        <X size={16} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="form-group">
-              <label className="form-label">Role</label>
-              <select
-                value={newMemberRole}
-                onChange={(e) => setNewMemberRole(e.target.value)}
-                className="form-select"
-              >
-                <option value="USER">Member</option>
-                <option value="LEADER">Lead</option>
-              </select>
-            </div>
-            <div className="form-actions-inline">
-              <button onClick={handleAddMember} className="btn-primary">
-                Add
-              </button>
-              <button
-                onClick={() => setShowAddMember(false)}
-                className="btn-secondary"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {actionMenu && isLeader && (
-        <div
-          className="action-menu"
-          ref={actionRef}
-          style={{
-            position: "absolute",
-            top: actionMenu.top,
-            left: actionMenu.left,
-            background: "white",
-            border: "1px solid #ccc",
-            boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
-            zIndex: 1000,
-          }}
-        >
-          <button
-            onClick={() => handleRemoveMember(actionMenu.projectId, actionMenu.memberEmail)}
-            className="action-button"
-          >
-            Remove Member
-          </button>
-          <button
-            onClick={() => handleTransferLeader(actionMenu.projectId, actionMenu.memberEmail)}
-            className="action-button"
-          >
-            Transfer Leader
-          </button>
-        </div>
-      )}
-
       <div className="people-summary">
         <div className="summary-card">
           <h3>Role Distribution</h3>
@@ -601,7 +702,9 @@ const People = () => {
                 <div key={role} className="role-item">
                   <div className="role-info">
                     {getRoleIcon(role)}
-                    <span className="role-label">{role === "LEADER" ? "Lead" : "Member"}</span>
+                    <span className="role-label">
+                      {role === "LEADER" ? "Lead" : "Member"}
+                    </span>
                   </div>
                   <span className="role-count">{count}</span>
                 </div>

@@ -51,7 +51,7 @@ const DashboardContent = () => {
     const fetchData = async () => {
       try {
         const projectResponse = await axios.get(
-          "http://localhost:8080/api/projects/count",
+          `${process.env.REACT_APP_API_URL}/api/projects/count`,
           {
             headers: {
               Authorization: `Bearer ${accessToken}`,
@@ -62,7 +62,7 @@ const DashboardContent = () => {
         setProjectCount(projectResponse.data);
 
         const userResponse = await axios.get(
-          "http://localhost:8080/api/auth/count",
+          `${process.env.REACT_APP_API_URL}/api/auth/count`,
           {
             headers: {
               Authorization: `Bearer ${accessToken}`,

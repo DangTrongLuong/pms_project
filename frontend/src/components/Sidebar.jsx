@@ -38,7 +38,7 @@ const Sidebar = () => {
         }
 
         const response = await fetch(
-          "http://localhost:8080/api/projects/my-projects",
+          `${process.env.REACT_APP_API_URL}/api/projects/my-projects`,
           {
             method: "GET",
             headers: {
@@ -129,17 +129,6 @@ const Sidebar = () => {
           <FontAwesomeIcon icon={faListCheck} />
         </div>
         <p className="sidebar-task">My tasks</p>
-      </div>
-      <div
-        className={`sidebar-item ${
-          focusedItem === "/members" ? "focused" : ""
-        }`}
-        onClick={() => handleItemClick("/members")}
-      >
-        <div className="sidebar-icon">
-          <FontAwesomeIcon icon={faUsers} />
-        </div>
-        <p className="sidebar-member">Members</p>
       </div>
 
       <hr />

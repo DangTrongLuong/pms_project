@@ -1,13 +1,16 @@
 export const login = async (email, password) => {
   try {
     // Thử đăng nhập local trước
-    let response = await fetch("http://localhost:8080/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
-    });
+    let response = await fetch(
+      `${process.env.REACT_APP_API_URL}/api/auth/login`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      }
+    );
 
     let data = await response.json();
     if (data.result && data.result.authenticated) {
@@ -23,7 +26,7 @@ export const login = async (email, password) => {
       localStorage.setItem(
         "avatarUrl",
         data.result.avatarUrl ||
-          "http://localhost:8080/uploads/avatars/default-avatar.png"
+          `${process.env.REACT_APP_API_URL}/uploads/avatars/default-avatar.png`
       );
       localStorage.setItem("role", data.result.role || "USER");
       localStorage.setItem(
@@ -38,14 +41,17 @@ export const login = async (email, password) => {
 
     // Nếu đăng nhập local thất bại, thử đăng nhập admin
     console.log("Local login failed, attempting admin login");
-    response = await fetch("http://localhost:8080/api/admin/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({ email, password }),
-    });
+    response = await fetch(
+      `${process.env.REACT_APP_API_URL}/api/admin/auth/login`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ email, password }),
+      }
+    );
 
     data = await response.json();
     if (response.ok && data.token) {
@@ -60,7 +66,7 @@ export const login = async (email, password) => {
       localStorage.setItem("userName", data.user.username || "Admin");
       localStorage.setItem(
         "avatarUrl",
-        "http://localhost:8080/uploads/avatars/default-avatar.png"
+        `${process.env.REACT_APP_API_URL}/uploads/avatars/default-avatar.png`
       );
       localStorage.setItem("role", data.user.role || "ADMIN");
       localStorage.setItem(
@@ -76,7 +82,7 @@ export const login = async (email, password) => {
         id: data.user.id,
         email: data.user.email,
         name: data.user.username,
-        avatarUrl: "http://localhost:8080/uploads/avatars/default-avatar.png",
+        avatarUrl: `${process.env.REACT_APP_API_URL}/uploads/avatars/default-avatar.png`,
         role: data.user.role || "ADMIN",
         createdAt: new Date().toISOString().split("T")[0],
         backgroundUrl: null,
@@ -93,13 +99,16 @@ export const login = async (email, password) => {
 
 export const register = async (name, email, password) => {
   try {
-    const response = await fetch("http://localhost:8080/api/auth/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ name, email, password }),
-    });
+    const response = await fetch(
+      `${process.env.REACT_APP_API_URL}/api/auth/register`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, email, password }),
+      }
+    );
 
     const data = await response.json();
     if (response.ok && data.result) {

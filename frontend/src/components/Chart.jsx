@@ -75,8 +75,9 @@ const Chart = forwardRef(({ type = "projects" }, ref) => {
       try {
         if (type === "projects") {
           // Fetch data: project creations
+          console.log(`${process.env.REACT_APP_API_URL}`);
           const projectResponse = await axios.get(
-            "http://localhost:8080/api/projects/daily-count",
+            `${process.env.REACT_APP_API_URL}/api/projects/daily-count`,
             {
               headers: {
                 Authorization: `Bearer ${accessToken}`,
@@ -92,7 +93,7 @@ const Chart = forwardRef(({ type = "projects" }, ref) => {
         } else if (type === "members") {
           // Fetch data: member registrations
           const memberResponse = await axios.get(
-            "http://localhost:8080/api/auth/monthly-count",
+            `${process.env.REACT_APP_API_URL}/api/auth/monthly-count`,
             {
               headers: {
                 Authorization: `Bearer ${accessToken}`,

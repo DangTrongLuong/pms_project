@@ -9,7 +9,17 @@
   display: flex;
   flex-direction: column;
 }
-
+.project-header-name {
+  display: flex;
+  margin-bottom: 5px;
+}
+.project-header-bg {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  margin-right: 5px;
+}
 .project-header {
   background-color: white;
   border-bottom: 1px solid #e5e7eb; /* Thanh gạch mảnh, sát tab */
@@ -35,49 +45,6 @@
   color: #6b778c;
   font-family: Arial, sans-serif;
   font-size: 14px;
-}
-
-/* Tabs */
-.tabs {
-  display: flex;
-  background-color: white;
-  border-bottom: 1px solid #e5e7eb; /* Thanh gạch ngang sát tab */
-  padding: 0 20px;
-  margin: 0; /* Loại bỏ khoảng trắng trên */
-}
-
-.tab {
-  padding: 6px 14px; /* Padding nhỏ gọn */
-  cursor: pointer;
-  /* border-bottom: 2px solid transparent; */
-  transition: all 0.2s;
-  color: #6b7280; /* Chữ xám cho tab không active */
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 6px; /* Giảm gap để gọn hơn */
-  font-family: Arial, sans-serif;
-  font-size: 14px;
-  background: none;
-  border-top: 1px solid #ccc;
-  border-right: 1px solid #ccc;
-  border-left: 1px solid #ccc;
-  border-bottom: 2px solid #000;
-}
-
-.tab:hover {
-  color: #7F4CE7; /* Màu tím khi hover */
-}
-
-.tab.active {
-  color: #3b82f6; /* Màu tím đậm cho tab active */
-  border-bottom-color: #3b82f6; /* Viền dưới rõ nét */
-}
-
-.tab-icon {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
 }
 
 .tab#overview .tab-icon { background-color: #d1d5db; }

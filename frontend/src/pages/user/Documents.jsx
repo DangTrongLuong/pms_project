@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { FileText, Upload, Download, Trash2, Plus } from "lucide-react";
 import "../../styles/user/documents.css";
@@ -27,7 +26,7 @@ const Documents = () => {
       }
 
       const response = await fetch(
-        `http://localhost:8080/api/documents/${selectedProject.id}`,
+        `${process.env.REACT_APP_API_URL}/api/documents/${selectedProject.id}`,
         {
           method: "GET",
           headers: {
@@ -198,15 +197,17 @@ const Documents = () => {
         <div className="document-types">
           <h3 className="document-types-title">File Types</h3>
           <div className="space-y-3">
-            {["PDF", "Images", "Documents", "Spreadsheets", "Other"].map((type) => {
-              const count = Math.floor(Math.random() * 5);
-              return (
-                <div key={type} className="flex items-center justify-between">
-                  <span className="type-text">{type}</span>
-                  <span className="count-text">{count}</span>
-                </div>
-              );
-            })}
+            {["PDF", "Images", "Documents", "Spreadsheets", "Other"].map(
+              (type) => {
+                const count = Math.floor(Math.random() * 5);
+                return (
+                  <div key={type} className="flex items-center justify-between">
+                    <span className="type-text">{type}</span>
+                    <span className="count-text">{count}</span>
+                  </div>
+                );
+              }
+            )}
           </div>
         </div>
 

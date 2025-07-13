@@ -32,7 +32,7 @@ const Comments = () => {
       }
 
       const sprintResponse = await fetch(
-        `http://localhost:8080/api/backlog/sprints/${selectedProject.id}`,
+        `${process.env.REACT_APP_API_URL}/api/backlog/sprints/${selectedProject.id}`,
         {
           method: "GET",
           headers: {
@@ -57,7 +57,7 @@ const Comments = () => {
       }
 
       const taskResponse = await fetch(
-        `http://localhost:8080/api/backlog/tasks/${activeSprint.id}`,
+        `${process.env.REACT_APP_API_URL}/api/backlog/tasks/${activeSprint.id}`,
         {
           method: "GET",
           headers: {
@@ -104,7 +104,7 @@ const Comments = () => {
       }
 
       const response = await fetch(
-        `http://localhost:8080/api/backlog/task/${taskId}/comments`,
+        `${process.env.REACT_APP_API_URL}/api/backlog/task/${taskId}/comments`,
         {
           method: "POST",
           headers: {

@@ -112,10 +112,12 @@ function Login() {
         backgroundUrl: result.backgroundUrl || null,
         role: result.role || "USER",
       });
-      
+
       localStorage.setItem("authProvider", result.authProvider || "email");
       triggerSuccess("");
-      navigate(result.role === "ADMIN" ? "/adminuser" : "/dashboard", { replace: true });
+      navigate(result.role === "ADMIN" ? "/adminuser" : "/dashboard", {
+        replace: true,
+      });
     } catch (err) {
       setError((prev) => ({
         ...prev,
@@ -130,7 +132,7 @@ function Login() {
   const googleLogin = () => {
     console.log("Logging in with Google");
     localStorage.setItem("authProvider", "google");
-    window.location.href = "http://localhost:8080/api/auth/login/google";
+    window.location.href = `${process.env.REACT_APP_API_URL}/api/auth/login/google`;
   };
 
   const handleHomePage = () => {
@@ -258,7 +260,6 @@ function Login() {
             </li>
           </ul>
         </div>
-        
       </div>
       <div className="login-home">
         <div className="login-home-1">

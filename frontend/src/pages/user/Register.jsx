@@ -53,7 +53,7 @@ function Register() {
   const checkEmailExists = async (email) => {
     try {
       const response = await axios.post(
-        "http://localhost:8080/api/auth/check-email",
+        `${process.env.REACT_APP_API_URL}/api/auth/check-email`,
         { email }
       );
       return response.data.exists;
@@ -68,8 +68,7 @@ function Register() {
     setName(value);
     setError((prev) => ({
       ...prev,
-      name:
-        value === "" ? "Please enter username" : validateFullName(value),
+      name: value === "" ? "Please enter username" : validateFullName(value),
       general: "",
     }));
   };
@@ -134,7 +133,8 @@ function Register() {
       general: "",
       name: "",
       email: "",
-      password:10,      confirmPassword: "",
+      password: 10,
+      confirmPassword: "",
     });
 
     const fullNameError = !name

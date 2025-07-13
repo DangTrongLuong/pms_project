@@ -12,7 +12,7 @@
   margin: 2px 0 5px 0;
   cursor: pointer;
   display: flex;
-  color: black;
+  color: rgb(14, 14, 14, 0.8);
   text-decoration: none;
 }
 
@@ -43,7 +43,7 @@
   margin: 5px 0 0 8px;
   padding: 0 5px;
   font-size: 17px;
-  color: black;
+  color: rgb(10, 10, 10, 0.8);
   text-decoration: none;
 }
 

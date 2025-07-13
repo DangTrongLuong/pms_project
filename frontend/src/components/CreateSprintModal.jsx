@@ -1,19 +1,21 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import "../styles/user/create-sprint-modal.css";
 
 const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
   const [sprintFormData, setSprintFormData] = useState({
-    sprintName: "",
+    name: "",
     startDate: "",
     endDate: "",
     sprintGoal: "",
     duration: "",
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const hasSubmitted = useRef(false);
 
   useEffect(() => {
     const today = new Date();
-    today.setHours(13, 34, 0, 0); // 01:34 PM +07, 11/07/2025
+    today.setHours(13, 34, 0, 0); // 01:34 PM +07
     setSprintFormData((prev) => ({
       ...prev,
       startDate: today.toISOString().slice(0, 10),
@@ -22,6 +24,13 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isLoading || hasSubmitted.current) {
+      console.log("Request đang xử lý hoặc đã submit, bỏ qua submit lặp");
+      return;
+    }
+    hasSubmitted.current = true;
+    setIsLoading(true);
+    console.log("Gửi request tạo sprint:", sprintFormData);
     try {
       const userId = localStorage.getItem("userId");
       const userName = localStorage.getItem("userName") || "Anonymous";
@@ -30,27 +39,29 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
         throw new Error("Vui lòng đăng nhập và chọn dự án hợp lệ");
       }
 
+      const sprintData = {
+        name: sprintFormData.name,
+        startDate: sprintFormData.startDate,
+        endDate: sprintFormData.endDate,
+        sprintGoal: sprintFormData.sprintGoal,
+        duration: sprintFormData.duration,
+      };
+
       const response = await fetch(
-        `http://localhost:8080/api/backlog/sprint/${selectedProject.id}`,
+        `http://localhost:8080/api/sprints/project/${selectedProject.id}`,
         {
           method: "POST",
           headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
+            "Content-Type": "application/json",
             Authorization: `Bearer ${accessToken}`,
             userId: userId,
             userName: userName,
           },
-          body: new URLSearchParams({
-            sprintName: sprintFormData.sprintName,
-            startDate: sprintFormData.startDate,
-            endDate: sprintFormData.endDate,
-            sprintGoal: sprintFormData.sprintGoal,
-            duration: sprintFormData.duration,
-          }),
-          credentials: "include",
+          body: JSON.stringify(sprintData),
         }
       );
 
+      console.log("Phản hồi từ server:", response.status);
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
@@ -59,14 +70,25 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
       }
 
       const newSprint = await response.json();
+      console.log("Sprint mới được tạo:", newSprint);
       onSubmit(newSprint);
+      setSprintFormData({
+        name: "",
+        startDate: new Date().toISOString().slice(0, 10),
+        endDate: "",
+        sprintGoal: "",
+        duration: "",
+      });
       onClose();
     } catch (err) {
-      console.error(err.message || "Đã có lỗi xảy ra khi tạo sprint");
+      console.error("Lỗi khi tạo sprint:", err.message);
       if (err.message.includes("401") || err.message.includes("403")) {
         window.location.href = "/login";
       }
       alert(err.message || "Không thể tạo sprint. Vui lòng thử lại.");
+    } finally {
+      setIsLoading(false);
+      hasSubmitted.current = false;
     }
   };
 
@@ -91,11 +113,11 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
             <input
               type="text"
               required
-              value={sprintFormData.sprintName}
+              value={sprintFormData.name}
               onChange={(e) =>
                 setSprintFormData({
                   ...sprintFormData,
-                  sprintName: e.target.value,
+                  name: e.target.value,
                 })
               }
               className="create-sprint-form-input"
@@ -166,7 +188,7 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
                 })
               }
               className="create-sprint-form-input"
-              placeholder="Enter duration (e.g., 2 weeks)"
+              placeholder="Thời gian dự kiến"
             />
           </div>
           <div className="create-sprint-form-actions">
@@ -180,8 +202,9 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
             <button
               type="submit"
               className="create-sprint-btn create-sprint-btn-primary"
+              disabled={isLoading || hasSubmitted.current}
             >
-              Create Sprint
+              {isLoading ? "Creating..." : "Create Sprint"}
             </button>
           </div>
         </form>
