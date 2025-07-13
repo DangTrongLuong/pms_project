@@ -163,6 +163,28 @@ public class SprintController {
         }
     }
 
+    @PutMapping("/task/{taskId}")
+    public ResponseEntity<?> updateTask(
+            @PathVariable @NotNull(message = "Task ID cannot be null") Integer taskId,
+            @RequestBody TaskUpdateRequest request,
+            @RequestHeader @NotEmpty(message = "User ID cannot be empty") String userId) {
+        try {
+            log.info("Cập nhật taskId: {}, request: {}, userId: {}", taskId, request, userId);
+            Task task = sprintService.updateTask(taskId, request, userId);
+            return ResponseEntity.ok(task);
+        } catch (AppException e) {
+            log.error("Lỗi khi cập nhật task: {}", e.getCustomMessage());
+            return ResponseEntity.status(e.getErrorStatus().getStatus()).body(
+                Map.of("status", e.getErrorStatus().getStatus(), "message", e.getCustomMessage())
+            );
+        } catch (Exception e) {
+            log.error("Lỗi không xác định khi cập nhật task: {}", e.getMessage(), e);
+            return ResponseEntity.status(500).body(
+                Map.of("status", 500, "message", "Lỗi máy chủ nội bộ: " + e.getMessage())
+            );
+        }
+    }
+
     @DeleteMapping("/task/{taskId}")
     public ResponseEntity<?> deleteTask(
             @PathVariable @NotNull(message = "Task ID cannot be null") Integer taskId,
@@ -292,11 +314,11 @@ public class SprintController {
     }
 
     @GetMapping("/tasks/backlog/{projectId}")
-    public ResponseEntity<?> getBacklogTasks(
+    public ResponseEntity<?> getTasksByBacklog(
             @PathVariable @NotNull(message = "Project ID cannot be null") Integer projectId) {
         try {
             log.info("Lấy danh sách task backlog cho projectId: {}", projectId);
-            List<TaskDTO> tasks = sprintService.getBacklogTasks(projectId);
+            List<TaskDTO> tasks = sprintService.getTasksByBacklog(projectId);
             return ResponseEntity.ok(tasks);
         } catch (AppException e) {
             log.error("Lỗi khi lấy danh sách task backlog: {}", e.getCustomMessage());

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { X, MessageSquare, Send } from "lucide-react";
+import { X } from "lucide-react";
 import "../styles/user/create-task-modal.css";
 
 const CreateTaskModal = ({
@@ -10,6 +10,7 @@ const CreateTaskModal = ({
   editingTask,
   activeSprintId,
   sprints,
+  suggestedMembers,
 }) => {
   const [formData, setFormData] = useState({
     title: "",
@@ -21,9 +22,6 @@ const CreateTaskModal = ({
     sprintId: activeSprintId || null,
   });
 
-  const [newComment, setNewComment] = useState("");
-  const [comments, setComments] = useState([]);
-  const [suggestedMembers, setSuggestedMembers] = useState([]);
   const [isSuggesting, setIsSuggesting] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
   const assigneeInputRef = useRef(null);
@@ -35,23 +33,22 @@ const CreateTaskModal = ({
         title: editingTask.title,
         description: editingTask.description || "",
         priority: editingTask.priority || "Medium",
-        assigneeEmail: editingTask.assignee?.email || "",
+        assigneeEmail: editingTask.assigneeEmail || "",
         dueDate: editingTask.dueDate
           ? new Date(editingTask.dueDate).toISOString().slice(0, 16)
           : "",
-        projectId: editingTask.project?.id || selectedProject?.id || null,
-        sprintId: editingTask.sprint?.id || null,
+        projectId: editingTask.projectId || selectedProject?.id || null,
+        sprintId: editingTask.sprintId || null,
       });
       setSelectedMember(
-        editingTask.assignee
+        editingTask.assigneeEmail
           ? {
-              email: editingTask.assignee.email,
-              name: editingTask.assignee.name,
-              avatarUrl: editingTask.assignee.avatarUrl,
+              email: editingTask.assigneeEmail,
+              name: editingTask.assigneeName,
+              avatarUrl: editingTask.assigneeAvatarUrl,
             }
           : null
       );
-      setComments(editingTask.comments || []);
     } else {
       setFormData({
         title: "",
@@ -63,7 +60,6 @@ const CreateTaskModal = ({
         sprintId: activeSprintId || null,
       });
       setSelectedMember(null);
-      setComments([]);
     }
   }, [editingTask, selectedProject, activeSprintId]);
 
@@ -79,7 +75,6 @@ const CreateTaskModal = ({
 
   const handleAssigneeSearch = async (query) => {
     if (query.length < 2) {
-      setSuggestedMembers([]);
       setIsSuggesting(false);
       return;
     }
@@ -103,16 +98,12 @@ const CreateTaskModal = ({
         }
       );
       if (response.ok) {
-        const data = await response.json();
-        setSuggestedMembers(data || []);
         setIsSuggesting(true);
       } else {
-        setSuggestedMembers([]);
         setIsSuggesting(false);
       }
     } catch (err) {
       console.error("Lỗi khi gợi ý thành viên:", err);
-      setSuggestedMembers([]);
       setIsSuggesting(false);
       if (err.message.includes("401") || err.message.includes("403")) {
         window.location.href = "/login";
@@ -166,18 +157,29 @@ const CreateTaskModal = ({
     }
   };
 
-  const handleAddComment = () => {
-    if (!newComment.trim()) return;
+  const getInitials = (name) => {
+    if (!name) return "U";
+    const names = name.split(" ");
+    return names
+      .map((n) => n.charAt(0))
+      .join("")
+      .substring(0, 2)
+      .toUpperCase();
+  };
 
-    const comment = {
-      id: Date.now(),
-      user: "Current User",
-      text: newComment,
-      timestamp: new Date().toISOString(),
-    };
-
-    setComments([...comments, comment]);
-    setNewComment("");
+  const getAvatarColor = (name) => {
+    if (!name) return "#cccccc";
+    const colors = [
+      "#FF6B6B",
+      "#4ECDC4",
+      "#45B7D1",
+      "#96CEB4",
+      "#FFEEAD",
+      "#D4A5A5",
+      "#9B59B6",
+    ];
+    const index = name.charCodeAt(0) % colors.length;
+    return colors[index];
   };
 
   if (!isOpen) return null;
@@ -252,11 +254,24 @@ const CreateTaskModal = ({
                   className="selected-assignee"
                   onClick={() => setIsSuggesting(true)}
                 >
-                  <img
-                    src={selectedMember.avatarUrl || "/default-avatar.png"}
-                    alt="Avatar"
-                    className="assignee-avatar"
-                  />
+                  {selectedMember.avatarUrl ? (
+                    <img
+                      src={selectedMember.avatarUrl}
+                      alt="Avatar"
+                      className="assignee-avatar"
+                    />
+                  ) : (
+                    <div
+                      className="assignee-initials"
+                      style={{
+                        backgroundColor: selectedMember.name
+                          ? getAvatarColor(selectedMember.name)
+                          : "#cccccc",
+                      }}
+                    >
+                      {getInitials(selectedMember.name)}
+                    </div>
+                  )}
                   <span className="assignee-name">{selectedMember.name}</span>
                   <span className="assignee-email">{selectedMember.email}</span>
                 </div>
@@ -282,11 +297,22 @@ const CreateTaskModal = ({
                       onClick={() => handleSelectMember(member)}
                       className="assignee-suggestion-item"
                     >
-                      <img
-                        src={member.avatarUrl || "/default-avatar.png"}
-                        alt="Avatar"
-                        className="assignee-avatar"
-                      />
+                      {member.avatarUrl ? (
+                        <img
+                          src={member.avatarUrl}
+                          alt="Avatar"
+                          className="assignee-avatar"
+                        />
+                      ) : (
+                        <div
+                          className="assignee-initials"
+                          style={{
+                            backgroundColor: getAvatarColor(member.name),
+                          }}
+                        >
+                          {getInitials(member.name)}
+                        </div>
+                      )}
                       <div className="assignee-info">
                         <span className="assignee-name">{member.name}</span>
                         <span className="assignee-email">{member.email}</span>
@@ -324,53 +350,6 @@ const CreateTaskModal = ({
               />
             </div>
           </div>
-          {editingTask && (
-            <div className="create-task-comment-section">
-              <div className="create-task-comment-header">
-                <MessageSquare size={20} style={{ color: "#6b778c" }} />
-                <h3
-                  style={{
-                    fontSize: "18px",
-                    fontWeight: 500,
-                    color: "#172b4d",
-                  }}
-                >
-                  Comments
-                </h3>
-              </div>
-              <div className="create-task-comment-list">
-                {comments.map((comment) => (
-                  <div key={comment.id} className="create-task-comment-item">
-                    <div className="create-task-comment-meta">
-                      <span className="create-task-comment-author">
-                        {comment.user}
-                      </span>
-                      <span className="create-task-comment-time">
-                        {new Date(comment.timestamp).toLocaleString()}
-                      </span>
-                    </div>
-                    <p className="create-task-comment-text">{comment.text}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="create-task-comment-input-group">
-                <input
-                  type="text"
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="Add a comment..."
-                  className="create-task-comment-input"
-                />
-                <button
-                  type="button"
-                  onClick={handleAddComment}
-                  className="create-task-comment-btn"
-                >
-                  <Send size={16} />
-                </button>
-              </div>
-            </div>
-          )}
           <div className="create-task-form-actions">
             <button
               type="button"
@@ -413,6 +392,17 @@ const styles = `
     margin-right: 8px;
     object-fit: cover;
   }
+  .assignee-initials {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+  }
   .assignee-name {
     font-weight: 500;
     color: #172b4d;
@@ -450,6 +440,7 @@ const styles = `
     flex-direction: column;
   }
 `;
+
 const styleSheet = new CSSStyleSheet();
 styleSheet.replaceSync(styles);
 document.adoptedStyleSheets = [styleSheet];

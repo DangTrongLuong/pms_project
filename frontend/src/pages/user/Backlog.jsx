@@ -161,7 +161,6 @@ const Backlog = () => {
   const handleAddSprint = async (newSprint) => {
     console.log("handleAddSprint called with:", newSprint);
     try {
-      // Không gửi lại request POST, chỉ làm mới danh sách sprint
       await fetchSprintsAndTasks();
     } catch (err) {
       console.error("Lỗi khi làm mới danh sách sprint:", err);
@@ -493,6 +492,85 @@ const Backlog = () => {
     }
   };
 
+  const handleAutoAssign = async (taskId) => {
+    try {
+      const userId = localStorage.getItem("userId");
+      const accessToken = localStorage.getItem("accessToken");
+      if (!userId || !accessToken) throw new Error("Vui lòng đăng nhập lại");
+
+      console.log("Auto assigning taskId:", taskId);
+      const response = await fetch(
+        `http://localhost:8080/api/members/project/${selectedProject.id}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+            userId: userId,
+          },
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message ||
+            `Lấy danh sách thành viên thất bại: ${response.status}`
+        );
+      }
+
+      const members = await response.json();
+      if (members.length === 0) {
+        throw new Error("Không có thành viên nào trong dự án để tự động gán");
+      }
+
+      const randomMember = members[Math.floor(Math.random() * members.length)];
+      await handleUpdateTaskAssignee(taskId, randomMember.email);
+    } catch (err) {
+      console.error("Lỗi khi tự động gán:", err);
+      alert(err.message || "Không thể tự động gán. Vui lòng thử lại.");
+    }
+  };
+
+  const fetchProjectMembers = async (taskId) => {
+    try {
+      const userId = localStorage.getItem("userId");
+      const accessToken = localStorage.getItem("accessToken");
+      if (!userId || !accessToken) throw new Error("Vui lòng đăng nhập lại");
+
+      console.log("Fetching members for projectId:", selectedProject.id);
+      const response = await fetch(
+        `http://localhost:8080/api/members/project/${selectedProject.id}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+            userId: userId,
+          },
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message ||
+            `Lấy danh sách thành viên thất bại: ${response.status}`
+        );
+      }
+
+      const members = await response.json();
+      setAssigneeModal({ isOpen: true, taskId, suggestedMembers: members });
+    } catch (err) {
+      console.error("Lỗi khi lấy danh sách thành viên:", err);
+      alert(
+        err.message || "Không thể lấy danh sách thành viên. Vui lòng thử lại."
+      );
+    }
+  };
+
   const handleSearchAssignees = async (query, taskId) => {
     try {
       const userId = localStorage.getItem("userId");
@@ -618,6 +696,31 @@ const Backlog = () => {
     }
   };
 
+  const getInitials = (name) => {
+    if (!name) return "U";
+    const names = name.split(" ");
+    return names
+      .map((n) => n.charAt(0))
+      .join("")
+      .substring(0, 2)
+      .toUpperCase();
+  };
+
+  const getAvatarColor = (name) => {
+    if (!name) return "#cccccc";
+    const colors = [
+      "#FF6B6B",
+      "#4ECDC4",
+      "#45B7D1",
+      "#96CEB4",
+      "#FFEEAD",
+      "#D4A5A5",
+      "#9B59B6",
+    ];
+    const index = name.charCodeAt(0) % colors.length;
+    return colors[index];
+  };
+
   const getSprintTasks = (sprintId) =>
     tasks.filter((task) => task.sprintId === sprintId);
   const getBacklogTasks = () => tasks.filter((task) => task.sprintId === null);
@@ -665,36 +768,45 @@ const Backlog = () => {
           </div>
           <div className="task-epic">-</div>
           <div className="task-assignee">
-            {task.assignee?.email ? (
+            {task.assigneeEmail ? (
               <button
                 className="assignee-avatar"
-                title={task.assignee.email}
-                onClick={() =>
-                  setAssigneeModal({
-                    isOpen: true,
-                    taskId: task.id,
-                    suggestedMembers: [],
-                  })
-                }
+                title={`Người thực hiện: ${task.assigneeName || "Unknown"}`}
+                onClick={() => fetchProjectMembers(task.id)}
               >
-                <img
-                  src={task.assignee.avatarUrl || "/default-avatar.png"}
-                  alt="Avatar"
-                  className="assignee-avatar-img"
-                />
+                {task.assigneeAvatarUrl ? (
+                  <img
+                    src={task.assigneeAvatarUrl}
+                    alt="Avatar"
+                    className="assignee-avatar-img"
+                  />
+                ) : (
+                  <div
+                    className="assignee-initials"
+                    style={{
+                      backgroundColor: getAvatarColor(task.assigneeName),
+                      color: "#fff",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: "24px",
+                      height: "24px",
+                      borderRadius: "50%",
+                      fontSize: "12px",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {getInitials(task.assigneeName)}
+                  </div>
+                )}
               </button>
             ) : (
               <button
                 className="assign-user-button"
-                onClick={() =>
-                  setAssigneeModal({
-                    isOpen: true,
-                    taskId: task.id,
-                    suggestedMembers: [],
-                  })
-                }
+                title="Chưa gán"
+                onClick={() => fetchProjectMembers(task.id)}
               >
-                <User className="unassigned-icon" />
+                <User className="unassigned-icon" style={{ opacity: 0.5 }} />
               </button>
             )}
           </div>
@@ -751,8 +863,8 @@ const Backlog = () => {
 
     const filteredMembers = suggestedMembers.filter(
       (member) =>
-        member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        member.email.toLowerCase().includes(searchQuery.toLowerCase())
+        member.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        member.email?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     const handleSelectAssignee = (email) => {
@@ -769,18 +881,12 @@ const Backlog = () => {
               setSearchQuery(e.target.value);
               if (e.target.value.length > 2) {
                 handleSearchAssignees(e.target.value, taskId);
-              } else {
-                setAssigneeModal({
-                  isOpen: true,
-                  taskId,
-                  suggestedMembers: [],
-                });
               }
             }}
             placeholder="Search users by name or email..."
             className="search-input"
           />
-          {filteredMembers.length > 0 && (
+          {filteredMembers.length > 0 ? (
             <ul className="assignee-suggestion-list">
               {filteredMembers.slice(0, 8).map((member, index) => (
                 <li
@@ -788,11 +894,31 @@ const Backlog = () => {
                   onClick={() => handleSelectAssignee(member.email)}
                   className="assignee-suggestion-item"
                 >
-                  <img
-                    src={member.avatarUrl || "/default-avatar.png"}
-                    alt="Avatar"
-                    className="assignee-avatar"
-                  />
+                  {member.avatarUrl ? (
+                    <img
+                      src={member.avatarUrl}
+                      alt="Avatar"
+                      className="assignee-avatar"
+                    />
+                  ) : (
+                    <div
+                      className="assignee-initials"
+                      style={{
+                        backgroundColor: getAvatarColor(member.name),
+                        color: "#fff",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: "24px",
+                        height: "24px",
+                        borderRadius: "50%",
+                        fontSize: "12px",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {getInitials(member.name)}
+                    </div>
+                  )}
                   <div className="assignee-info">
                     <span className="assignee-name">{member.name}</span>
                     <span className="assignee-email">{member.email}</span>
@@ -800,13 +926,23 @@ const Backlog = () => {
                 </li>
               ))}
             </ul>
+          ) : (
+            <p className="no-results">No matching members found</p>
           )}
-          <button
-            onClick={() => handleSelectAssignee("")}
-            className="unassign-btn"
-          >
-            Unassign
-          </button>
+          <div className="assignee-options">
+            <button
+              onClick={() => handleSelectAssignee("")}
+              className="unassign-btn"
+            >
+              Chưa gán
+            </button>
+            <button
+              onClick={() => handleAutoAssign(taskId)}
+              className="auto-assign-btn"
+            >
+              Tự động
+            </button>
+          </div>
         </div>
       </div>
     );

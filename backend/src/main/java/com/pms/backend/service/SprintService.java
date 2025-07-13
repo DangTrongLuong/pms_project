@@ -63,7 +63,7 @@ public class SprintService {
         return savedSprint;
     }
 
-    public Sprint startSprint(Integer sprintId, String userId) {
+   public Sprint startSprint(Integer sprintId, String userId) {
         log.info("Bắt đầu sprintId: {} bởi userId: {}", sprintId, userId);
         Sprint sprint = sprintRepository.findById((long) sprintId)
                 .orElseThrow(() -> new AppException(ErrorStatus.SPRINT_NOT_FOUND));
@@ -166,6 +166,19 @@ public class SprintService {
         return savedTask;
     }
 
+    public Task updateTask(Integer taskId, TaskUpdateRequest request, String userId) {
+        log.info("Cập nhật taskId: {} với request: {} bởi userId: {}", taskId, request, userId);
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new AppException(ErrorStatus.TASK_NOT_FOUND));
+        if (request.getTitle() != null && request.getTitle().trim().isEmpty()) {
+            throw new AppException(ErrorStatus.INVALID_INPUT, "Title cannot be empty");
+        }
+        taskMapper.updateTaskFromRequest(request, task);
+        Task updatedTask = taskRepository.save(task);
+        log.info("Task đã cập nhật: {}", updatedTask);
+        return updatedTask;
+    }
+
     public void deleteTask(Integer taskId, String userId) {
         log.info("Xóa taskId: {} bởi userId: {}", taskId, userId);
         Task task = taskRepository.findById(taskId)
@@ -213,7 +226,7 @@ public class SprintService {
                 .orElseThrow(() -> new AppException(ErrorStatus.TASK_NOT_FOUND));
         if (sprintId != null) {
             Sprint sprint = sprintRepository.findById(sprintId.longValue())
-                    .orElseThrow(() -> new AppException(ErrorStatus.SPRINT_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorStatus.SPRINT_NOT_FOUND));
             if (!sprint.getStatus().equals(SprintStatus.PLANNED) && !sprint.getStatus().equals(SprintStatus.ACTIVE)) {
                 throw new AppException(ErrorStatus.INVALID_SPRINT_STATUS, "Sprint phải ở trạng thái PLANNED hoặc ACTIVE");
             }
@@ -269,6 +282,9 @@ public class SprintService {
                         dto.setDescription(task.getDescription());
                         dto.setPriority(task.getPriority());
                         dto.setAssigneeId(task.getAssignee() != null ? task.getAssignee().getId() : null);
+                        dto.setAssigneeEmail(task.getAssignee() != null ? task.getAssignee().getEmail() : null);
+                        dto.setAssigneeName(task.getAssignee() != null ? task.getAssignee().getName() : null);
+                        dto.setAssigneeAvatarUrl(task.getAssignee() != null ? task.getAssignee().getAvatar_url() : null);
                         dto.setDueDate(task.getDueDate() != null ? task.getDueDate().toLocalDate() : null);
                         dto.setStatus(task.getStatus());
                         dto.setCreatedAt(task.getCreatedAt());
@@ -286,7 +302,7 @@ public class SprintService {
         }
     }
 
-    public List<TaskDTO> getBacklogTasks(Integer projectId) {
+    public List<TaskDTO> getTasksByBacklog(Integer projectId) {
         log.info("Lấy danh sách task backlog cho projectId: {}", projectId);
         try {
             List<Task> tasks = taskRepository.findBySprintIsNullAndProject_Id(projectId);
@@ -303,6 +319,9 @@ public class SprintService {
                         dto.setDescription(task.getDescription());
                         dto.setPriority(task.getPriority());
                         dto.setAssigneeId(task.getAssignee() != null ? task.getAssignee().getId() : null);
+                        dto.setAssigneeEmail(task.getAssignee() != null ? task.getAssignee().getEmail() : null);
+                        dto.setAssigneeName(task.getAssignee() != null ? task.getAssignee().getName() : null);
+                        dto.setAssigneeAvatarUrl(task.getAssignee() != null ? task.getAssignee().getAvatar_url() : null);
                         dto.setDueDate(task.getDueDate() != null ? task.getDueDate().toLocalDate() : null);
                         dto.setStatus(task.getStatus());
                         dto.setCreatedAt(task.getCreatedAt());
