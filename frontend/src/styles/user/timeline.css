@@ -1,374 +1,417 @@
-/* Variables */
-:root {
-  --timeline-padding: 20px;
-  --header-bg: #ffffff;
-  --header-border: #dfe1e6;
-  --title-color: #172b4d;
-  --title-font-size: 20px;
-  --title-font-weight: 600;
-  --nav-tab-color: #6b778c;
-  --nav-tab-active-color: purple;
-  --nav-tab-border: 2px solid;
-  --table-bg: #ffffff;
-  --table-border: #dfe1e6;
-  --table-row-hover: #f4f5f7;
-  --cell-padding: 15px;
-  --task-info-min-width: 200px;
-  --priority-dot-size: 12px;
-  --avatar-size: 24px;
-  --date-text-color: #172b4d;
-  --duration-icon-color: #6b778c;
-  --timeline-bar-bg: #f4f5f7;
-  --timeline-bar-height: 20px;
-  --sprint-bg: #f4f5f7;
-  --sprint-padding: 12px;
-  --status-bg-active: #e3fcef;
-  --status-color-active: #006644;
-  --status-bg-completed: #e6f0fa;
-  --status-color-completed: #0052cc;
-  --status-bg-future: #f4f5f7;
-  --status-color-future: #6b778c;
-  --progress-bg: #f4f5f7;
-  --progress-height: 10px;
-  --text-color: #6b778c;
-  --text-hover-color: #172b4d;
-}
-
-/* Timeline Section */
-.timeline-section {
-  padding: var(--timeline-padding);
-  display: flex;
-  flex-direction: column;
-  gap: var(--timeline-padding);
+/* Timeline - Enhanced Beautiful Design */
+.timeline {
+  padding: 30px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 20px;
+  margin: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .timeline-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--timeline-padding);
-  background-color: var(--header-bg);
-  padding: var(--cell-padding);
-  border-bottom: 1px solid var(--header-border);
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #f1f5f9;
 }
 
-.project-title {
-  font-size: var(--title-font-size);
-  font-weight: var(--title-font-weight);
-  color: var(--title-color);
-}
-
-.nav-tabs {
+.timeline-controls {
   display: flex;
-  gap: var(--cell-padding);
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px;
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
-.nav-tab {
-  font-size: 14px;
-  color: var(--nav-tab-color);
-  cursor: pointer;
-  padding-bottom: var(--spacing-xs);
+.timeline-controls svg {
+  width: 18px;
+  height: 18px;
 }
 
-.nav-tab.active {
-  border-bottom: var(--nav-tab-border) var(--nav-tab-active-color);
-  color: var(--title-color);
-}
-
-/* Task Table */
-.task-table {
-  background-color: var(--table-bg);
-  border: 1px solid var(--table-border);
-  border-radius: var(--border-radius);
-  overflow: hidden;
-}
-
-.table-header {
+.timeline-grid-header {
   display: grid;
-  grid-template-columns: 2fr 1.5fr 1.5fr 1.5fr 1fr 1.5fr;
-  padding: var(--cell-padding);
-  border-bottom: 1px solid var(--table-border);
-  font-weight: var(--font-medium);
-  color: var(--title-color);
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 3fr;
+  gap: 20px;
+  padding: 20px 25px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-radius: 12px;
+  margin-bottom: 20px;
+  font-weight: 700;
+  color: #1a202c;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.table-body {
+.timeline-body {
   display: flex;
   flex-direction: column;
+  gap: 15px;
 }
 
-.table-row {
+.timeline-item {
   display: grid;
-  grid-template-columns: 2fr 1.5fr 1.5fr 1.5fr 1fr 1.5fr;
-  padding: var(--cell-padding);
-  transition: background-color 0.2s;
-}
-
-.table-row:hover {
-  background-color: var(--table-row-hover);
-}
-
-.table-cell {
-  padding: var(--spacing-sm);
-}
-
-.col-task .task-info {
-  display: flex;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 3fr;
+  gap: 20px;
   align-items: center;
-  gap: var(--spacing-sm);
-  min-width: var(--task-info-min-width);
-}
-
-.priority-dot {
-  width: var(--priority-dot-size);
-  height: var(--priority-dot-size);
-  border-radius: 50%;
-}
-
-.task-title {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--title-color);
-  margin-bottom: var(--spacing-xs);
-}
-
-.task-type {
-  font-size: 12px;
-  color: var(--text-color);
-}
-
-.col-assignee .assignee-info {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-}
-
-.assignee-avatar {
-  width: var(--avatar-size);
-  height: var(--avatar-size);
-  background-color: #d3d3d3;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: var(--font-medium);
-}
-
-.assignee-name {
-  font-size: 14px;
-  color: var(--date-text-color);
-}
-
-.col-start .date-text,
-.col-end .date-text {
-  font-size: 14px;
-  color: var(--date-text-color);
-}
-
-.col-duration .duration-info {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-}
-
-.duration-text {
-  font-size: 14px;
-  color: var(--date-text-color);
-}
-
-.col-timeline .timeline-bar-container {
+  padding: 20px 25px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 2px solid #f1f5f9;
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  width: 100%;
-  height: var(--timeline-bar-height);
-  background-color: var(--timeline-bar-bg);
-  border-radius: 4px;
   overflow: hidden;
 }
 
-.col-timeline .timeline-bar {
-  height: 100%;
-  border-radius: 4px;
-  transition: width 0.3s ease;
-}
-
-.col-timeline .timeline-bar.done {
-  width: 100%;
-  background-color: var(--green);
-}
-
-.col-timeline .timeline-bar.in-progress {
-  width: 50%;
-  background-color: var(--blue);
-}
-
-.col-timeline .timeline-bar.in-review {
-  width: 75%;
-  background-color: var(--yellow);
-}
-
-.col-timeline .timeline-bar.default {
-  width: 25%;
-  background-color: var(--gray);
-}
-
-.col-timeline .timeline-status {
+.timeline-item::before {
+  content: "";
   position: absolute;
-  top: -20px;
+  top: 0;
   left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.timeline-item:hover::before {
+  transform: scaleX(1);
+}
+
+.timeline-item:hover {
+  border-color: #667eea;
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(102, 126, 234, 0.15);
+}
+
+.timeline-task-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.task-priority-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 10px currentColor;
+}
+
+.priority-high {
+  background: #f56565;
+  color: #f56565;
+}
+
+.priority-medium {
+  background: #ed8936;
+  color: #ed8936;
+}
+
+.priority-low {
+  background: #48bb78;
+  color: #48bb78;
+}
+
+.timeline-task-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.timeline-task-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.timeline-task-type {
   font-size: 12px;
-  color: var(--text-color);
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-/* Sprint Timeline */
+.timeline-task-assignee {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.timeline-date {
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 500;
+  text-align: center;
+}
+
+.timeline-duration {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #667eea;
+  font-weight: 600;
+  justify-content: center;
+}
+
+.timeline-duration svg {
+  width: 16px;
+  height: 16px;
+}
+
+.timeline-bar-container {
+  height: 40px;
+  background: #f1f5f9;
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.timeline-bar {
+  height: 100%;
+  border-radius: 20px;
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.timeline-bar.status-todo {
+  background: linear-gradient(90deg, #718096 0%, #4a5568 100%);
+  box-shadow: 0 2px 8px rgba(113, 128, 150, 0.3);
+}
+
+.timeline-bar.status-inprogress {
+  background: linear-gradient(90deg, #4299e1 0%, #3182ce 100%);
+  box-shadow: 0 2px 8px rgba(66, 153, 225, 0.3);
+}
+
+.timeline-bar.status-inreview {
+  background: linear-gradient(90deg, #ed8936 0%, #d69e2e 100%);
+  box-shadow: 0 2px 8px rgba(237, 137, 54, 0.3);
+}
+
+.timeline-bar.status-done {
+  background: linear-gradient(90deg, #48bb78 0%, #38a169 100%);
+  box-shadow: 0 2px 8px rgba(72, 187, 120, 0.3);
+}
+
+.timeline-dates {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Timeline Summary */
+.timeline-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+  margin-top: 40px;
+}
+
 .sprint-timeline {
-  background-color: var(--table-bg);
-  border: 1px solid var(--table-border);
-  border-radius: var(--border-radius);
-  padding: var(--cell-padding);
-}
-
-.timeline-subtitle {
-  font-size: 18px;
-  font-weight: var(--font-medium);
-  color: var(--title-color);
-  margin-bottom: var(--cell-padding);
-}
-
-.sprint-list {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 15px;
 }
 
-.sprint-item {
+.sprint-timeline-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--sprint-padding);
-  background-color: var(--sprint-bg);
-  border-radius: var(--border-radius);
+  padding: 15px 20px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 2px solid #f1f5f9;
+  border-radius: 12px;
+  transition: all 0.3s ease;
 }
 
-.sprint-details {
-  display: flex;
-  flex-direction: column;
+.sprint-timeline-item:hover {
+  border-color: #e2e8f0;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+}
+
+.sprint-info {
+  flex: 1;
 }
 
 .sprint-name {
-  font-size: 14px;
-  font-weight: var(--font-medium);
-  color: var(--title-color);
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 4px;
 }
 
 .sprint-dates {
   font-size: 12px;
-  color: var(--text-color);
+  color: #64748b;
+  font-weight: 500;
 }
 
-.sprint-status {
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: var(--font-medium);
-}
-
-/* Task Progress */
-.task-progress {
-  background-color: var(--table-bg);
-  border: 1px solid var(--table-border);
-  border-radius: var(--border-radius);
-  padding: var(--cell-padding);
-}
-
-.progress-list {
+.task-progress-summary {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 15px;
 }
 
 .progress-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 15px;
 }
 
-.progress-status {
+.progress-label {
   font-size: 14px;
-  color: var(--text-color);
+  font-weight: 600;
+  color: #4a5568;
+  min-width: 100px;
 }
 
-.progress-bar-container {
-  width: 150px;
-  height: var(--progress-height);
-  background-color: var(--progress-bg);
-  border-radius: 5px;
+.progress-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex: 1;
+}
+
+.progress-bar-small {
+  flex: 1;
+  height: 8px;
+  background: #f1f5f9;
+  border-radius: 4px;
   overflow: hidden;
 }
 
-.progress-bar {
+.progress-fill-small {
   height: 100%;
-  border-radius: 5px;
+  border-radius: 4px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.progress-fill-small.status-todo {
+  background: linear-gradient(90deg, #718096 0%, #4a5568 100%);
+}
+
+.progress-fill-small.status-inprogress {
+  background: linear-gradient(90deg, #4299e1 0%, #3182ce 100%);
+}
+
+.progress-fill-small.status-inreview {
+  background: linear-gradient(90deg, #ed8936 0%, #d69e2e 100%);
+}
+
+.progress-fill-small.status-done {
+  background: linear-gradient(90deg, #48bb78 0%, #38a169 100%);
 }
 
 .progress-count {
-  font-size: 14px;
-  font-weight: var(--font-medium);
-  color: var(--title-color);
+  font-size: 16px;
+  font-weight: 700;
+  color: #667eea;
+  background: rgba(102, 126, 234, 0.1);
+  padding: 6px 12px;
+  border-radius: 8px;
+  min-width: 40px;
+  text-align: center;
 }
 
-/* Responsive Design */
+/* Responsive design */
+@media (max-width: 1024px) {
+  .timeline-grid-header,
+  .timeline-item {
+    grid-template-columns: 2fr 1fr 1fr 2fr;
+  }
+
+  .timeline-col-start,
+  .timeline-col-end {
+    display: none;
+  }
+
+  .timeline-date:nth-child(3),
+  .timeline-date:nth-child(4) {
+    display: none;
+  }
+}
+
 @media (max-width: 768px) {
-  .timeline-header {
-    flex-direction: column;
-    gap: var(--spacing-md);
-    padding: var(--spacing-sm);
+  .timeline {
+    padding: 20px;
+    margin: 10px;
   }
-  .nav-tabs {
-    flex-wrap: wrap;
+
+  .timeline-grid-header,
+  .timeline-item {
+    grid-template-columns: 1fr;
+    gap: 15px;
+    text-align: left;
   }
-  .task-table {
-    overflow-x: auto;
+
+  .timeline-item {
+    padding: 20px;
   }
-  .table-header,
-  .table-row {
-    grid-template-columns: 2fr 1.5fr 1.5fr 1.5fr 1fr 1.5fr;
-    min-width: 600px;
+
+  .timeline-task-assignee {
+    justify-content: flex-start;
   }
-  .sprint-timeline,
-  .task-progress {
-    padding: var(--spacing-sm);
+
+  .timeline-duration {
+    justify-content: flex-start;
+  }
+
+  .timeline-bar-container {
+    margin-top: 15px;
+  }
+
+  .timeline-summary {
+    grid-template-columns: 1fr;
+    gap: 20px;
   }
 }
 
 @media (max-width: 480px) {
   .timeline-header {
-    padding: var(--spacing-xs);
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
   }
-  .project-title {
-    font-size: 16px;
+
+  .timeline-controls {
+    align-self: stretch;
+    justify-content: center;
   }
-  .nav-tab {
-    font-size: 12px;
+
+  .timeline-task-title {
+    font-size: 14px;
   }
-  .table-header,
-  .table-row {
-    min-width: 400px;
-  }
-  .timeline-subtitle {
-    font-size: 16px;
-  }
-  .sprint-name {
-    font-size: 12px;
-  }
-  .sprint-dates {
-    font-size: 10px;
-  }
-  .progress-status,
-  .progress-count {
-    font-size: 12px;
-  }
-  .progress-bar-container {
-    width: 100px;
+
+  .sprint-timeline-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
   }
 }

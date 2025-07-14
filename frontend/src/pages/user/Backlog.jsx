@@ -44,6 +44,7 @@ const Backlog = () => {
     sprint: null,
   });
   const [selectedTasks, setSelectedTasks] = useState(new Set());
+  const [suggestedMembers, setSuggestedMembers] = useState([]);
 
   useEffect(() => {
     if (projects.length > 0) {
@@ -148,6 +149,24 @@ const Backlog = () => {
 
       setTasks(allTasks);
       console.log("Tasks fetched:", allTasks);
+
+      const membersResponse = await fetch(
+        `http://localhost:8080/api/members/project/${selectedProject.id}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+            userId: userId,
+          },
+          credentials: "include",
+        }
+      );
+
+      if (membersResponse.ok) {
+        const membersData = await membersResponse.json();
+        setSuggestedMembers(membersData || []);
+      }
     } catch (err) {
       console.error(err.message || "Đã có lỗi xảy ra khi lấy dữ liệu");
       alert(err.message || "Không thể tải dữ liệu. Vui lòng thử lại.");
@@ -179,12 +198,13 @@ const Backlog = () => {
 
       console.log("Creating task:", newTask);
       const taskData = {
-        title: newTask.title,
-        description: newTask.description,
+        title: newTask.title || "Untitled Task",
+        description: newTask.description || "",
         assigneeEmail: newTask.assigneeEmail || null,
         dueDate: newTask.dueDate || null,
-        priority: newTask.priority,
+        priority: newTask.priority || "Medium",
         projectId: newTask.projectId,
+        status: "TODO",
       };
 
       const endpoint = newTask.sprintId
@@ -418,6 +438,14 @@ const Backlog = () => {
       const accessToken = localStorage.getItem("accessToken");
       if (!userId || !accessToken) throw new Error("Vui lòng đăng nhập lại");
 
+      const validStatuses = ["TODO", "IN_PROGRESS", "IN_REVIEW", "COMPLETED"];
+      if (!validStatuses.includes(newStatus)) {
+        throw new Error("Trạng thái không hợp lệ");
+      }
+
+      const task = tasks.find((t) => t.id === taskId);
+      if (!task) throw new Error("Task không tồn tại");
+
       console.log(
         "Updating task status for taskId:",
         taskId,
@@ -433,7 +461,12 @@ const Backlog = () => {
             Authorization: `Bearer ${accessToken}`,
             userId: userId,
           },
-          body: JSON.stringify({ status: newStatus }),
+          body: JSON.stringify({
+            status: newStatus,
+            title: task.title || "Untitled Task",
+            description: task.description || "",
+            priority: task.priority || "Medium",
+          }),
         }
       );
 
@@ -734,113 +767,6 @@ const Backlog = () => {
     return !sprints.some((s) => s.status === "ACTIVE" && s.id !== sprintId);
   };
 
-  const TaskRow = ({ task, index }) => (
-    <Draggable draggableId={task.id.toString()} index={index}>
-      {(provided) => (
-        <div
-          className="task-row"
-          ref={provided.innerRef}
-          {...provided.draggableProps}
-          {...provided.dragHandleProps}
-        >
-          <input
-            type="checkbox"
-            checked={selectedTasks.has(task.id)}
-            onChange={() => handleToggleTaskSelection(task.id)}
-            className="task-checkbox"
-          />
-          <div className="task-id" style={{ color: "#0052cc" }}>
-            {selectedProject.shortName}-{task.id}
-          </div>
-          <div className="task-title">{task.title}</div>
-          <div className="task-status-dropdown">
-            <select
-              value={task.status}
-              onChange={(e) => handleUpdateTaskStatus(task.id, e.target.value)}
-              className="status-select"
-            >
-              <option value="TODO">TO DO</option>
-              <option value="IN_PROGRESS">IN PROGRESS</option>
-              <option value="IN_REVIEW">IN REVIEW</option>
-              <option value="COMPLETED">DONE</option>
-            </select>
-            <ChevronDown className="status-dropdown-icon" />
-          </div>
-          <div className="task-epic">-</div>
-          <div className="task-assignee">
-            {task.assigneeEmail ? (
-              <button
-                className="assignee-avatar"
-                title={`Người thực hiện: ${task.assigneeName || "Unknown"}`}
-                onClick={() => fetchProjectMembers(task.id)}
-              >
-                {task.assigneeAvatarUrl ? (
-                  <img
-                    src={task.assigneeAvatarUrl}
-                    alt="Avatar"
-                    className="assignee-avatar-img"
-                  />
-                ) : (
-                  <div
-                    className="assignee-initials"
-                    style={{
-                      backgroundColor: getAvatarColor(task.assigneeName),
-                      color: "#fff",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      width: "24px",
-                      height: "24px",
-                      borderRadius: "50%",
-                      fontSize: "12px",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    {getInitials(task.assigneeName)}
-                  </div>
-                )}
-              </button>
-            ) : (
-              <button
-                className="assign-user-button"
-                title="Chưa gán"
-                onClick={() => fetchProjectMembers(task.id)}
-              >
-                <User className="unassigned-icon" style={{ opacity: 0.5 }} />
-              </button>
-            )}
-          </div>
-          <div className="task-menu-container">
-            <button
-              className="task-menu-button"
-              onClick={() =>
-                setTaskMenuOpen(taskMenuOpen === task.id ? null : task.id)
-              }
-            >
-              <MoreVertical />
-            </button>
-            {taskMenuOpen === task.id && (
-              <div className="task-dropdown-menu">
-                <button
-                  className="dropdown-item delete-item"
-                  onClick={() => {
-                    setDeleteTaskModal({ isOpen: true, task });
-                    setTaskMenuOpen(null);
-                  }}
-                >
-                  <Trash2 />
-                  Delete Task
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-    </Draggable>
-  );
-
-  if (!selectedProject) return <div>Loading...</div>;
-
   const AssigneeModal = ({ isOpen, taskId, suggestedMembers, onClose }) => {
     const [searchQuery, setSearchQuery] = useState("");
     const dropdownRef = useRef(null);
@@ -1098,6 +1024,113 @@ const Backlog = () => {
     );
   };
 
+  const TaskRow = ({ task, index }) => (
+    <Draggable draggableId={task.id.toString()} index={index}>
+      {(provided) => (
+        <div
+          className="task-row"
+          ref={provided.innerRef}
+          {...provided.draggableProps}
+          {...provided.dragHandleProps}
+        >
+          <input
+            type="checkbox"
+            checked={selectedTasks.has(task.id)}
+            onChange={() => handleToggleTaskSelection(task.id)}
+            className="task-checkbox"
+          />
+          <div className="task-id" style={{ color: "#0052cc" }}>
+            {selectedProject.shortName}-{task.id}
+          </div>
+          <div className="task-title">{task.title}</div>
+          <div className="task-status-dropdown">
+            <select
+              value={task.status}
+              onChange={(e) => handleUpdateTaskStatus(task.id, e.target.value)}
+              className="status-select"
+            >
+              <option value="TODO">TO DO</option>
+              <option value="IN_PROGRESS">IN PROGRESS</option>
+              <option value="IN_REVIEW">IN REVIEW</option>
+              <option value="COMPLETED">DONE</option>
+            </select>
+            <ChevronDown className="status-dropdown-icon" />
+          </div>
+          <div className="task-epic">-</div>
+          <div className="task-assignee">
+            {task.assigneeEmail ? (
+              <button
+                className="assignee-avatar"
+                title={`Người thực hiện: ${task.assigneeName || "Unknown"}`}
+                onClick={() => fetchProjectMembers(task.id)}
+              >
+                {task.assigneeAvatarUrl ? (
+                  <img
+                    src={task.assigneeAvatarUrl}
+                    alt="Avatar"
+                    className="assignee-avatar-img"
+                  />
+                ) : (
+                  <div
+                    className="assignee-initials"
+                    style={{
+                      backgroundColor: getAvatarColor(task.assigneeName),
+                      color: "#fff",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: "24px",
+                      height: "24px",
+                      borderRadius: "50%",
+                      fontSize: "12px",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {getInitials(task.assigneeName)}
+                  </div>
+                )}
+              </button>
+            ) : (
+              <button
+                className="assign-user-button"
+                title="Chưa gán"
+                onClick={() => fetchProjectMembers(task.id)}
+              >
+                <User className="unassigned-icon" style={{ opacity: 0.5 }} />
+              </button>
+            )}
+          </div>
+          <div className="task-menu-container">
+            <button
+              className="task-menu-button"
+              onClick={() =>
+                setTaskMenuOpen(taskMenuOpen === task.id ? null : task.id)
+              }
+            >
+              <MoreVertical />
+            </button>
+            {taskMenuOpen === task.id && (
+              <div className="task-dropdown-menu">
+                <button
+                  className="dropdown-item delete-item"
+                  onClick={() => {
+                    setDeleteTaskModal({ isOpen: true, task });
+                    setTaskMenuOpen(null);
+                  }}
+                >
+                  <Trash2 />
+                  Delete Task
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </Draggable>
+  );
+
+  if (!selectedProject) return <div>Loading...</div>;
+
   return (
     <DragDropContext onDragEnd={onDragEnd}>
       <div className="backlog-container">
@@ -1278,6 +1311,7 @@ const Backlog = () => {
           editingTask={null}
           activeSprintId={showTaskForm}
           sprints={sprints}
+          suggestedMembers={suggestedMembers}
         />
         <CreateSprintModal
           isOpen={showSprintForm}

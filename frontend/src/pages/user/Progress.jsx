@@ -1,5 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Search, Plus, MoreHorizontal, User, Trash2, X } from "lucide-react";
+import {
+  Search,
+  Plus,
+  MoreHorizontal,
+  User,
+  Trash2,
+  X,
+  CheckCircle,
+} from "lucide-react";
 import "../../styles/user/progress.css";
 import { useParams } from "react-router-dom";
 import { useSidebar } from "../../context/SidebarContext";
@@ -11,7 +19,7 @@ const Progress = () => {
   const { projects } = useSidebar();
   const [selectedProject, setSelectedProject] = useState(null);
   const [tasks, setTasks] = useState([]);
-  const [sprints, setSprints] = useState([]); // Thêm state cho sprints
+  const [sprints, setSprints] = useState([]);
   const [activeSprint, setActiveSprint] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -106,7 +114,7 @@ const Progress = () => {
       }
 
       const sprintsData = await sprintResponse.json();
-      setSprints(sprintsData); // Lưu danh sách sprints
+      setSprints(sprintsData);
       const activeSprint = sprintsData.find(
         (sprint) => sprint.status === "ACTIVE"
       );
@@ -137,7 +145,12 @@ const Progress = () => {
       }
 
       const tasks = await taskResponse.json();
-      setTasks(tasks);
+      // Ánh xạ trạng thái COMPLETED thành DONE trong frontend
+      const mappedTasks = tasks.map((task) => ({
+        ...task,
+        status: task.status === "COMPLETED" ? "DONE" : task.status,
+      }));
+      setTasks(mappedTasks);
     } catch (err) {
       console.error(err.message || "Đã có lỗi xảy ra khi lấy dữ liệu");
       if (err.message.includes("401") || err.message.includes("403")) {
@@ -158,12 +171,13 @@ const Progress = () => {
       }
 
       const taskData = {
-        title: newTask.title,
-        description: newTask.description,
+        title: newTask.title || "Untitled Task",
+        description: newTask.description || "",
         assigneeEmail: newTask.assigneeEmail || null,
-        dueDate: newTask.dueDate,
-        priority: newTask.priority,
+        dueDate: newTask.dueDate || null,
+        priority: newTask.priority || "Medium",
         projectId: selectedProject.id,
+        status: "TODO",
       };
 
       const response = await fetch(
@@ -201,12 +215,18 @@ const Progress = () => {
         throw new Error("Vui lòng đăng nhập lại để tiếp tục");
       }
 
+      const currentTask = tasks.find((t) => t.id === taskId);
+      if (!currentTask) throw new Error("Task không tồn tại");
+
       console.log("Updating taskId:", taskId, "with:", updatedTask);
       const taskData = {
-        title: updatedTask.title,
-        description: updatedTask.description,
-        status: updatedTask.status,
-        priority: updatedTask.priority,
+        title: updatedTask.title || currentTask.title || "Untitled Task",
+        description: updatedTask.description || currentTask.description || "",
+        status:
+          updatedTask.status === "DONE"
+            ? "COMPLETED"
+            : updatedTask.status || currentTask.status || "TODO",
+        priority: updatedTask.priority || currentTask.priority || "Medium",
       };
 
       const response = await fetch(
@@ -248,6 +268,15 @@ const Progress = () => {
         throw new Error("Vui lòng đăng nhập lại để tiếp tục");
       }
 
+      const validStatuses = ["TODO", "IN_PROGRESS", "IN_REVIEW", "COMPLETED"];
+      const backendStatus = newStatus === "DONE" ? "COMPLETED" : newStatus;
+      if (!validStatuses.includes(backendStatus)) {
+        throw new Error("Trạng thái không hợp lệ");
+      }
+
+      const task = tasks.find((t) => t.id === taskId);
+      if (!task) throw new Error("Task không tồn tại");
+
       console.log(
         "Updating task status for taskId:",
         taskId,
@@ -263,7 +292,12 @@ const Progress = () => {
             Authorization: `Bearer ${accessToken}`,
             userId: userId,
           },
-          body: JSON.stringify({ status: newStatus }),
+          body: JSON.stringify({
+            status: backendStatus,
+            title: task.title || "Untitled Task",
+            description: task.description || "",
+            priority: task.priority || "Medium",
+          }),
         }
       );
 
@@ -275,7 +309,12 @@ const Progress = () => {
         );
       }
 
-      await fetchSprintsAndTasks();
+      // Cập nhật trạng thái frontend thành DONE
+      setTasks((prevTasks) =>
+        prevTasks.map((t) =>
+          t.id === taskId ? { ...t, status: newStatus } : t
+        )
+      );
     } catch (err) {
       console.error("Lỗi khi cập nhật trạng thái:", err);
       alert(err.message || "Không thể cập nhật trạng thái. Vui lòng thử lại.");
@@ -521,7 +560,7 @@ const Progress = () => {
         {
           id: "DONE",
           title: "DONE ✅",
-          tasks: filteredTasks.filter((t) => t.status === "COMPLETED"),
+          tasks: filteredTasks.filter((t) => t.status === "DONE"),
         },
       ];
     } else if (groupBy === "assignee") {
@@ -555,13 +594,15 @@ const Progress = () => {
     const updatedTasks = Array.from(tasks);
     const [movedTask] = updatedTasks.splice(source.index, 1);
     if (groupBy === "status") {
-      movedTask.status = destColumn;
+      // Lưu trạng thái DONE trong frontend, nhưng gửi COMPLETED cho backend
+      movedTask.status = destColumn === "DONE" ? "DONE" : destColumn;
     }
     updatedTasks.splice(destination.index, 0, movedTask);
 
     setTasks(updatedTasks);
     if (groupBy === "status") {
-      await handleUpdateTaskStatus(movedTask.id, destColumn);
+      const backendStatus = destColumn === "DONE" ? "COMPLETED" : destColumn;
+      await handleUpdateTaskStatus(movedTask.id, backendStatus);
     }
   };
 
@@ -768,7 +809,7 @@ const Progress = () => {
                 <option value="TODO">To Do</option>
                 <option value="IN_PROGRESS">In Progress</option>
                 <option value="IN_REVIEW">In Review</option>
-                <option value="COMPLETED">Done</option>
+                <option value="DONE">Done</option>
               </select>
               <select
                 value={filterPriority}
@@ -792,7 +833,21 @@ const Progress = () => {
                     {...provided.droppableProps}
                   >
                     <div className="column-header">
-                      <h3 className="column-title">{column.title}</h3>
+                      <h3 className="column-title">
+                        {column.title}
+                        <span className="ml-2 text-gray-500">
+                          (
+                          {
+                            (groupBy === "status"
+                              ? filteredTasks.filter(
+                                  (t) => t.status === column.id
+                                )
+                              : column.tasks || []
+                            ).length
+                          }
+                          )
+                        </span>
+                      </h3>
                       <button
                         className="add-task-btn"
                         onClick={() => setSelectedTask({ status: column.id })}
@@ -802,9 +857,7 @@ const Progress = () => {
                     </div>
                     <div className="column-tasks">
                       {(groupBy === "status"
-                        ? filteredTasks.filter(
-                            (task) => task.status === column.id
-                          )
+                        ? filteredTasks.filter((t) => t.status === column.id)
                         : column.tasks || []
                       ).map((task, index) => (
                         <Draggable
@@ -814,14 +867,22 @@ const Progress = () => {
                         >
                           {(provided) => (
                             <div
-                              className="board-task-card"
+                              className={`board-task-card ${
+                                task.status === "DONE" ? "bg-green-100" : ""
+                              }`}
                               ref={provided.innerRef}
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
                               onClick={() => setSelectedTask(task)}
                             >
                               <div className="board-task-meta">
-                                <h4 className="board-task-title">
+                                <h4
+                                  className={`board-task-title ${
+                                    task.status === "DONE"
+                                      ? "line-through text-gray-500"
+                                      : ""
+                                  }`}
+                                >
                                   {selectedProject.shortName}-{task.id}{" "}
                                   {task.title}
                                 </h4>
@@ -1003,7 +1064,7 @@ const Progress = () => {
           selectedProject={selectedProject}
           editingTask={selectedTask.id ? selectedTask : null}
           activeSprintId={activeSprint?.id}
-          sprints={sprints} // Truyền danh sách sprints
+          sprints={sprints}
           suggestedMembers={assigneeModal.suggestedMembers}
         />
       )}

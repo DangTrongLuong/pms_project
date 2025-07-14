@@ -10,7 +10,7 @@ const CreateTaskModal = ({
   editingTask,
   activeSprintId,
   sprints,
-  suggestedMembers,
+  suggestedMembers = [], // Mặc định là mảng rỗng
 }) => {
   const [formData, setFormData] = useState({
     title: "",
@@ -24,6 +24,8 @@ const CreateTaskModal = ({
 
   const [isSuggesting, setIsSuggesting] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
+  const [localSuggestedMembers, setLocalSuggestedMembers] =
+    useState(suggestedMembers); // State cục bộ
   const assigneeInputRef = useRef(null);
   const dropdownRef = useRef(null);
 
@@ -61,7 +63,8 @@ const CreateTaskModal = ({
       });
       setSelectedMember(null);
     }
-  }, [editingTask, selectedProject, activeSprintId]);
+    setLocalSuggestedMembers(suggestedMembers); // Cập nhật khi prop thay đổi
+  }, [editingTask, selectedProject, activeSprintId, suggestedMembers]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -74,10 +77,6 @@ const CreateTaskModal = ({
   }, []);
 
   const handleAssigneeSearch = async (query) => {
-    if (query.length < 2) {
-      setIsSuggesting(false);
-      return;
-    }
     try {
       const userId = localStorage.getItem("userId");
       const accessToken = localStorage.getItem("accessToken");
@@ -98,12 +97,16 @@ const CreateTaskModal = ({
         }
       );
       if (response.ok) {
+        const data = await response.json();
+        setLocalSuggestedMembers(data || []); // Cập nhật danh sách gợi ý
         setIsSuggesting(true);
       } else {
+        setLocalSuggestedMembers([]);
         setIsSuggesting(false);
       }
     } catch (err) {
       console.error("Lỗi khi gợi ý thành viên:", err);
+      setLocalSuggestedMembers([]);
       setIsSuggesting(false);
       if (err.message.includes("401") || err.message.includes("403")) {
         window.location.href = "/login";
@@ -289,9 +292,9 @@ const CreateTaskModal = ({
                   placeholder="Search for a member..."
                 />
               )}
-              {isSuggesting && suggestedMembers.length > 0 && (
+              {isSuggesting && localSuggestedMembers.length > 0 && (
                 <ul className="assignee-suggestion-list">
-                  {suggestedMembers.slice(0, 8).map((member, index) => (
+                  {localSuggestedMembers.slice(0, 8).map((member, index) => (
                     <li
                       key={index}
                       onClick={() => handleSelectMember(member)}
