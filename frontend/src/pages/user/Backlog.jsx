@@ -8,7 +8,7 @@ import {
   Trash2,
   X,
   Calendar,
-} from "lucide-react"; // Xóa import sai
+} from "lucide-react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { useParams } from "react-router-dom";
 import { useSidebar } from "../../context/SidebarContext";
@@ -150,7 +150,6 @@ const Backlog = () => {
       setTasks(allTasks);
       console.log("Tasks fetched:", allTasks);
 
-      // Lấy danh sách thành viên cho gợi ý assignee
       const membersResponse = await fetch(
         `http://localhost:8080/api/members/project/${selectedProject.id}`,
         {
@@ -199,12 +198,13 @@ const Backlog = () => {
 
       console.log("Creating task:", newTask);
       const taskData = {
-        title: newTask.title,
-        description: newTask.description,
+        title: newTask.title || "Untitled Task",
+        description: newTask.description || "",
         assigneeEmail: newTask.assigneeEmail || null,
         dueDate: newTask.dueDate || null,
-        priority: newTask.priority,
+        priority: newTask.priority || "Medium",
         projectId: newTask.projectId,
+        status: "TODO",
       };
 
       const endpoint = newTask.sprintId
@@ -438,11 +438,13 @@ const Backlog = () => {
       const accessToken = localStorage.getItem("accessToken");
       if (!userId || !accessToken) throw new Error("Vui lòng đăng nhập lại");
 
-      // Kiểm tra trạng thái hợp lệ
       const validStatuses = ["TODO", "IN_PROGRESS", "IN_REVIEW", "COMPLETED"];
       if (!validStatuses.includes(newStatus)) {
         throw new Error("Trạng thái không hợp lệ");
       }
+
+      const task = tasks.find((t) => t.id === taskId);
+      if (!task) throw new Error("Task không tồn tại");
 
       console.log(
         "Updating task status for taskId:",
@@ -459,7 +461,12 @@ const Backlog = () => {
             Authorization: `Bearer ${accessToken}`,
             userId: userId,
           },
-          body: JSON.stringify({ status: newStatus }),
+          body: JSON.stringify({
+            status: newStatus,
+            title: task.title || "Untitled Task",
+            description: task.description || "",
+            priority: task.priority || "Medium",
+          }),
         }
       );
 

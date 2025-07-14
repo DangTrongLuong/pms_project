@@ -223,11 +223,10 @@ const People = () => {
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
-          console.log("API Response Error for", email, ":", errorData); // Debug lỗi cho từng email
           triggerError(
             `Thêm ${email} thất bại: ${errorData.message || response.status}`
           );
-          continue; // Tiếp tục với email tiếp theo nếu lỗi
+          continue;
         }
 
         const addedMember = await response.json();
