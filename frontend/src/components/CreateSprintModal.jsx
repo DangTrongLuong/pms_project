@@ -56,6 +56,7 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
             Authorization: `Bearer ${accessToken}`,
             userId: userId,
             userName: userName,
+            userName: encodeURIComponent(userName), // Mã hóa userName
           },
           body: JSON.stringify(sprintData),
         }

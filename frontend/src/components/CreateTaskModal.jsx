@@ -10,7 +10,7 @@ const CreateTaskModal = ({
   editingTask,
   activeSprintId,
   sprints,
-  suggestedMembers,
+  suggestedMembers = [], // Giá trị mặc định là mảng rỗng
 }) => {
   const [formData, setFormData] = useState({
     title: "",
@@ -21,9 +21,9 @@ const CreateTaskModal = ({
     projectId: selectedProject?.id || null,
     sprintId: activeSprintId || null,
   });
-
   const [isSuggesting, setIsSuggesting] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
+  const [suggestedMembersState, setSuggestedMembersState] = useState([]); // State cho gợi ý
   const assigneeInputRef = useRef(null);
   const dropdownRef = useRef(null);
 
@@ -76,6 +76,7 @@ const CreateTaskModal = ({
   const handleAssigneeSearch = async (query) => {
     if (query.length < 2) {
       setIsSuggesting(false);
+      setSuggestedMembersState([]);
       return;
     }
     try {
@@ -98,12 +99,16 @@ const CreateTaskModal = ({
         }
       );
       if (response.ok) {
+        const members = await response.json();
+        setSuggestedMembersState(members || []);
         setIsSuggesting(true);
       } else {
+        setSuggestedMembersState([]);
         setIsSuggesting(false);
       }
     } catch (err) {
       console.error("Lỗi khi gợi ý thành viên:", err);
+      setSuggestedMembersState([]);
       setIsSuggesting(false);
       if (err.message.includes("401") || err.message.includes("403")) {
         window.location.href = "/login";
@@ -115,7 +120,7 @@ const CreateTaskModal = ({
     setFormData({ ...formData, assigneeEmail: member.email });
     setSelectedMember(member);
     setIsSuggesting(false);
-    assigneeInputRef.current.focus();
+    assigneeInputRef.current?.focus();
   };
 
   const handleSubmit = async (e) => {
@@ -214,7 +219,7 @@ const CreateTaskModal = ({
               className="create-task-form-select"
             >
               <option value="">Backlog</option>
-              {sprints.map((sprint) => (
+              {sprints?.map((sprint) => (
                 <option key={sprint.id} value={sprint.id}>
                   {sprint.name} ({sprint.status})
                 </option>
@@ -289,9 +294,9 @@ const CreateTaskModal = ({
                   placeholder="Search for a member..."
                 />
               )}
-              {isSuggesting && suggestedMembers.length > 0 && (
+              {isSuggesting && suggestedMembersState.length > 0 && (
                 <ul className="assignee-suggestion-list">
-                  {suggestedMembers.slice(0, 8).map((member, index) => (
+                  {suggestedMembersState.slice(0, 8).map((member, index) => (
                     <li
                       key={index}
                       onClick={() => handleSelectMember(member)}
