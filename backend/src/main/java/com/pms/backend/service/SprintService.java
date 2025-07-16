@@ -63,7 +63,7 @@ public class SprintService {
         return savedSprint;
     }
 
-   public Sprint startSprint(Integer sprintId, String userId) {
+    public Sprint startSprint(Integer sprintId, String userId) {
         log.info("Bắt đầu sprintId: {} bởi userId: {}", sprintId, userId);
         Sprint sprint = sprintRepository.findById((long) sprintId)
                 .orElseThrow(() -> new AppException(ErrorStatus.SPRINT_NOT_FOUND));
@@ -135,6 +135,8 @@ public class SprintService {
         task.setAssignee(assignee);
         task.setSprint(sprint);
         task.setProject(project);
+        task.setStartDate(request.getStartDate());
+        task.setEndDate(request.getEndDate());
         sprint.setWorkItems(sprint.getWorkItems() != null ? sprint.getWorkItems() + 1 : 1);
         sprintRepository.save(sprint);
         Task savedTask = taskRepository.save(task);
@@ -161,6 +163,8 @@ public class SprintService {
         task.setAssignee(assignee);
         task.setSprint(null);
         task.setProject(project);
+        task.setStartDate(request.getStartDate());
+        task.setEndDate(request.getEndDate());
         Task savedTask = taskRepository.save(task);
         log.info("Task được tạo trong backlog: {}", savedTask);
         return savedTask;
@@ -174,6 +178,8 @@ public class SprintService {
             throw new AppException(ErrorStatus.INVALID_INPUT, "Title cannot be empty");
         }
         taskMapper.updateTaskFromRequest(request, task);
+        task.setStartDate(request.getStartDate());
+        task.setEndDate(request.getEndDate());
         Task updatedTask = taskRepository.save(task);
         log.info("Task đã cập nhật: {}", updatedTask);
         return updatedTask;
@@ -200,6 +206,8 @@ public class SprintService {
             throw new AppException(ErrorStatus.INVALID_INPUT, "Status cannot be null");
         }
         taskMapper.updateTaskFromRequest(request, task);
+        task.setStartDate(request.getStartDate());
+        task.setEndDate(request.getEndDate());
         Task updatedTask = taskRepository.save(task);
         log.info("Task đã cập nhật trạng thái: {}", updatedTask);
         return updatedTask;
@@ -285,7 +293,8 @@ public class SprintService {
                         dto.setAssigneeEmail(task.getAssignee() != null ? task.getAssignee().getEmail() : null);
                         dto.setAssigneeName(task.getAssignee() != null ? task.getAssignee().getName() : null);
                         dto.setAssigneeAvatarUrl(task.getAssignee() != null ? task.getAssignee().getAvatar_url() : null);
-                        dto.setDueDate(task.getDueDate() != null ? task.getDueDate().toLocalDate() : null);
+                        dto.setStartDate(task.getStartDate());
+                        dto.setEndDate(task.getEndDate());
                         dto.setStatus(task.getStatus());
                         dto.setCreatedAt(task.getCreatedAt());
                         dto.setSprintId(task.getSprint() != null ? task.getSprint().getId().intValue() : null);
@@ -322,7 +331,8 @@ public class SprintService {
                         dto.setAssigneeEmail(task.getAssignee() != null ? task.getAssignee().getEmail() : null);
                         dto.setAssigneeName(task.getAssignee() != null ? task.getAssignee().getName() : null);
                         dto.setAssigneeAvatarUrl(task.getAssignee() != null ? task.getAssignee().getAvatar_url() : null);
-                        dto.setDueDate(task.getDueDate() != null ? task.getDueDate().toLocalDate() : null);
+                        dto.setStartDate(task.getStartDate());
+                        dto.setEndDate(task.getEndDate());
                         dto.setStatus(task.getStatus());
                         dto.setCreatedAt(task.getCreatedAt());
                         dto.setSprintId(null);
