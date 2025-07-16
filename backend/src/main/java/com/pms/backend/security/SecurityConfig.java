@@ -3,6 +3,7 @@ package com.pms.backend.security;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -14,8 +15,8 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtDecoders;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
 import com.pms.backend.config.TokenFilter;
-import org.springframework.http.HttpMethod;
 
 @Configuration
 @EnableWebSecurity
@@ -32,34 +33,36 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .addFilterBefore(tokenFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(requests -> requests
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/uploads/**").permitAll()
-                        .requestMatchers(
-                                "/api/auth/**",
-                                "/oauth2/**",
-                                "/login/oauth2/code/**",
-                                "/",
-                                "/api/projects/**",
-                                "/api/members/**",
-                                "/api/sprints/**" // Thêm /api/sprints vào danh sách cho phép
-                        ).permitAll()
-                        .anyRequest().authenticated())
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers("/uploads/**").permitAll()
+                .requestMatchers(
+                        "/api/auth/**",
+                        "/oauth2/**",
+                        "/login/oauth2/code/**",
+                        "/",
+                        "/api/projects/**",
+                        "/api/members/**",
+                        "/api/sprints/**",// Thêm /api/sprints vào danh sách cho phép
+                        "/api/documents/**" // Thêm endpoint cho tài liệu
+                ).permitAll()
+                .requestMatchers("/api/comments/**").authenticated() // Bình luận yêu cầu xác thực
+                .anyRequest().authenticated())
                 .oauth2Login(oauth2 -> oauth2
-                        .loginPage("/api/auth/login/google")
-                        .authorizationEndpoint(authorization -> authorization
-                                .baseUri("/oauth2/authorization"))
-                        .redirectionEndpoint(redirection -> redirection
-                                .baseUri("/login/oauth2/code/*"))
-                        .defaultSuccessUrl("/api/auth/loginSuccess", true)
-                        .failureUrl("/api/auth/login/google?error=true"))
+                .loginPage("/api/auth/login/google")
+                .authorizationEndpoint(authorization -> authorization
+                .baseUri("/oauth2/authorization"))
+                .redirectionEndpoint(redirection -> redirection
+                .baseUri("/login/oauth2/code/*"))
+                .defaultSuccessUrl("/api/auth/loginSuccess", true)
+                .failureUrl("/api/auth/login/google?error=true"))
                 .oauth2Client(Customizer.withDefaults())
                 .logout(logout -> logout
-                        .logoutUrl("/api/auth/logout")
-                        .logoutSuccessUrl("http://localhost:3000/login")
-                        .invalidateHttpSession(true)
-                        .clearAuthentication(true)
-                        .deleteCookies("JSESSIONID")
-                        .permitAll());
+                .logoutUrl("/api/auth/logout")
+                .logoutSuccessUrl("http://localhost:3000/login")
+                .invalidateHttpSession(true)
+                .clearAuthentication(true)
+                .deleteCookies("JSESSIONID")
+                .permitAll());
 
         return httpSecurity.build();
     }
