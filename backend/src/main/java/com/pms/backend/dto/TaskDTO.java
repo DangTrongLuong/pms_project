@@ -4,7 +4,6 @@ import com.pms.backend.enums.TaskStatus;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -18,7 +17,8 @@ public class TaskDTO {
     private String assigneeEmail;
     private String assigneeName;
     private String assigneeAvatarUrl;
-    private LocalDate dueDate;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
     private TaskStatus status;
     private LocalDateTime createdAt;
     private Integer sprintId;

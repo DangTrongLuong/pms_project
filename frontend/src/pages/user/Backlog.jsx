@@ -8,6 +8,7 @@ import {
   Trash2,
   X,
   Calendar,
+  Edit2,
 } from "lucide-react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { useParams } from "react-router-dom";
@@ -45,6 +46,7 @@ const Backlog = () => {
   });
   const [selectedTasks, setSelectedTasks] = useState(new Set());
   const [suggestedMembers, setSuggestedMembers] = useState([]);
+  const [editingTask, setEditingTask] = useState(null);
 
   useEffect(() => {
     if (projects.length > 0) {
@@ -201,10 +203,14 @@ const Backlog = () => {
         title: newTask.title || "Untitled Task",
         description: newTask.description || "",
         assigneeEmail: newTask.assigneeEmail || null,
-        dueDate: newTask.dueDate || null,
+        startDate: newTask.startDate
+          ? new Date(newTask.startDate).toISOString()
+          : null,
+        endDate: newTask.endDate
+          ? new Date(newTask.endDate).toISOString()
+          : null,
         priority: newTask.priority || "Medium",
         projectId: newTask.projectId,
-        status: "TODO",
       };
 
       const endpoint = newTask.sprintId
@@ -242,6 +248,64 @@ const Backlog = () => {
     } catch (err) {
       console.error("Lỗi khi tạo task:", err);
       alert(err.message || "Không thể tạo task. Vui lòng thử lại.");
+    }
+  };
+
+  const handleUpdateTask = async (taskId, updatedTask) => {
+    try {
+      const userId = localStorage.getItem("userId");
+      const accessToken = localStorage.getItem("accessToken");
+      if (!userId || !accessToken) throw new Error("Vui lòng đăng nhập lại");
+
+      const currentTask = tasks.find((t) => t.id === taskId);
+      if (!currentTask) throw new Error("Task không tồn tại");
+
+      const taskData = {
+        title: updatedTask.title || currentTask.title || "Untitled Task",
+        description: updatedTask.description || currentTask.description || "",
+        status:
+          updatedTask.status === "DONE"
+            ? "COMPLETED"
+            : updatedTask.status || currentTask.status || "TODO",
+        priority: updatedTask.priority || currentTask.priority || "Medium",
+        startDate: updatedTask.startDate
+          ? new Date(updatedTask.startDate).toISOString()
+          : currentTask.startDate,
+        endDate: updatedTask.endDate
+          ? new Date(updatedTask.endDate).toISOString()
+          : currentTask.endDate,
+      };
+
+      const response = await fetch(
+        `http://localhost:8080/api/sprints/task/${taskId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+            userId: userId,
+          },
+          body: JSON.stringify(taskData),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message || `Cập nhật task thất bại: ${response.status}`
+        );
+      }
+
+      if (updatedTask.assigneeEmail !== undefined) {
+        await handleUpdateTaskAssignee(taskId, updatedTask.assigneeEmail);
+      }
+
+      await fetchSprintsAndTasks();
+      setEditingTask(null);
+      setShowTaskForm(null);
+    } catch (err) {
+      console.error("Lỗi khi cập nhật task:", err);
+      alert(err.message || "Không thể cập nhật task. Vui lòng thử lại.");
     }
   };
 
@@ -439,7 +503,8 @@ const Backlog = () => {
       if (!userId || !accessToken) throw new Error("Vui lòng đăng nhập lại");
 
       const validStatuses = ["TODO", "IN_PROGRESS", "IN_REVIEW", "COMPLETED"];
-      if (!validStatuses.includes(newStatus)) {
+      const backendStatus = newStatus === "DONE" ? "COMPLETED" : newStatus;
+      if (!validStatuses.includes(backendStatus)) {
         throw new Error("Trạng thái không hợp lệ");
       }
 
@@ -462,10 +527,12 @@ const Backlog = () => {
             userId: userId,
           },
           body: JSON.stringify({
-            status: newStatus,
+            status: backendStatus,
             title: task.title || "Untitled Task",
             description: task.description || "",
             priority: task.priority || "Medium",
+            startDate: task.startDate,
+            endDate: task.endDate,
           }),
         }
       );
@@ -1112,13 +1179,24 @@ const Backlog = () => {
             {taskMenuOpen === task.id && (
               <div className="task-dropdown-menu">
                 <button
+                  className="dropdown-item"
+                  onClick={() => {
+                    setEditingTask(task);
+                    setShowTaskForm(task.sprintId);
+                    setTaskMenuOpen(null);
+                  }}
+                >
+                  <Edit2 size={16} />
+                  Edit Task
+                </button>
+                <button
                   className="dropdown-item delete-item"
                   onClick={() => {
                     setDeleteTaskModal({ isOpen: true, task });
                     setTaskMenuOpen(null);
                   }}
                 >
-                  <Trash2 />
+                  <Trash2 size={16} />
                   Delete Task
                 </button>
               </div>
@@ -1305,10 +1383,19 @@ const Backlog = () => {
 
         <CreateTaskModal
           isOpen={showTaskForm !== null}
-          onClose={() => setShowTaskForm(null)}
-          onSubmit={handleAddTask}
+          onClose={() => {
+            setShowTaskForm(null);
+            setEditingTask(null);
+          }}
+          onSubmit={(taskData) => {
+            if (editingTask) {
+              handleUpdateTask(editingTask.id, taskData);
+            } else {
+              handleAddTask(taskData);
+            }
+          }}
           selectedProject={selectedProject}
-          editingTask={null}
+          editingTask={editingTask}
           activeSprintId={showTaskForm}
           sprints={sprints}
           suggestedMembers={suggestedMembers}

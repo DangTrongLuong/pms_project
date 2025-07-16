@@ -10,21 +10,22 @@ const CreateTaskModal = ({
   editingTask,
   activeSprintId,
   sprints,
-  suggestedMembers = [], // Mặc định là mảng rỗng
+  suggestedMembers = [],
 }) => {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     priority: "Medium",
     assigneeEmail: "",
-    dueDate: "",
+    startDate: "",
+    endDate: "",
     projectId: selectedProject?.id || null,
     sprintId: activeSprintId || null,
   });
   const [isSuggesting, setIsSuggesting] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
   const [localSuggestedMembers, setLocalSuggestedMembers] =
-    useState(suggestedMembers); // State cục bộ
+    useState(suggestedMembers);
   const assigneeInputRef = useRef(null);
   const dropdownRef = useRef(null);
 
@@ -35,8 +36,11 @@ const CreateTaskModal = ({
         description: editingTask.description || "",
         priority: editingTask.priority || "Medium",
         assigneeEmail: editingTask.assigneeEmail || "",
-        dueDate: editingTask.dueDate
-          ? new Date(editingTask.dueDate).toISOString().slice(0, 16)
+        startDate: editingTask.startDate
+          ? new Date(editingTask.startDate).toISOString().slice(0, 16)
+          : "",
+        endDate: editingTask.endDate
+          ? new Date(editingTask.endDate).toISOString().slice(0, 16)
           : "",
         projectId: editingTask.projectId || selectedProject?.id || null,
         sprintId: editingTask.sprintId || null,
@@ -56,13 +60,14 @@ const CreateTaskModal = ({
         description: "",
         priority: "Medium",
         assigneeEmail: "",
-        dueDate: "",
+        startDate: "",
+        endDate: "",
         projectId: selectedProject?.id || null,
         sprintId: activeSprintId || null,
       });
       setSelectedMember(null);
     }
-    setLocalSuggestedMembers(suggestedMembers); // Cập nhật khi prop thay đổi
+    setLocalSuggestedMembers(suggestedMembers);
   }, [editingTask, selectedProject, activeSprintId, suggestedMembers]);
 
   useEffect(() => {
@@ -97,7 +102,7 @@ const CreateTaskModal = ({
       );
       if (response.ok) {
         const data = await response.json();
-        setLocalSuggestedMembers(data || []); // Cập nhật danh sách gợi ý
+        setLocalSuggestedMembers(data || []);
         setIsSuggesting(true);
       } else {
         setLocalSuggestedMembers([]);
@@ -143,8 +148,11 @@ const CreateTaskModal = ({
         title: formData.title,
         description: formData.description,
         assigneeEmail: formData.assigneeEmail,
-        dueDate: formData.dueDate
-          ? new Date(formData.dueDate).toISOString().split("T")[0]
+        startDate: formData.startDate
+          ? new Date(formData.startDate).toISOString()
+          : null,
+        endDate: formData.endDate
+          ? new Date(formData.endDate).toISOString()
           : null,
         priority: formData.priority,
         projectId: formData.projectId,
@@ -341,12 +349,23 @@ const CreateTaskModal = ({
               </select>
             </div>
             <div className="create-task-form-group">
-              <label className="create-task-form-label">Due Date</label>
+              <label className="create-task-form-label">Start Date</label>
               <input
                 type="datetime-local"
-                value={formData.dueDate}
+                value={formData.startDate}
                 onChange={(e) =>
-                  setFormData({ ...formData, dueDate: e.target.value })
+                  setFormData({ ...formData, startDate: e.target.value })
+                }
+                className="create-task-form-input"
+              />
+            </div>
+            <div className="create-task-form-group">
+              <label className="create-task-form-label">End Date</label>
+              <input
+                type="datetime-local"
+                value={formData.endDate}
+                onChange={(e) =>
+                  setFormData({ ...formData, endDate: e.target.value })
                 }
                 className="create-task-form-input"
               />

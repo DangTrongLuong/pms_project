@@ -1,13 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import {
-  Search,
-  Plus,
-  MoreHorizontal,
-  User,
-  Trash2,
-  X,
-  CheckCircle,
-} from "lucide-react";
+import { Search, Plus, MoreHorizontal, User, Trash2, X } from "lucide-react";
 import "../../styles/user/progress.css";
 import { useParams } from "react-router-dom";
 import { useSidebar } from "../../context/SidebarContext";
@@ -43,12 +35,16 @@ const Progress = () => {
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        console.log(
+          "Closing dropdown due to click outside, taskMenuOpen:",
+          taskMenuOpen
+        );
         setTaskMenuOpen(null);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [taskMenuOpen]);
 
   const fetchMembers = useCallback(async () => {
     try {
@@ -145,12 +141,12 @@ const Progress = () => {
       }
 
       const tasks = await taskResponse.json();
-      // Ánh xạ trạng thái COMPLETED thành DONE trong frontend
       const mappedTasks = tasks.map((task) => ({
         ...task,
         status: task.status === "COMPLETED" ? "DONE" : task.status,
       }));
       setTasks(mappedTasks);
+      console.log("Fetched tasks:", mappedTasks);
     } catch (err) {
       console.error(err.message || "Đã có lỗi xảy ra khi lấy dữ liệu");
       if (err.message.includes("401") || err.message.includes("403")) {
@@ -174,11 +170,17 @@ const Progress = () => {
         title: newTask.title || "Untitled Task",
         description: newTask.description || "",
         assigneeEmail: newTask.assigneeEmail || null,
-        dueDate: newTask.dueDate || null,
+        startDate: newTask.startDate
+          ? new Date(newTask.startDate).toISOString()
+          : null,
+        endDate: newTask.endDate
+          ? new Date(newTask.endDate).toISOString()
+          : null,
         priority: newTask.priority || "Medium",
         projectId: selectedProject.id,
-        status: "TODO",
       };
+
+      console.log("Creating task with data:", taskData);
 
       const response = await fetch(
         `http://localhost:8080/api/sprints/task/${activeSprint.id}`,
@@ -203,7 +205,7 @@ const Progress = () => {
       await fetchSprintsAndTasks();
       setSelectedTask(null);
     } catch (err) {
-      console.error(err.message || "Đã có lỗi xảy ra khi tạo nhiệm vụ");
+      console.error("Lỗi khi tạo task:", err);
       alert(err.message || "Không thể tạo nhiệm vụ. Vui lòng thử lại.");
     }
   };
@@ -218,7 +220,6 @@ const Progress = () => {
       const currentTask = tasks.find((t) => t.id === taskId);
       if (!currentTask) throw new Error("Task không tồn tại");
 
-      console.log("Updating taskId:", taskId, "with:", updatedTask);
       const taskData = {
         title: updatedTask.title || currentTask.title || "Untitled Task",
         description: updatedTask.description || currentTask.description || "",
@@ -227,7 +228,15 @@ const Progress = () => {
             ? "COMPLETED"
             : updatedTask.status || currentTask.status || "TODO",
         priority: updatedTask.priority || currentTask.priority || "Medium",
+        startDate: updatedTask.startDate
+          ? new Date(updatedTask.startDate).toISOString()
+          : currentTask.startDate,
+        endDate: updatedTask.endDate
+          ? new Date(updatedTask.endDate).toISOString()
+          : currentTask.endDate,
       };
+
+      console.log("Updating task with data:", taskData);
 
       const response = await fetch(
         `http://localhost:8080/api/sprints/task/${taskId}`,
@@ -277,12 +286,17 @@ const Progress = () => {
       const task = tasks.find((t) => t.id === taskId);
       if (!task) throw new Error("Task không tồn tại");
 
-      console.log(
-        "Updating task status for taskId:",
-        taskId,
-        "newStatus:",
-        newStatus
-      );
+      const taskData = {
+        status: backendStatus,
+        title: task.title || "Untitled Task",
+        description: task.description || "",
+        priority: task.priority || "Medium",
+        startDate: task.startDate,
+        endDate: task.endDate,
+      };
+
+      console.log("Updating task status with data:", taskData);
+
       const response = await fetch(
         `http://localhost:8080/api/sprints/task/${taskId}/status`,
         {
@@ -292,12 +306,7 @@ const Progress = () => {
             Authorization: `Bearer ${accessToken}`,
             userId: userId,
           },
-          body: JSON.stringify({
-            status: backendStatus,
-            title: task.title || "Untitled Task",
-            description: task.description || "",
-            priority: task.priority || "Medium",
-          }),
+          body: JSON.stringify(taskData),
         }
       );
 
@@ -309,7 +318,6 @@ const Progress = () => {
         );
       }
 
-      // Cập nhật trạng thái frontend thành DONE
       setTasks((prevTasks) =>
         prevTasks.map((t) =>
           t.id === taskId ? { ...t, status: newStatus } : t
@@ -334,6 +342,7 @@ const Progress = () => {
         "assigneeEmail:",
         assigneeEmail
       );
+
       const response = await fetch(
         `http://localhost:8080/api/sprints/task/${taskId}/assignee?projectId=${selectedProject.id}`,
         {
@@ -370,6 +379,7 @@ const Progress = () => {
       }
 
       console.log("Auto assigning taskId:", taskId);
+
       const response = await fetch(
         `http://localhost:8080/api/members/project/${selectedProject.id}`,
         {
@@ -411,6 +421,7 @@ const Progress = () => {
       }
 
       console.log("Deleting taskId:", task.id);
+
       const response = await fetch(
         `http://localhost:8080/api/sprints/task/${task.id}`,
         {
@@ -446,6 +457,7 @@ const Progress = () => {
       }
 
       console.log("Fetching members for projectId:", selectedProject.id);
+
       const response = await fetch(
         `http://localhost:8080/api/members/project/${selectedProject.id}`,
         {
@@ -559,7 +571,7 @@ const Progress = () => {
         },
         {
           id: "DONE",
-          title: "DONE ✅",
+          title: "DONE",
           tasks: filteredTasks.filter((t) => t.status === "DONE"),
         },
       ];
@@ -582,6 +594,19 @@ const Progress = () => {
     }
   };
 
+  const handleTaskCardClick = (e, task) => {
+    // Chỉ mở modal chỉnh sửa nếu click ngoài nút ba chấm và các nút con
+    if (
+      !e.target.closest(".task-more-btn") &&
+      !e.target.closest(".task-dropdown-menu") &&
+      !e.target.closest(".assignee-avatar") &&
+      !e.target.closest(".assign-user-button")
+    ) {
+      console.log("Task card clicked, opening modal for task:", task.id);
+      setSelectedTask(task);
+    }
+  };
+
   const onDragEnd = async (result) => {
     const { source, destination } = result;
     if (!destination) return;
@@ -594,7 +619,6 @@ const Progress = () => {
     const updatedTasks = Array.from(tasks);
     const [movedTask] = updatedTasks.splice(source.index, 1);
     if (groupBy === "status") {
-      // Lưu trạng thái DONE trong frontend, nhưng gửi COMPLETED cho backend
       movedTask.status = destColumn === "DONE" ? "DONE" : destColumn;
     }
     updatedTasks.splice(destination.index, 0, movedTask);
@@ -616,13 +640,14 @@ const Progress = () => {
           dropdownRef.current &&
           !dropdownRef.current.contains(event.target)
         ) {
+          console.log("Closing assignee modal for taskId:", taskId);
           onClose();
         }
       };
       document.addEventListener("mousedown", handleClickOutside);
       return () =>
         document.removeEventListener("mousedown", handleClickOutside);
-    }, [onClose]);
+    }, [onClose, taskId]);
 
     if (!isOpen || !taskId) return null;
 
@@ -633,6 +658,7 @@ const Progress = () => {
     );
 
     const handleSelectAssignee = (email) => {
+      console.log("Selecting assignee for taskId:", taskId, "email:", email);
       handleUpdateTaskAssignee(taskId, email);
     };
 
@@ -752,7 +778,7 @@ const Progress = () => {
             { id: "TODO", title: "TO DO", color: "bg-gray" },
             { id: "IN_PROGRESS", title: "IN PROGRESS", color: "bg-blue" },
             { id: "IN_REVIEW", title: "IN REVIEW", color: "bg-yellow" },
-            { id: "DONE", title: "DONE ✅", color: "bg-green" },
+            { id: "DONE", title: "DONE", color: "bg-green" },
           ]
         : groupTasks();
 
@@ -826,7 +852,7 @@ const Progress = () => {
           <div className="kanban-columns">
             {columns.map((column) => (
               <Droppable droppableId={column.id} key={column.id}>
-                {(provided) => (
+                {(provided, snapshot) => (
                   <div
                     className="kanban-column"
                     ref={provided.innerRef}
@@ -865,7 +891,7 @@ const Progress = () => {
                           draggableId={task.id.toString()}
                           index={index}
                         >
-                          {(provided) => (
+                          {(provided, snapshot) => (
                             <div
                               className={`board-task-card ${
                                 task.status === "DONE" ? "bg-green-100" : ""
@@ -873,7 +899,7 @@ const Progress = () => {
                               ref={provided.innerRef}
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
-                              onClick={() => setSelectedTask(task)}
+                              onClick={(e) => handleTaskCardClick(e, task)}
                             >
                               <div className="board-task-meta">
                                 <h4
@@ -894,6 +920,12 @@ const Progress = () => {
                                     className="task-more-btn"
                                     onClick={(e) => {
                                       e.stopPropagation();
+                                      console.log(
+                                        "Opening dropdown for task:",
+                                        task.id,
+                                        "status:",
+                                        task.status
+                                      );
                                       setTaskMenuOpen(
                                         taskMenuOpen === task.id
                                           ? null
@@ -909,6 +941,10 @@ const Progress = () => {
                                         className="dropdown-item"
                                         onClick={(e) => {
                                           e.stopPropagation();
+                                          console.log(
+                                            "Edit Task clicked for task:",
+                                            task.id
+                                          );
                                           setSelectedTask(task);
                                           setTaskMenuOpen(null);
                                         }}
@@ -919,6 +955,10 @@ const Progress = () => {
                                         className="dropdown-item"
                                         onClick={(e) => {
                                           e.stopPropagation();
+                                          console.log(
+                                            "Assign Member clicked for task:",
+                                            task.id
+                                          );
                                           fetchProjectMembers(task.id);
                                           setTaskMenuOpen(null);
                                         }}
@@ -929,6 +969,10 @@ const Progress = () => {
                                         className="dropdown-item delete-item"
                                         onClick={(e) => {
                                           e.stopPropagation();
+                                          console.log(
+                                            "Delete Task clicked for task:",
+                                            task.id
+                                          );
                                           setDeleteTaskModal({
                                             isOpen: true,
                                             task,
@@ -972,6 +1016,10 @@ const Progress = () => {
                                       }`}
                                       onClick={(e) => {
                                         e.stopPropagation();
+                                        console.log(
+                                          "Assignee avatar clicked for task:",
+                                          task.id
+                                        );
                                         fetchProjectMembers(task.id);
                                       }}
                                     >
@@ -1009,6 +1057,10 @@ const Progress = () => {
                                       title="Chưa gán"
                                       onClick={(e) => {
                                         e.stopPropagation();
+                                        console.log(
+                                          "Unassigned button clicked for task:",
+                                          task.id
+                                        );
                                         fetchProjectMembers(task.id);
                                       }}
                                     >

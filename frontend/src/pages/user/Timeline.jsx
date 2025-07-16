@@ -87,6 +87,10 @@ const Timeline = () => {
         .map((task) => ({
           ...task,
           status: task.status === "COMPLETED" ? "DONE" : task.status,
+          startDate: task.startDate
+            ? new Date(task.startDate).toISOString()
+            : null,
+          endDate: task.endDate ? new Date(task.endDate).toISOString() : null,
         }));
       setTasks(mappedTasks);
     } catch (err) {
@@ -172,14 +176,14 @@ const Timeline = () => {
               </div>
 
               <div className="timeline-date">
-                {task.dueDate
-                  ? new Date(task.dueDate).toLocaleDateString()
+                {task.endDate
+                  ? new Date(task.endDate).toLocaleDateString()
                   : "Not set"}
               </div>
 
               <div className="timeline-duration">
                 <Clock />
-                <span>{getTaskDuration(task.startDate, task.dueDate)}</span>
+                <span>{getTaskDuration(task.startDate, task.endDate)}</span>
               </div>
 
               <div className="timeline-bar-container">
