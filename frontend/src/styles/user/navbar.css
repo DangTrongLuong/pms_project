@@ -100,6 +100,23 @@
   height: 35px;
   border-radius: 5px;
   opacity: 0.7;
+  position: relative;
+}
+
+.number-notification {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 15px;
+  height: 15px;
+  top: 3px;
+  right: -3px;
+  background-color: red;
+  color: white;
+  border-radius: 50%;
+  font-size: 12px;
+  margin: 0 5px;
 }
 
 .profile-item .profile-name {
@@ -293,13 +310,33 @@ body.dark-mode .theme-option svg {
   .profile-container .menu-icon:hover {
     background-color: rgb(216, 216, 216, 0.5);
   }
-
+  .profile-response {
+    display: flex;
+    width: 80px;
+    gap: 10px;
+    margin-left: -40px;
+  }
+  .profile-response .profile-icon {
+    width: 45px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  .profile-response .profile-icon:hover {
+    background-color: #949494;
+  }
+  .profile-response .profile-icon .number-notification {
+    position: absolute;
+  }
   .profile-container .profile-item {
     display: none;
   }
 
   .navbar-input {
-    width: 250px;
+    width: 200px;
     height: 35px;
     margin: 7px 0 0 15px;
     border-radius: 5px;
@@ -308,7 +345,7 @@ body.dark-mode .theme-option svg {
   }
 
   .navbar-input input {
-    width: 200px;
+    width: 150px;
     padding: 0 3px;
     margin-left: -5px;
   }

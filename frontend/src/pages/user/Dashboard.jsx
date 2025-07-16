@@ -20,6 +20,7 @@ const DashboardContent = () => {
   const { isSidebarOpen } = useSidebar();
   const [projectCount, setProjectCount] = useState(0);
   const [userCount, setUserCount] = useState(0);
+  const [taskCount, setTaskCount] = useState(0);
   const [totalTasks, setTotalTasks] = useState(0);
   const [overdueTasks, setOverdueTasks] = useState(0);
   const userId = localStorage.getItem("userId");
@@ -71,6 +72,17 @@ const DashboardContent = () => {
           }
         );
         setUserCount(userResponse.data);
+
+        const taskResponse = await axios.get(
+          `${process.env.REACT_APP_API_URL}/api/sprints/count`,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              userId: userId,
+            },
+          }
+        );
+        setTaskCount(taskResponse.data);
 
         setTotalTasks(100);
         setOverdueTasks(15);
@@ -128,7 +140,7 @@ const DashboardContent = () => {
                 <h2>Total Tasks</h2>
                 <div className="color-block-task"></div>
               </div>
-              <p className="count">{totalTasks}</p>
+              <p className="count">{taskCount}</p>
               <p className="des-card">Across all projects</p>
             </div>
             <div className="overview-card">

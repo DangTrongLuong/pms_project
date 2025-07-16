@@ -123,7 +123,13 @@ const Navbar = () => {
 
   return (
     <div className="navbar-container">
-      <div className="navbar-icon-fa-angles" onClick={toggleSidebar}>
+      <div
+        className="navbar-icon-fa-angles"
+        onClick={() => {
+          console.log("Toggle sidebar clicked");
+          toggleSidebar();
+        }}
+      >
         <FontAwesomeIcon icon={isSidebarOpen ? faAnglesLeft : faAnglesRight} />
       </div>
       <div className="navbar-logo">
@@ -141,17 +147,20 @@ const Navbar = () => {
       <div className="profile-container">
         {window.innerWidth <= 768 ? (
           <>
-            <div className="menu-icon" onClick={toggleProfile}>
-              <FontAwesomeIcon icon={faEllipsisV} />
+            <div className="profile-response">
+              <div className="profile-icon">
+                <FontAwesomeIcon icon={faBell} />
+                <div className="number-notification">11</div>
+              </div>
+              <div className="menu-icon" onClick={toggleProfile}>
+                <FontAwesomeIcon icon={faEllipsisV} />
+              </div>
             </div>
             {isProfileOpen && (
               <div
                 className={`profile-dropdown ${isProfileOpen ? "active" : ""}`}
               >
                 <div className="profile-item">
-                  <div className="profile-icon">
-                    <FontAwesomeIcon icon={faBell} />
-                  </div>
                   <div className="profile-name">
                     <p id="name">{userName}</p>
                   </div>
@@ -179,7 +188,7 @@ const Navbar = () => {
                           <FontAwesomeIcon icon={faUser} />
                           Personal Information
                         </li>
-                        
+
                         <li
                           className="profile-dropdown-list-item"
                           onClick={handleLogout}
@@ -189,7 +198,6 @@ const Navbar = () => {
                         </li>
                       </ul>
                     </div>
-                    
                   </>
                 )}
               </div>
@@ -199,7 +207,9 @@ const Navbar = () => {
           <div className="profile-item">
             <div className="profile-icon">
               <FontAwesomeIcon icon={faBell} />
+              <div className="number-notification">11</div>
             </div>
+
             <div className="profile-name">
               <p id="name">{userName}</p>
             </div>
@@ -228,7 +238,7 @@ const Navbar = () => {
                   <FontAwesomeIcon icon={faUser} />
                   Personal infomation
                 </li>
-                
+
                 <li
                   className="profile-dropdown-list-item"
                   onClick={handleLogout}
@@ -238,7 +248,6 @@ const Navbar = () => {
                 </li>
               </ul>
             </div>
-            
           </div>
         )}
       </div>
