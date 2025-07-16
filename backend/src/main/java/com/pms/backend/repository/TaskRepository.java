@@ -9,4 +9,5 @@ public interface TaskRepository extends JpaRepository<Task, Integer> {
     List<Task> findBySprintId(Integer sprintId);
     List<Task> findBySprintIsNullAndProject_Id(Integer projectId);
     Optional<Task> findByIdAndProject_Id(Integer taskId, Integer projectId);
+    
 }
