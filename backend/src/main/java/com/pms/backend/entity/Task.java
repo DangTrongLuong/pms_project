@@ -31,8 +31,11 @@ public class Task {
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private User assignee;
 
-    @Column(name = "due_date")
-    private LocalDateTime dueDate;
+    @Column(name = "start_date")
+    private LocalDateTime startDate;
+
+    @Column(name = "end_date")
+    private LocalDateTime endDate;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
