@@ -11,4 +11,5 @@ import com.pms.backend.entity.Comment;
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     List<Comment> findByDocumentId(Long documentId);
+    List<Comment> findByTaskId(Integer taskId);
 }

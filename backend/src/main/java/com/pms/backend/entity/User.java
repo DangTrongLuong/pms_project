@@ -54,4 +54,8 @@ public class User {
     LocalDate createdAt;
 
     int project_id;
+
+    public String getAvatarUrl() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 }

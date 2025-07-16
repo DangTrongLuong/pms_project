@@ -110,7 +110,7 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
         </div>
         <form onSubmit={handleSubmit} className="create-sprint-modal-content">
           <div className="create-sprint-form-group">
-            <label className="create-sprint-form-label">Sprint Name *</label>
+            <label className="create-sprint-form-label">Sprint Name <span style={{ color: "red" }}>*</span> </label>
             <input
               type="text"
               required
@@ -127,7 +127,7 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
           </div>
           <div className="create-sprint-form-grid">
             <div className="create-sprint-form-group">
-              <label className="create-sprint-form-label">Start Date *</label>
+              <label className="create-sprint-form-label">Start Date <span style={{ color: "red" }}>*</span> </label>
               <input
                 type="date"
                 required
@@ -143,7 +143,7 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
               />
             </div>
             <div className="create-sprint-form-group">
-              <label className="create-sprint-form-label">End Date *</label>
+              <label className="create-sprint-form-label">End Date <span style={{ color: "red" }}>*</span> </label>
               <input
                 type="date"
                 required

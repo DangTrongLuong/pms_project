@@ -280,10 +280,11 @@ const Create_Project_Content = () => {
                 <div className="date">
                   <div className="create-project-input start-date">
                     <label htmlFor="start_date">
-                      Ngày bắt đầu <span style={{ color: "red" }}>*</span>
+                      Start date <span style={{ color: "red" }}>*</span>
                     </label>
                     <input
                       type="date"
+                      required
                       id="start_date"
                       value={formData.start_date}
                       onChange={handleDateChange}
@@ -303,10 +304,11 @@ const Create_Project_Content = () => {
                   </div>
                   <div className="create-project-input end-date">
                     <label htmlFor="end_date">
-                      Ngày kết thúc <span style={{ color: "red" }}>*</span>
+                      End date <span style={{ color: "red" }}>*</span>
                     </label>
                     <input
                       type="date"
+                      required
                       id="end_date"
                       value={formData.end_date}
                       onChange={handleDateChange}

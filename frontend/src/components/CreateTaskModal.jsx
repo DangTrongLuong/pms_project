@@ -333,7 +333,32 @@ const CreateTaskModal = ({
               )}
             </div>
           </div>
-          <div className="create-task-form-group create-task-form-grid">
+          
+            <div className="create-task-form-group">
+              <label className="create-task-form-label">Start Date<span style={{ color: "red" }}>*</span></label>
+              <input
+                type="datetime-local"
+                required
+                value={formData.startDate}
+                onChange={(e) =>
+                  setFormData({ ...formData, startDate: e.target.value })
+                }
+                className="create-task-form-input"
+              />
+            </div>
+            <div className="create-task-form-group">
+              <label className="create-task-form-label">End Date<span style={{ color: "red" }}>*</span></label>
+              <input
+                type="datetime-local"
+                required
+                value={formData.endDate}
+                onChange={(e) =>
+                  setFormData({ ...formData, endDate: e.target.value })
+                }
+                className="create-task-form-input"
+              />
+            </div>
+            <div className="create-task-form-group create-task-form-grid">
             <div className="create-task-form-group">
               <label className="create-task-form-label">Priority</label>
               <select
@@ -347,28 +372,6 @@ const CreateTaskModal = ({
                 <option value="Medium">Medium</option>
                 <option value="High">High</option>
               </select>
-            </div>
-            <div className="create-task-form-group">
-              <label className="create-task-form-label">Start Date</label>
-              <input
-                type="datetime-local"
-                value={formData.startDate}
-                onChange={(e) =>
-                  setFormData({ ...formData, startDate: e.target.value })
-                }
-                className="create-task-form-input"
-              />
-            </div>
-            <div className="create-task-form-group">
-              <label className="create-task-form-label">End Date</label>
-              <input
-                type="datetime-local"
-                value={formData.endDate}
-                onChange={(e) =>
-                  setFormData({ ...formData, endDate: e.target.value })
-                }
-                className="create-task-form-input"
-              />
             </div>
           </div>
           <div className="create-task-form-actions">

@@ -23,16 +23,27 @@ public class CommentController {
     private CommentService commentService;
 
     @PostMapping
-    public ResponseEntity<Comment> addComment(@RequestParam Long documentId,
+    public ResponseEntity<?> addComment(
+            @RequestParam(value = "documentId", required = false) Long documentId,
+            @RequestParam(value = "taskId", required = false) Integer taskId,
             @RequestParam String content,
             @RequestHeader("userId") String userId) {
-        Comment comment = commentService.addComment(documentId, content, userId);
+        if (documentId == null && taskId == null) {
+            return ResponseEntity.badRequest().body("Phải cung cấp documentId hoặc taskId");
+        }
+        Comment comment = commentService.addComment(documentId, taskId, content, userId);
         return ResponseEntity.ok(comment);
     }
 
     @GetMapping("/{documentId}")
     public ResponseEntity<List<Comment>> getCommentsByDocumentId(@PathVariable Long documentId) {
         List<Comment> comments = commentService.getCommentsByDocumentId(documentId);
+        return ResponseEntity.ok(comments);
+    }
+
+    @GetMapping("/task/{taskId}")
+    public ResponseEntity<List<Comment>> getCommentsByTaskId(@PathVariable Integer taskId) {
+        List<Comment> comments = commentService.getCommentsByTaskId(taskId);
         return ResponseEntity.ok(comments);
     }
 }

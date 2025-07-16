@@ -37,6 +37,10 @@ public class Comment {
     Document document;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "task_id")
+    Task task;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     User user;
 

@@ -43,6 +43,10 @@ public class Document {
     @JoinColumn(name = "project_id", nullable = false)
     Project project;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "task_id")
+    Task task;
+
     @Column
     LocalDateTime uploadedAt;
 }
