@@ -22,13 +22,18 @@ const CreateTaskModal = ({
     projectId: selectedProject?.id || null,
     sprintId: activeSprintId || null,
   });
-
   const [isSuggesting, setIsSuggesting] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
   const [localSuggestedMembers, setLocalSuggestedMembers] =
     useState(suggestedMembers);
   const assigneeInputRef = useRef(null);
   const dropdownRef = useRef(null);
+
+  // Lấy ngày hiện tại theo định dạng ISO cho thuộc tính min
+  const getCurrentDateTime = () => {
+    const now = new Date();
+    return now.toISOString().slice(0, 16); // Định dạng YYYY-MM-DDThh:mm
+  };
 
   useEffect(() => {
     if (editingTask) {
@@ -123,7 +128,7 @@ const CreateTaskModal = ({
     setFormData({ ...formData, assigneeEmail: member.email });
     setSelectedMember(member);
     setIsSuggesting(false);
-    assigneeInputRef.current.focus();
+    assigneeInputRef.current?.focus();
   };
 
   const handleSubmit = async (e) => {
@@ -225,7 +230,7 @@ const CreateTaskModal = ({
               className="create-task-form-select"
             >
               <option value="">Backlog</option>
-              {sprints.map((sprint) => (
+              {sprints?.map((sprint) => (
                 <option key={sprint.id} value={sprint.id}>
                   {sprint.name} ({sprint.status})
                 </option>
@@ -357,6 +362,7 @@ const CreateTaskModal = ({
                 onChange={(e) =>
                   setFormData({ ...formData, startDate: e.target.value })
                 }
+                min={getCurrentDateTime()} // Giới hạn ngày trong quá khứ
                 className="create-task-form-input"
               />
             </div>
@@ -368,6 +374,7 @@ const CreateTaskModal = ({
                 onChange={(e) =>
                   setFormData({ ...formData, endDate: e.target.value })
                 }
+                min={getCurrentDateTime()} // Giới hạn ngày trong quá khứ
                 className="create-task-form-input"
               />
             </div>

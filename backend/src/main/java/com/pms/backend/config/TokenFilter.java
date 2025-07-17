@@ -42,6 +42,7 @@ public class TokenFilter extends OncePerRequestFilter {
                 || path.startsWith("/api/members/")
                 || path.startsWith("/api/sprints/")
                 || path.startsWith("/api/notifications/")
+                || path.startsWith("/api/documents/")
                 || path.startsWith("/api/admin/auth/login")
                 || path.startsWith("/oauth2/")
                 || path.startsWith("/login/oauth2/code/")) {
