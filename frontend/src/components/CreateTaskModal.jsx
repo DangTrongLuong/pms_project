@@ -29,6 +29,12 @@ const CreateTaskModal = ({
   const assigneeInputRef = useRef(null);
   const dropdownRef = useRef(null);
 
+  // Lấy ngày hiện tại theo định dạng ISO cho thuộc tính min
+  const getCurrentDateTime = () => {
+    const now = new Date();
+    return now.toISOString().slice(0, 16); // Định dạng YYYY-MM-DDThh:mm
+  };
+
   useEffect(() => {
     if (editingTask) {
       setFormData({
@@ -356,6 +362,7 @@ const CreateTaskModal = ({
                 onChange={(e) =>
                   setFormData({ ...formData, startDate: e.target.value })
                 }
+                min={getCurrentDateTime()} // Giới hạn ngày trong quá khứ
                 className="create-task-form-input"
               />
             </div>
@@ -367,6 +374,7 @@ const CreateTaskModal = ({
                 onChange={(e) =>
                   setFormData({ ...formData, endDate: e.target.value })
                 }
+                min={getCurrentDateTime()} // Giới hạn ngày trong quá khứ
                 className="create-task-form-input"
               />
             </div>

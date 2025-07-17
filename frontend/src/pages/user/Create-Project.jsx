@@ -1,11 +1,10 @@
-/* eslint-disable react/jsx-pascal-case */
 import React, { useEffect, useState } from "react";
 import { SidebarProvider, useSidebar } from "../../context/SidebarContext";
 import { useNavigate } from "react-router-dom";
 import "../../styles/user/dashboard.css";
+import "../../styles/user/create-project.css";
 import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
-import "../../styles/user/create-project.css";
 
 const Create_Project_Content = () => {
   const { isSidebarOpen, setProjectsSidebar } = useSidebar();
@@ -25,6 +24,12 @@ const Create_Project_Content = () => {
     start_date: "",
     end_date: "",
   });
+
+  // Lấy ngày hiện tại theo định dạng YYYY-MM-DD
+  const getCurrentDate = () => {
+    const now = new Date();
+    return now.toISOString().slice(0, 10); // Định dạng YYYY-MM-DD
+  };
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
@@ -287,6 +292,7 @@ const Create_Project_Content = () => {
                       id="start_date"
                       value={formData.start_date}
                       onChange={handleDateChange}
+                      min={getCurrentDate()} // Giới hạn ngày trong quá khứ
                     />
                     {errors.start_date && (
                       <p
@@ -310,6 +316,7 @@ const Create_Project_Content = () => {
                       id="end_date"
                       value={formData.end_date}
                       onChange={handleDateChange}
+                      min={getCurrentDate()} // Giới hạn ngày trong quá khứ
                     />
                     {errors.end_date && (
                       <p
