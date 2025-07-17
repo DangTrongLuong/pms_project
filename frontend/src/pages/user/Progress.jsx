@@ -29,26 +29,31 @@ const Progress = () => {
     taskId: null,
     suggestedMembers: [],
   });
-  const dropdownRef = useRef(null);
-  const accessToken = localStorage.getItem("accessToken");
+  const dropdownRefs = useRef({});
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        console.log(
-          "Closing dropdown due to click outside, taskMenuOpen:",
-          taskMenuOpen
-        );
+      const menuRef = dropdownRefs.current[taskMenuOpen];
+      if (taskMenuOpen && menuRef && !menuRef.contains(event.target)) {
+        console.log("Closing dropdown for task:", taskMenuOpen);
         setTaskMenuOpen(null);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+
+    const timeoutId = setTimeout(() => {
+      document.addEventListener("mousedown", handleClickOutside);
+    }, 0);
+
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, [taskMenuOpen]);
 
   const fetchMembers = useCallback(async () => {
     try {
       const userId = localStorage.getItem("userId");
+      const accessToken = localStorage.getItem("accessToken");
       if (!userId || !accessToken) {
         throw new Error("User not authenticated");
       }
@@ -72,7 +77,7 @@ const Progress = () => {
     } catch (err) {
       console.error("Fetch members error:", err);
     }
-  }, [id, accessToken]);
+  }, [id]);
 
   useEffect(() => {
     if (projects.length > 0) {
@@ -86,6 +91,7 @@ const Progress = () => {
     if (!selectedProject) return;
     try {
       const userId = localStorage.getItem("userId");
+      const accessToken = localStorage.getItem("accessToken");
       if (!userId || !accessToken) {
         throw new Error("Vui lòng đăng nhập lại để tiếp tục");
       }
@@ -153,7 +159,7 @@ const Progress = () => {
         setTimeout(() => (window.location.href = "/login"), 2000);
       }
     }
-  }, [selectedProject, accessToken]);
+  }, [selectedProject]);
 
   useEffect(() => {
     fetchSprintsAndTasks();
@@ -162,6 +168,7 @@ const Progress = () => {
   const handleAddTask = async (newTask) => {
     try {
       const userId = localStorage.getItem("userId");
+      const accessToken = localStorage.getItem("accessToken");
       if (!userId || !accessToken || !activeSprint) {
         throw new Error("Vui lòng đăng nhập lại hoặc bắt đầu một sprint");
       }
@@ -213,6 +220,7 @@ const Progress = () => {
   const handleUpdateTask = async (taskId, updatedTask) => {
     try {
       const userId = localStorage.getItem("userId");
+      const accessToken = localStorage.getItem("accessToken");
       if (!userId || !accessToken) {
         throw new Error("Vui lòng đăng nhập lại để tiếp tục");
       }
@@ -273,6 +281,7 @@ const Progress = () => {
   const handleUpdateTaskStatus = async (taskId, newStatus) => {
     try {
       const userId = localStorage.getItem("userId");
+      const accessToken = localStorage.getItem("accessToken");
       if (!userId || !accessToken) {
         throw new Error("Vui lòng đăng nhập lại để tiếp tục");
       }
@@ -332,6 +341,7 @@ const Progress = () => {
   const handleUpdateTaskAssignee = async (taskId, assigneeEmail) => {
     try {
       const userId = localStorage.getItem("userId");
+      const accessToken = localStorage.getItem("accessToken");
       if (!userId || !accessToken) {
         throw new Error("Vui lòng đăng nhập lại để tiếp tục");
       }
@@ -374,6 +384,7 @@ const Progress = () => {
   const handleAutoAssign = async (taskId) => {
     try {
       const userId = localStorage.getItem("userId");
+      const accessToken = localStorage.getItem("accessToken");
       if (!userId || !accessToken) {
         throw new Error("Vui lòng đăng nhập lại để tiếp tục");
       }
@@ -416,6 +427,7 @@ const Progress = () => {
   const handleDeleteTask = async (task) => {
     try {
       const userId = localStorage.getItem("userId");
+      const accessToken = localStorage.getItem("accessToken");
       if (!userId || !accessToken) {
         throw new Error("Vui lòng đăng nhập lại để tiếp tục");
       }
@@ -452,6 +464,7 @@ const Progress = () => {
   const fetchProjectMembers = async (taskId) => {
     try {
       const userId = localStorage.getItem("userId");
+      const accessToken = localStorage.getItem("accessToken");
       if (!userId || !accessToken) {
         throw new Error("Vui lòng đăng nhập lại để tiếp tục");
       }
@@ -551,6 +564,18 @@ const Progress = () => {
       (task) => filterPriority === "all" || task.priority === filterPriority
     );
 
+  const handleTaskCardClick = (e, task) => {
+    if (
+      !e.target.closest(".task-more-btn") &&
+      !e.target.closest(".task-dropdown-menu") &&
+      !e.target.closest(".assignee-avatar") &&
+      !e.target.closest(".assign-user-button")
+    ) {
+      console.log("Task card clicked, opening modal for task:", task.id);
+      setSelectedTask(task);
+    }
+  };
+
   const groupTasks = () => {
     if (groupBy === "status") {
       return [
@@ -591,19 +616,6 @@ const Progress = () => {
         grouped[key].tasks.push(task);
       });
       return Object.values(grouped);
-    }
-  };
-
-  const handleTaskCardClick = (e, task) => {
-    // Chỉ mở modal chỉnh sửa nếu click ngoài nút ba chấm và các nút con
-    if (
-      !e.target.closest(".task-more-btn") &&
-      !e.target.closest(".task-dropdown-menu") &&
-      !e.target.closest(".assignee-avatar") &&
-      !e.target.closest(".assign-user-button")
-    ) {
-      console.log("Task card clicked, opening modal for task:", task.id);
-      setSelectedTask(task);
     }
   };
 
@@ -914,7 +926,9 @@ const Progress = () => {
                                 </h4>
                                 <div
                                   className="task-menu-container"
-                                  ref={dropdownRef}
+                                  ref={(el) => {
+                                    if (el) dropdownRefs.current[task.id] = el;
+                                  }}
                                 >
                                   <button
                                     className="task-more-btn"
