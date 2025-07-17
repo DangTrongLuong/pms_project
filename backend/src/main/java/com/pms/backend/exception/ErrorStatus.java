@@ -21,6 +21,8 @@ public enum ErrorStatus {
     INVALID_TASK_STATUS(400, "Trạng thái nhiệm vụ không hợp lệ!"), // Thêm mới
     TASK_CREATION_FAILED(400, "Tạo nhiệm vụ thất bại!"),
     PROJECT_DELETE_FAILED(400, "Xóa dự án thất bại!"),
+    NOTIFICATION_NOT_FOUND(400, "Notification not found"),
+    NOTIFICATION_CREATION_FAILED(400, "Create failed"),
     PROJECT_UPDATE_FAILED(400, "Cập nhật dự án thất bại!");
 
     private final int status;

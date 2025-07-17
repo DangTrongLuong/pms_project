@@ -1,5 +1,5 @@
 package com.pms.backend.entity;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -25,13 +25,18 @@ public class Notification {
     @Column(name = "notify_id", updatable = false, nullable = false)
     int id;
     String message;
-    LocalDate created_At;
+    LocalDateTime created_At;
     String user_id;
     String user_name;
-    String user_id_;
+    String user_email;
+    @Column(name = "user_avatar_url")
+    String userAvatarUrl;
+    String recipient_id;
+    String recipient_email;
+    String recipient_name;
     String type;
     String status;
-    String avatarUrl;
-    
+    String recipient_avatarUrl;
+
 
 }

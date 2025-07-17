@@ -143,49 +143,76 @@ const ProjectCard = ({
   onActionClick,
   canManageMembers,
   currentUserEmail,
+  onDeleteClick,
+  currentUser,
 }) => {
   const leadName = project.leader || "Unknown";
   const membersList = (project.members || "").split(", ").filter(Boolean);
+  const memberColors = useRef({});
+
+  const generateLightColor = () => {
+    const r = Math.floor(Math.random() * 156) + 100; // 100–255
+    const g = Math.floor(Math.random() * 156) + 100;
+    const b = Math.floor(Math.random() * 156) + 100;
+    return `rgb(${r}, ${g}, ${b})`;
+  };
 
   return (
     <div className="project-card" onClick={() => onViewDetails(project.id)}>
-      <h3 className="project-card-title">
-        {project.project_name || "Unnamed Project"}
-      </h3>
-      <div className="project-type-badge">
-        {mapTypeToFrontend(project.project_type)}
+      <div className="name-button-change">
+        <div className="project-card-title">
+          <h3>{project.project_name || "Unnamed Project"}</h3>
+        </div>
+        <div className="project-type-badge">
+          ({mapTypeToFrontend(project.project_type)})
+        </div>
       </div>
+
       <p className="project-card-description">
-        {project.description || "No description"}
+        Description: {project.description || "No description"}
       </p>
       <div className="project-card-footer">
         <div className="project-card-date">
           Start: {formatDate(project.start_date)}
         </div>
         <div className="project-lead">
-          <div className="lead-avatar">{getInitials(leadName)}</div>
-          <span>{leadName}</span>
+          <div className="lead-avatar">
+            Leader: <span>{leadName}</span>
+          </div>
         </div>
       </div>
       <div className="project-team">
         <div className="team-label">Members</div>
         <div className="team-avatars">
-          {membersList.slice(0, 4).map((member, index) => (
-            <div key={index} className="team-avatar" title={member}>
-              {getInitials(member)}
-              {canManageMembers && member !== currentUserEmail && (
-                <div className="action-delete-change">
-                  <FontAwesomeIcon
-                    icon={faEllipsis}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onActionClick(project.id, member, e);
-                    }}
-                  />
-                </div>
-              )}
-            </div>
-          ))}
+          {membersList.slice(0, 4).map((member, index) => {
+            if (!memberColors.current[member]) {
+              memberColors.current[member] = generateLightColor();
+            }
+            return (
+              <div
+                key={index}
+                className="team-avatar"
+                title={member}
+                style={{
+                  backgroundColor: memberColors.current[member],
+                  color: "#000",
+                }}
+              >
+                {getInitials(member)}
+                {canManageMembers && member !== currentUserEmail && (
+                  <div className="action-delete-change">
+                    <FontAwesomeIcon
+                      icon={faEllipsis}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onActionClick(project.id, member, e);
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            );
+          })}
           {membersList.length > 4 && (
             <div
               className="team-avatar team-more"
@@ -196,6 +223,18 @@ const ProjectCard = ({
           )}
         </div>
       </div>
+      {currentUser === leadName && (
+        <div className="btn-delete-card">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDeleteClick(project.id);
+            }}
+          >
+            Delete Project
+          </button>
+        </div>
+      )}
     </div>
   );
 };
@@ -210,6 +249,8 @@ const ProjectsList = ({
   handleActionClick,
   canManageMembers,
   currentUserEmail,
+  onDeleteClick,
+  currentUser,
 }) => {
   if (loading) {
     return (
@@ -247,6 +288,8 @@ const ProjectsList = ({
           onActionClick={handleActionClick}
           canManageMembers={canManageMembers(project.id)}
           currentUserEmail={currentUserEmail}
+          onDeleteClick={onDeleteClick}
+          currentUser={currentUser}
         />
       ))}
     </div>
@@ -269,10 +312,12 @@ const MyProjects = () => {
   const [actionMenu, setActionMenu] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [transferConfirm, setTransferConfirm] = useState(null);
+  const [deleteProjectConfirm, setDeleteProjectConfirm] = useState(null);
   const [members, setMembers] = useState({});
   const [loading, setLoading] = useState(true);
   const actionRef = useRef(null);
   const currentUserEmail = localStorage.getItem("userEmail");
+  const currentUser = localStorage.getItem("userName");
 
   useEffect(() => {
     window.progressCallback = (navigateCallback) => {
@@ -605,6 +650,68 @@ const MyProjects = () => {
     }
   };
 
+  const handleDeleteProject = async (projectId) => {
+    try {
+      const userId = localStorage.getItem("userId");
+      const accessToken = localStorage.getItem("accessToken");
+
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/api/projects/${projectId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+            userId: userId,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || "Failed to delete project");
+      }
+
+      // Refresh project list
+      const fetchResponse = await fetch(
+        `${process.env.REACT_APP_API_URL}/api/projects/my-projects`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+            userId: userId,
+          },
+        }
+      );
+
+      const data = await fetchResponse.json();
+      if (fetchResponse.ok) {
+        const mappedProjects = data.map((project) => ({
+          ...project,
+          status: mapStatusToFrontend(project.status || "PLANNING"),
+          project_type: project.project_type || "kanban",
+          progress: project.progress || 0,
+        }));
+        setProjects(mappedProjects);
+        setFilteredProjects(mappedProjects);
+        setProjectsSidebar(mappedProjects);
+        localStorage.setItem("projects", JSON.stringify(mappedProjects));
+      } else {
+        throw new Error(data.message || "Failed to fetch projects");
+      }
+
+      setDeleteProjectConfirm(null);
+    } catch (err) {
+      setError(err.message || "Error deleting project");
+      console.error("Delete project error:", err);
+    }
+  };
+
+  const handleDeleteClick = (projectId) => {
+    setDeleteProjectConfirm({ projectId });
+  };
+
   const isLeader = (projectId, email) => {
     const projectMembers = members[projectId] || [];
     const member = projectMembers.find((m) => m.email === email);
@@ -623,7 +730,7 @@ const MyProjects = () => {
   };
 
   const handleViewDetails = (projectId) => {
-    handleItemClick(`/project-task/${projectId}/progress`);
+    handleItemClick(`/project-task/${projectId}/backlog`);
   };
 
   const statusOptions = [
@@ -632,13 +739,6 @@ const MyProjects = () => {
     { value: "Completed", label: "Completed", icon: "fas fa-check-circle" },
     { value: "On Hold", label: "On Hold", icon: "fas fa-pause-circle" },
     { value: "Planning", label: "Planning", icon: "fas fa-clock" },
-  ];
-
-  const typeOptions = [
-    { value: "all", label: "All Types", icon: "fas fa-th" },
-    { value: "Kanban", label: "Kanban", icon: "fas fa-columns" },
-    { value: "Scrum", label: "Scrum", icon: "fas fa-bolt" },
-    { value: "Simple", label: "Simple", icon: "fas fa-check-circle" },
   ];
 
   const sortOptions = [
@@ -713,14 +813,6 @@ const MyProjects = () => {
                   options={statusOptions}
                   selected={statusFilter}
                   onSelect={setStatusFilter}
-                  r
-                  className="filter-dropdown"
-                />
-                <Dropdown
-                  label="Filter by Type"
-                  options={typeOptions}
-                  selected={typeFilter}
-                  onSelect={setTypeFilter}
                   className="filter-dropdown"
                 />
                 <Dropdown
@@ -743,6 +835,8 @@ const MyProjects = () => {
                 handleActionClick={handleActionClick}
                 canManageMembers={canManageMembers}
                 currentUserEmail={currentUserEmail}
+                onDeleteClick={handleDeleteClick}
+                currentUser={currentUser}
               />
             </div>
 
@@ -837,6 +931,34 @@ const MyProjects = () => {
                   </div>
                 </div>
               )}
+
+            {deleteProjectConfirm && (
+              <div className="modal-overlay">
+                <div className="confirm-dialog">
+                  <h3>Confirm Project Deletion</h3>
+                  <p>
+                    Are you sure you want to delete this project? This action
+                    cannot be undone.
+                  </p>
+                  <div className="form-buttons">
+                    <button
+                      onClick={() => setDeleteProjectConfirm(null)}
+                      className="cancel-button"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() =>
+                        handleDeleteProject(deleteProjectConfirm.projectId)
+                      }
+                      className="confirm-button"
+                    >
+                      Confirm
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

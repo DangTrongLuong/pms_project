@@ -6,6 +6,7 @@ import "../../styles/user/dashboard.css";
 import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
 import "../../styles/user/create-project.css";
+import newProject from "../../assets/new_project.jpg";
 
 const Create_Project_Content = () => {
   const { isSidebarOpen, setProjectsSidebar } = useSidebar();
@@ -230,12 +231,17 @@ const Create_Project_Content = () => {
         <div className={`main-container ${!isSidebarOpen ? "full" : ""}`}>
           <div className="create-project-container">
             <div className="create-project-header">
-              <div className="create-project-title">
-                <h2>Create New Project</h2>
-                <p>
-                  Fill in the project details below to complete the project
-                  creation
-                </p>
+              <div className="create-project-header-title">
+                <div className="create-project-title">
+                  <h2>Create New Project</h2>
+                  <p>
+                    Fill in the project details next to complete the project
+                    creation
+                  </p>
+                </div>
+                <div className="create-project-header-image">
+                  <img src={newProject} />
+                </div>
               </div>
               {errors.general && (
                 <p style={{ color: "red" }}>{errors.general}</p>
@@ -265,66 +271,69 @@ const Create_Project_Content = () => {
                     </p>
                   )}
                 </div>
-                <div className="create-project-input">
-                  <label htmlFor="project-description">
-                    Project Description
-                  </label>
-                  <textarea
-                    id="project-description"
-                    placeholder="Project Description"
-                    rows="3"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div className="date">
-                  <div className="create-project-input start-date">
-                    <label htmlFor="start_date">
-                      Ngày bắt đầu <span style={{ color: "red" }}>*</span>
+                <div className="create-project-input-time">
+                  <div className="pro-des">
+                    <label htmlFor="project-description">
+                      Project Description
                     </label>
-                    <input
-                      type="date"
-                      id="start_date"
-                      value={formData.start_date}
-                      onChange={handleDateChange}
+                    <textarea
+                      id="project-description"
+                      placeholder="Project Description"
+                      rows="3"
+                      value={formData.description}
+                      onChange={handleInputChange}
                     />
-                    {errors.start_date && (
-                      <p
-                        style={{
-                          color: "red",
-                          marginTop: -12,
-                          marginBottom: 6,
-                          fontSize: 15,
-                        }}
-                      >
-                        {errors.start_date}
-                      </p>
-                    )}
                   </div>
-                  <div className="create-project-input end-date">
-                    <label htmlFor="end_date">
-                      Ngày kết thúc <span style={{ color: "red" }}>*</span>
-                    </label>
-                    <input
-                      type="date"
-                      id="end_date"
-                      value={formData.end_date}
-                      onChange={handleDateChange}
-                    />
-                    {errors.end_date && (
-                      <p
-                        style={{
-                          color: "red",
-                          marginTop: -12,
-                          marginBottom: 6,
-                          fontSize: 15,
-                        }}
-                      >
-                        {errors.end_date}
-                      </p>
-                    )}
+                  <div className="date">
+                    <div className="create-project-input-time start-date">
+                      <label htmlFor="start_date">
+                        Start Date <span style={{ color: "red" }}>*</span>
+                      </label>
+                      <input
+                        type="date"
+                        id="start_date"
+                        value={formData.start_date}
+                        onChange={handleDateChange}
+                      />
+                      {errors.start_date && (
+                        <p
+                          style={{
+                            color: "red",
+                            marginTop: -12,
+                            marginBottom: 6,
+                            fontSize: 15,
+                          }}
+                        >
+                          {errors.start_date}
+                        </p>
+                      )}
+                    </div>
+                    <div className="create-project-input-time end-date">
+                      <label htmlFor="end_date">
+                        End Date <span style={{ color: "red" }}>*</span>
+                      </label>
+                      <input
+                        type="date"
+                        id="end_date"
+                        value={formData.end_date}
+                        onChange={handleDateChange}
+                      />
+                      {errors.end_date && (
+                        <p
+                          style={{
+                            color: "red",
+                            marginTop: -12,
+                            marginBottom: 6,
+                            fontSize: 15,
+                          }}
+                        >
+                          {errors.end_date}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
+
                 <div className="create-project-input-type">
                   <label htmlFor="project-type">
                     Project Type <span style={{ color: "red" }}>*</span>
@@ -338,7 +347,7 @@ const Create_Project_Content = () => {
                     />
                     <div className="type">
                       <h3>Scrum</h3>
-                      <p>
+                      <p style={{ fontSize: "15px" }}>
                         Move quickly toward your project goals with boards,
                         backlogs, and timelines
                       </p>

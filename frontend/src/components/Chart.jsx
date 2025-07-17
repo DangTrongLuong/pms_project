@@ -5,35 +5,105 @@ import React, {
   forwardRef,
   useImperativeHandle,
 } from "react";
-import { Bar } from "react-chartjs-2";
+import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
-  BarElement,
   LineElement,
   PointElement,
   Title,
   Tooltip,
   Legend,
+  Filler,
 } from "chart.js";
 import axios from "axios";
 import html2pdf from "html2pdf.js";
 
+// Crosshair plugin
+const crosshairPlugin = {
+  id: "crosshair",
+  defaults: {
+    width: 1,
+    color: "rgba(0, 0, 0, 0.5)",
+    dash: [5, 5],
+  },
+  afterInit: (chart) => {
+    chart.crosshair = {
+      x: 0,
+      y: 0,
+      draw: false,
+    };
+  },
+  afterEvent: (chart, args) => {
+    const { inChartArea } = args;
+    const { type, x, y } = args.event;
+
+    // Ensure crosshair object exists
+    if (!chart.crosshair) {
+      chart.crosshair = {
+        x: 0,
+        y: 0,
+        draw: false,
+      };
+    }
+
+    chart.crosshair = {
+      x,
+      y,
+      draw: inChartArea,
+    };
+
+    if (type === "mouseout") {
+      chart.crosshair.draw = false;
+    }
+
+    chart.draw();
+  },
+  beforeDatasetsDraw: (chart) => {
+    const { ctx } = chart;
+    const { top, bottom, left, right } = chart.chartArea;
+
+    // Check if crosshair exists and is enabled
+    if (!chart.crosshair || !chart.crosshair.draw) return;
+
+    const { x, y } = chart.crosshair;
+
+    ctx.save();
+
+    ctx.beginPath();
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "rgba(0, 0, 0, 0.6)";
+    ctx.setLineDash([3, 3]);
+
+    // Draw vertical line
+    ctx.moveTo(x, top);
+    ctx.lineTo(x, bottom);
+
+    // Draw horizontal line
+    ctx.moveTo(left, y);
+    ctx.lineTo(right, y);
+
+    ctx.stroke();
+    ctx.restore();
+  },
+};
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
-  BarElement,
   LineElement,
   PointElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  Filler,
+  crosshairPlugin
 );
 
 const Chart = forwardRef(({ type = "projects" }, ref) => {
-  const [projectData, setProjectData] = useState([]); // Bar and line data: project creations
-  const [memberData, setMemberData] = useState([]); // Bar and line data: member registrations
+  const [projectData, setProjectData] = useState([]);
+  const [memberData, setMemberData] = useState([]);
   const chartRef = useRef(null);
   const userId = localStorage.getItem("userId");
   const accessToken = localStorage.getItem("accessToken");
@@ -74,8 +144,6 @@ const Chart = forwardRef(({ type = "projects" }, ref) => {
     const fetchData = async () => {
       try {
         if (type === "projects") {
-          // Fetch data: project creations
-          console.log(`${process.env.REACT_APP_API_URL}`);
           const projectResponse = await axios.get(
             `${process.env.REACT_APP_API_URL}/api/projects/daily-count`,
             {
@@ -91,7 +159,6 @@ const Chart = forwardRef(({ type = "projects" }, ref) => {
           );
           setProjectData(projectCounts);
         } else if (type === "members") {
-          // Fetch data: member registrations
           const memberResponse = await axios.get(
             `${process.env.REACT_APP_API_URL}/api/auth/monthly-count`,
             {
@@ -120,91 +187,164 @@ const Chart = forwardRef(({ type = "projects" }, ref) => {
   const dates = getDateRange();
   const months = getMonthRange();
 
-  // Project chart data (bar + line)
+  // Project area chart data
   const projectChartData = {
     labels: dates,
     datasets: [
       {
-        type: "bar",
-        label: "Projects Created (Daily, Bar Chart)",
-        data: projectData,
-        backgroundColor: "rgba(76, 175, 80)", // Green with transparency
-        borderColor: "#4CAF50",
-        borderWidth: 1,
-        yAxisID: "y",
-        order: 1,
+        label: "Projects Created",
+        data: projectData.map((value) => value + 0), // Add baseline offset
+        backgroundColor: "rgba(0, 216, 25, 0.4)", // Light blue with transparency
+        borderColor: "rgba(0, 207, 76, 1)",
+        borderWidth: 2,
+        fill: "+1", // Fill to the next dataset (baseline)
+        tension: 0.3, // Higher tension for more curved, parabolic shape
+        pointRadius: 0,
+        pointHoverRadius: 5,
+        pointBackgroundColor: "rgba(9, 202, 57, 1)",
+        pointBorderColor: "#fff",
+        pointBorderWidth: 1,
       },
       {
-        type: "line",
-        label: "Projects Created (Daily, Line Chart)",
-        data: projectData, // Same data as bar chart
-        backgroundColor: "#FF9800",
-        borderColor: "#FF9800",
-        borderWidth: 2,
-        fill: false,
+        label: "Baseline",
+        data: projectData.map(() => 0), // Baseline at 0.2
+        backgroundColor: "rgba(255, 206, 84, 0.3)", // Light orange/yellow
+        borderColor: "rgba(255, 206, 84, 1)",
+        borderWidth: 1,
+        fill: "origin", // Fill to origin (0)
         tension: 0.3,
-        pointRadius: 4, // Make points more visible
-        yAxisID: "y1",
-        order: 0,
+        pointRadius: 0,
       },
     ],
   };
 
-  // Member chart data (bar + line)
+  // Member area chart data
   const memberChartData = {
     labels: months,
     datasets: [
       {
-        type: "bar",
-        label: "Members Registered (Monthly, Bar Chart)",
-        data: memberData,
-        backgroundColor: "rgba(33, 150, 243)", // Blue with transparency
-        borderColor: "#2196F3",
-        borderWidth: 1,
-        yAxisID: "y",
-        order: 1,
+        label: "Members Registered",
+        data: memberData.map((value) => value + 0), // Add baseline offset
+        backgroundColor: "rgba(54, 162, 235, 0.4)",
+        borderColor: "rgba(54, 162, 235, 1)",
+        borderWidth: 2,
+        fill: "+1", // Fill to the next dataset (baseline)
+        tension: 0.3, // Higher tension for more curved, parabolic shape
+        pointRadius: 0,
+        pointHoverRadius: 5,
+        pointBackgroundColor: "rgba(54, 162, 235, 1)",
+        pointBorderColor: "#fff",
+        pointBorderWidth: 2,
       },
       {
-        type: "line",
-        label: "Members Registered (Monthly, Line Chart)",
-        data: memberData, // Same data as bar chart
-        backgroundColor: "#E91E63",
-        borderColor: "#E91E63",
-        borderWidth: 2,
-        fill: false,
+        label: "Baseline",
+        data: memberData.map(() => 0), // Baseline at 0.2
+        backgroundColor: "rgba(255, 206, 84, 0.3)",
+        borderColor: "rgba(255, 206, 84, 1)",
+        borderWidth: 1,
+        fill: "origin", // Fill to origin (0)
         tension: 0.3,
-        pointRadius: 4, // Make points more visible
-        yAxisID: "y1",
-        order: 0,
+        pointRadius: 0,
       },
     ],
   };
 
-  // Chart options with dual y-axes
+  // Chart options
   const options = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { position: "top" },
-      title: { display: true, text: "", font: { size: 16 } },
+      legend: {
+        position: "top",
+        display: false, // Hide legend for cleaner look
+      },
+      title: {
+        display: true,
+        text: "",
+        font: { size: 16 },
+      },
+      tooltip: {
+        mode: "index",
+        intersect: false,
+        backgroundColor: "rgba(0, 0, 0, 0.8)",
+        titleColor: "#fff",
+        bodyColor: "#fff",
+        borderColor: "rgba(54, 162, 235, 1)",
+        borderWidth: 1,
+        position: "nearest",
+        caretSize: 5,
+        cornerRadius: 6,
+        displayColors: true,
+        callbacks: {
+          label: function (context) {
+            // Show actual value without the 0.2 offset
+            const actualValue = context.parsed.y - 0;
+            return `${context.dataset.label}: ${
+              actualValue >= 0 ? actualValue : 0
+            }`;
+          },
+        },
+      },
+      crosshair: {
+        width: 1,
+        color: "rgba(0, 0, 0, 0.6)",
+        dash: [3, 3],
+      },
     },
     scales: {
       y: {
         beginAtZero: true,
-        title: { display: true, text: "Count" },
-        ticks: { stepSize: 1, precision: 0 },
-        position: "left",
-      },
-      y1: {
-        beginAtZero: true,
-        title: { display: true, text: "Count" },
-        ticks: { stepSize: 1, precision: 0 },
-        position: "right",
-        grid: { drawOnChartArea: false },
+        min: 0, // Start from 0 but data will be offset by 0.2
+        title: {
+          display: true,
+          text: "Count",
+          font: { size: 12 },
+        },
+        ticks: {
+          stepSize: 0.5, // Smaller steps to accommodate 0.2 baseline
+          precision: 1,
+          font: { size: 11 },
+          callback: function (value) {
+            // Custom tick formatting
+            if (value >= 0) return value.toFixed(1);
+            return Math.round(value); // Show actual data values
+          },
+        },
+        grid: {
+          color: "rgba(0, 0, 0, 0.1)",
+          drawBorder: false,
+        },
       },
       x: {
-        title: { display: true, text: "Time Period" },
+        title: {
+          display: true,
+          text: "Time Period",
+          font: { size: 12 },
+        },
+        ticks: {
+          font: { size: 11 },
+          maxRotation: 45,
+          minRotation: 0,
+        },
+        grid: {
+          color: "rgba(0, 0, 0, 0.1)",
+          drawBorder: false,
+        },
       },
+    },
+    elements: {
+      line: {
+        borderJoinStyle: "round",
+      },
+    },
+    interaction: {
+      mode: "index",
+      intersect: false,
+    },
+    onHover: (event, elements) => {
+      // Keep crosshair active on hover
+      event.native.target.style.cursor =
+        elements.length > 0 ? "crosshair" : "default";
     },
   };
 
@@ -233,11 +373,11 @@ const Chart = forwardRef(({ type = "projects" }, ref) => {
     handleExport,
   }));
 
-  // Render chart based on type
+  // Render area chart
   return (
     <div className="chart-container" style={{ width: "100%" }}>
       <div className="chart-wrapper" ref={chartRef}>
-        <Bar
+        <Line
           data={type === "projects" ? projectChartData : memberChartData}
           options={{
             ...options,
@@ -247,7 +387,7 @@ const Chart = forwardRef(({ type = "projects" }, ref) => {
                 ...options.plugins.title,
                 text:
                   type === "projects"
-                    ? "Projects Created "
+                    ? "Projects Created"
                     : "Members Registered",
               },
             },

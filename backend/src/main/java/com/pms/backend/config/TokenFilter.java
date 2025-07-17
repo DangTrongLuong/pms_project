@@ -1,8 +1,6 @@
 package com.pms.backend.config;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.security.Key;
 
 import org.springframework.stereotype.Component;
@@ -43,6 +41,7 @@ public class TokenFilter extends OncePerRequestFilter {
                 || path.startsWith("/api/projects/")
                 || path.startsWith("/api/members/")
                 || path.startsWith("/api/sprints/")
+                || path.startsWith("/api/notifications/")
                 || path.startsWith("/api/admin/auth/login")
                 || path.startsWith("/oauth2/")
                 || path.startsWith("/login/oauth2/code/")) {
