@@ -4,7 +4,6 @@ import "../../styles/user/progress.css";
 import { useParams } from "react-router-dom";
 import { useSidebar } from "../../context/SidebarContext";
 import CreateTaskModal from "../../components/CreateTaskModal";
-import TaskDetailModal from "../../components/TaskDetailModal";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 const Progress = () => {
@@ -15,7 +14,6 @@ const Progress = () => {
   const [sprints, setSprints] = useState([]);
   const [activeSprint, setActiveSprint] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
-  const [selectedTaskForDetails, setSelectedTaskForDetails] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterPriority, setFilterPriority] = useState("all");
@@ -68,24 +66,16 @@ const Progress = () => {
             Authorization: `Bearer ${accessToken}`,
             userId: userId,
           },
-          credentials: "include",
         }
       );
-      if (!response.ok) {
-        if (response.status === 401 || response.status === 403) {
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("userId");
-          setTimeout(() => (window.location.href = "/login"), 2000);
-          throw new Error("Phiên đăng nhập hết hạn. Đang chuyển hướng...");
-        }
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || "Failed to fetch members");
-      }
       const data = await response.json();
-      setMembers(data);
+      if (response.ok) {
+        setMembers(data);
+      } else {
+        throw new Error(data.message || "Failed to fetch members");
+      }
     } catch (err) {
       console.error("Fetch members error:", err);
-      alert(err.message || "Không thể lấy danh sách thành viên. Vui lòng kiểm tra kết nối hoặc đăng nhập lại.");
     }
   }, [id]);
 
@@ -106,7 +96,6 @@ const Progress = () => {
         throw new Error("Vui lòng đăng nhập lại để tiếp tục");
       }
 
-      console.log("Fetching sprints for projectId:", selectedProject.id);
       const sprintResponse = await fetch(
         `http://localhost:8080/api/sprints/project/${selectedProject.id}`,
         {
@@ -116,17 +105,10 @@ const Progress = () => {
             Authorization: `Bearer ${accessToken}`,
             userId: userId,
           },
-          credentials: "include",
         }
       );
 
       if (!sprintResponse.ok) {
-        if (sprintResponse.status === 401 || sprintResponse.status === 403) {
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("userId");
-          setTimeout(() => (window.location.href = "/login"), 2000);
-          throw new Error("Phiên đăng nhập hết hạn. Đang chuyển hướng...");
-        }
         const errorData = await sprintResponse.json().catch(() => ({}));
         throw new Error(
           errorData.message || `Lấy sprint thất bại: ${sprintResponse.status}`
@@ -145,7 +127,6 @@ const Progress = () => {
         return;
       }
 
-      console.log("Fetching tasks for sprintId:", activeSprint.id);
       const taskResponse = await fetch(
         `http://localhost:8080/api/sprints/tasks/${activeSprint.id}`,
         {
@@ -155,17 +136,10 @@ const Progress = () => {
             Authorization: `Bearer ${accessToken}`,
             userId: userId,
           },
-          credentials: "include",
         }
       );
 
       if (!taskResponse.ok) {
-        if (taskResponse.status === 401 || taskResponse.status === 403) {
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("userId");
-          setTimeout(() => (window.location.href = "/login"), 2000);
-          throw new Error("Phiên đăng nhập hết hạn. Đang chuyển hướng...");
-        }
         const errorData = await taskResponse.json().catch(() => ({}));
         throw new Error(
           errorData.message || `Lấy task thất bại: ${taskResponse.status}`
@@ -181,15 +155,15 @@ const Progress = () => {
       console.log("Fetched tasks:", mappedTasks);
     } catch (err) {
       console.error(err.message || "Đã có lỗi xảy ra khi lấy dữ liệu");
-      alert(err.message || "Không thể tải dữ liệu. Vui lòng kiểm tra kết nối hoặc đăng nhập lại.");
+      if (err.message.includes("401") || err.message.includes("403")) {
+        setTimeout(() => (window.location.href = "/login"), 2000);
+      }
     }
   }, [selectedProject]);
 
   useEffect(() => {
-    if (selectedProject) {
-      fetchSprintsAndTasks();
-    }
-  }, [selectedProject, fetchSprintsAndTasks]);
+    fetchSprintsAndTasks();
+  }, [fetchSprintsAndTasks]);
 
   const handleAddTask = async (newTask) => {
     try {
@@ -229,12 +203,6 @@ const Progress = () => {
       );
 
       if (!response.ok) {
-        if (response.status === 401 || response.status === 403) {
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("userId");
-          setTimeout(() => (window.location.href = "/login"), 2000);
-          throw new Error("Phiên đăng nhập hết hạn. Đang chuyển hướng...");
-        }
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
           errorData.message || `Tạo nhiệm vụ thất bại: ${response.status}`
@@ -245,7 +213,7 @@ const Progress = () => {
       setSelectedTask(null);
     } catch (err) {
       console.error("Lỗi khi tạo task:", err);
-      alert(err.message || "Không thể tạo nhiệm vụ. Vui lòng kiểm tra kết nối hoặc đăng nhập lại.");
+      alert(err.message || "Không thể tạo nhiệm vụ. Vui lòng thử lại.");
     }
   };
 
@@ -292,12 +260,6 @@ const Progress = () => {
       );
 
       if (!response.ok) {
-        if (response.status === 401 || response.status === 403) {
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("userId");
-          setTimeout(() => (window.location.href = "/login"), 2000);
-          throw new Error("Phiên đăng nhập hết hạn. Đang chuyển hướng...");
-        }
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
           errorData.message || `Cập nhật task thất bại: ${response.status}`
@@ -312,7 +274,7 @@ const Progress = () => {
       setSelectedTask(null);
     } catch (err) {
       console.error("Lỗi khi cập nhật task:", err);
-      alert(err.message || "Không thể cập nhật task. Vui lòng kiểm tra kết nối hoặc đăng nhập lại.");
+      alert(err.message || "Không thể cập nhật task. Vui lòng thử lại.");
     }
   };
 
@@ -358,12 +320,6 @@ const Progress = () => {
       );
 
       if (!response.ok) {
-        if (response.status === 401 || response.status === 403) {
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("userId");
-          setTimeout(() => (window.location.href = "/login"), 2000);
-          throw new Error("Phiên đăng nhập hết hạn. Đang chuyển hướng...");
-        }
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
           errorData.message ||
@@ -378,7 +334,7 @@ const Progress = () => {
       );
     } catch (err) {
       console.error("Lỗi khi cập nhật trạng thái:", err);
-      alert(err.message || "Không thể cập nhật trạng thái. Vui lòng kiểm tra kết nối hoặc đăng nhập lại.");
+      alert(err.message || "Không thể cập nhật trạng thái. Vui lòng thử lại.");
     }
   };
 
@@ -411,12 +367,6 @@ const Progress = () => {
       );
 
       if (!response.ok) {
-        if (response.status === 401 || response.status === 403) {
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("userId");
-          setTimeout(() => (window.location.href = "/login"), 2000);
-          throw new Error("Phiên đăng nhập hết hạn. Đang chuyển hướng...");
-        }
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
           errorData.message || `Cập nhật assignee thất bại: ${response.status}`
@@ -427,7 +377,7 @@ const Progress = () => {
       setAssigneeModal({ isOpen: false, taskId: null, suggestedMembers: [] });
     } catch (err) {
       console.error("Lỗi khi cập nhật assignee:", err);
-      alert(err.message || "Không thể cập nhật assignee. Vui lòng kiểm tra kết nối hoặc đăng nhập lại.");
+      alert(err.message || "Không thể cập nhật assignee. Vui lòng thử lại.");
     }
   };
 
@@ -450,17 +400,10 @@ const Progress = () => {
             Authorization: `Bearer ${accessToken}`,
             userId: userId,
           },
-          credentials: "include",
         }
       );
 
       if (!response.ok) {
-        if (response.status === 401 || response.status === 403) {
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("userId");
-          setTimeout(() => (window.location.href = "/login"), 2000);
-          throw new Error("Phiên đăng nhập hết hạn. Đang chuyển hướng...");
-        }
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
           errorData.message ||
@@ -477,7 +420,7 @@ const Progress = () => {
       await handleUpdateTaskAssignee(taskId, randomMember.email);
     } catch (err) {
       console.error("Lỗi khi tự động gán:", err);
-      alert(err.message || "Không thể tự động gán. Vui lòng kiểm tra kết nối hoặc đăng nhập lại.");
+      alert(err.message || "Không thể tự động gán. Vui lòng thử lại.");
     }
   };
 
@@ -489,34 +432,9 @@ const Progress = () => {
         throw new Error("Vui lòng đăng nhập lại để tiếp tục");
       }
 
-      console.log("Deleting documents for taskId:", task.id);
-      const deleteDocumentsResponse = await fetch(
-        `http://localhost:8080/api/documents/task/${task.id}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-            userId: userId,
-          },
-        }
-      );
-
-      if (!deleteDocumentsResponse.ok) {
-        if (deleteDocumentsResponse.status === 401 || deleteDocumentsResponse.status === 403) {
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("userId");
-          setTimeout(() => (window.location.href = "/login"), 2000);
-          throw new Error("Phiên đăng nhập hết hạn. Đang chuyển hướng...");
-        }
-        const errorData = await deleteDocumentsResponse.json().catch(() => ({}));
-        throw new Error(
-          errorData.message || `Xóa tài liệu thất bại: ${deleteDocumentsResponse.status}`
-        );
-      }
-
       console.log("Deleting taskId:", task.id);
-      const deleteTaskResponse = await fetch(
+
+      const response = await fetch(
         `http://localhost:8080/api/sprints/task/${task.id}`,
         {
           method: "DELETE",
@@ -528,16 +446,10 @@ const Progress = () => {
         }
       );
 
-      if (!deleteTaskResponse.ok) {
-        if (deleteTaskResponse.status === 401 || deleteTaskResponse.status === 403) {
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("userId");
-          setTimeout(() => (window.location.href = "/login"), 2000);
-          throw new Error("Phiên đăng nhập hết hạn. Đang chuyển hướng...");
-        }
-        const errorData = await deleteTaskResponse.json().catch(() => ({}));
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
         throw new Error(
-          errorData.message || `Xóa task thất bại: ${deleteTaskResponse.status}`
+          errorData.message || `Xóa task thất bại: ${response.status}`
         );
       }
 
@@ -545,7 +457,7 @@ const Progress = () => {
       setDeleteTaskModal({ isOpen: false, task: null });
     } catch (err) {
       console.error("Lỗi khi xóa task:", err);
-      alert(err.message || "Không thể xóa task. Vui lòng kiểm tra kết nối hoặc đăng nhập lại.");
+      alert(err.message || "Không thể xóa task. Vui lòng thử lại.");
     }
   };
 
@@ -568,17 +480,10 @@ const Progress = () => {
             Authorization: `Bearer ${accessToken}`,
             userId: userId,
           },
-          credentials: "include",
         }
       );
 
       if (!response.ok) {
-        if (response.status === 401 || response.status === 403) {
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("userId");
-          setTimeout(() => (window.location.href = "/login"), 2000);
-          throw new Error("Phiên đăng nhập hết hạn. Đang chuyển hướng...");
-        }
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
           errorData.message ||
@@ -591,7 +496,7 @@ const Progress = () => {
     } catch (err) {
       console.error("Lỗi khi lấy danh sách thành viên:", err);
       alert(
-        err.message || "Không thể lấy danh sách thành viên. Vui lòng kiểm tra kết nối hoặc đăng nhập lại."
+        err.message || "Không thể lấy danh sách thành viên. Vui lòng thử lại."
       );
     }
   };
@@ -714,21 +619,6 @@ const Progress = () => {
     }
   };
 
-<<<<<<< HEAD
-  const handleTaskCardClick = (e, task) => {
-    if (
-      !e.target.closest(".task-more-btn") &&
-      !e.target.closest(".task-dropdown-menu") &&
-      !e.target.closest(".assignee-avatar") &&
-      !e.target.closest(".assign-user-button")
-    ) {
-      console.log("Task card clicked, opening TaskDetailModal for task:", task.id);
-      setSelectedTaskForDetails(task);
-    }
-  };
-
-=======
->>>>>>> dev
   const onDragEnd = async (result) => {
     const { source, destination } = result;
     if (!destination) return;
@@ -1240,17 +1130,6 @@ const Progress = () => {
           selectedProject={selectedProject}
           editingTask={selectedTask.id ? selectedTask : null}
           activeSprintId={activeSprint?.id}
-          sprints={sprints}
-          suggestedMembers={assigneeModal.suggestedMembers}
-        />
-      )}
-      {selectedTaskForDetails && (
-        <TaskDetailModal
-          isOpen={!!selectedTaskForDetails}
-          task={selectedTaskForDetails}
-          onClose={() => setSelectedTaskForDetails(null)}
-          onUpdate={handleUpdateTask}
-          selectedProject={selectedProject}
           sprints={sprints}
           suggestedMembers={assigneeModal.suggestedMembers}
         />
