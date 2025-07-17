@@ -107,9 +107,17 @@ const TaskDetailModal = ({ isOpen, task, onClose, onUpdate, selectedProject, spr
       const userId = localStorage.getItem("userId");
       const accessToken = localStorage.getItem("accessToken");
       if (!userId || !accessToken) {
-        console.log("Missing userId or accessToken, redirecting to login");
-        window.location.href = "/login";
         throw new Error("Vui lòng đăng nhập lại");
+      }
+
+      // Kiểm tra định dạng và kích thước tệp
+      const allowedTypes = ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "image/jpeg", "image/png"];
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (!allowedTypes.includes(file.type)) {
+        throw new Error("Định dạng tệp không được hỗ trợ. Chỉ chấp nhận .pdf, .doc, .docx, .jpg, .png");
+      }
+      if (file.size > maxSize) {
+        throw new Error("Tệp quá lớn. Kích thước tối đa là 5MB.");
       }
 
       const formData = new FormData();
@@ -136,7 +144,7 @@ const TaskDetailModal = ({ isOpen, task, onClose, onUpdate, selectedProject, spr
           localStorage.removeItem("accessToken");
           localStorage.removeItem("userId");
           window.location.href = "/login";
-          throw new Error("Phiên đăng nhập hết hạn");
+          throw new Error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
         }
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
@@ -144,8 +152,13 @@ const TaskDetailModal = ({ isOpen, task, onClose, onUpdate, selectedProject, spr
         );
       }
 
+      const responseData = await response.json();
+      console.log("Document uploaded successfully:", responseData);
+
+      // Làm mới danh sách tài liệu
       await fetchDocuments();
       setShowDocumentForm(false);
+      alert("Tải tài liệu thành công!");
     } catch (err) {
       console.error("Lỗi khi tải tài liệu:", err);
       alert(err.message || "Không thể tải tài liệu. Vui lòng thử lại.");
