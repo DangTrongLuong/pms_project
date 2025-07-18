@@ -175,9 +175,9 @@
   transform: translateY(-1px);
 }
 
-.file-list {
+.file-list-document {
   display: flex;
-  flex-direction: column;
+  flex-direction: column !important;
   gap: 20px;
 }
 

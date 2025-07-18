@@ -946,7 +946,7 @@ const Documents = () => {
             </p>
           </div>
         ) : (
-          <div className="file-list">
+          <div className="file-list-document">
             {documents.map((document) => (
               <div key={document.id} className="document-item">
                 <div className="document-header">
