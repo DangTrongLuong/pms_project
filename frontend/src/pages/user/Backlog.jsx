@@ -16,6 +16,7 @@ import { useSidebar } from "../../context/SidebarContext";
 import CreateTaskModal from "../../components/CreateTaskModal";
 import CreateSprintModal from "../../components/CreateSprintModal";
 import "../../styles/user/backlog.css";
+import TaskDetailModal from "../../components/TaskDetailModal"; // Điều chỉnh đường dẫn nếu cần
 
 const Backlog = () => {
   const { id } = useParams();
@@ -1181,7 +1182,18 @@ const Backlog = () => {
                 <button
                   className="dropdown-item"
                   onClick={() => {
-                    setEditingTask(task);
+                    setEditingTask({ ...task, isDetailView: true }); // Mở TaskDetailModal
+                    setShowTaskForm(task.sprintId);
+                    setTaskMenuOpen(null);
+                  }}
+                >
+                  <Edit2 size={16} />
+                  View Details
+                </button>
+                <button
+                  className="dropdown-item"
+                  onClick={() => {
+                    setEditingTask(task); // Mở CreateTaskModal
                     setShowTaskForm(task.sprintId);
                     setTaskMenuOpen(null);
                   }}
@@ -1381,25 +1393,38 @@ const Backlog = () => {
           )}
         </Droppable>
 
-        <CreateTaskModal
-          isOpen={showTaskForm !== null}
-          onClose={() => {
-            setShowTaskForm(null);
-            setEditingTask(null);
-          }}
-          onSubmit={(taskData) => {
-            if (editingTask) {
-              handleUpdateTask(editingTask.id, taskData);
-            } else {
-              handleAddTask(taskData);
-            }
-          }}
-          selectedProject={selectedProject}
-          editingTask={editingTask}
-          activeSprintId={showTaskForm}
-          sprints={sprints}
-          suggestedMembers={suggestedMembers}
-        />
+        {showTaskForm !== null && !editingTask?.isDetailView && (
+          <CreateTaskModal
+            isOpen={showTaskForm !== null}
+            onClose={() => {
+              setShowTaskForm(null);
+              setEditingTask(null);
+            }}
+            onSubmit={(taskData) => {
+              if (editingTask) {
+                handleUpdateTask(editingTask.id, taskData);
+              } else {
+                handleAddTask(taskData);
+              }
+            }}
+            selectedProject={selectedProject}
+            editingTask={editingTask}
+            activeSprintId={showTaskForm}
+            sprints={sprints}
+            suggestedMembers={suggestedMembers}
+          />
+        )}
+        {editingTask && editingTask.isDetailView && (
+          <TaskDetailModal
+            task={editingTask}
+            onClose={() => {
+              setEditingTask(null);
+              setShowTaskForm(null);
+            }}
+            onUpdateTask={handleUpdateTask}
+            selectedProject={selectedProject}
+          />
+        )}
         <CreateSprintModal
           isOpen={showSprintForm}
           onClose={() => setShowSprintForm(false)}

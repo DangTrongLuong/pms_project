@@ -4,6 +4,7 @@ import "../../styles/user/progress.css";
 import { useParams } from "react-router-dom";
 import { useSidebar } from "../../context/SidebarContext";
 import CreateTaskModal from "../../components/CreateTaskModal";
+import TaskDetailModal from "../../components/TaskDetailModal"; // Điều chỉnh đường dẫn nếu cần
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 const Progress = () => {
@@ -572,7 +573,7 @@ const Progress = () => {
       !e.target.closest(".assign-user-button")
     ) {
       console.log("Task card clicked, opening modal for task:", task.id);
-      setSelectedTask(task);
+      setSelectedTask({ ...task, isDetailView: true });
     }
   };
 
@@ -955,11 +956,19 @@ const Progress = () => {
                                         className="dropdown-item"
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          console.log(
-                                            "Edit Task clicked for task:",
-                                            task.id
-                                          );
-                                          setSelectedTask(task);
+                                          console.log("View Details clicked for task:", task.id);
+                                          setSelectedTask({ ...task, isDetailView: true }); // Mở TaskDetailModal
+                                          setTaskMenuOpen(null);
+                                        }}
+                                      >
+                                        View Details
+                                      </button>
+                                      <button
+                                        className="dropdown-item"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          console.log("Edit Task clicked for task:", task.id);
+                                          setSelectedTask(task); // Mở CreateTaskModal
                                           setTaskMenuOpen(null);
                                         }}
                                       >
@@ -969,10 +978,7 @@ const Progress = () => {
                                         className="dropdown-item"
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          console.log(
-                                            "Assign Member clicked for task:",
-                                            task.id
-                                          );
+                                          console.log("Assign Member clicked for task:", task.id);
                                           fetchProjectMembers(task.id);
                                           setTaskMenuOpen(null);
                                         }}
@@ -983,14 +989,8 @@ const Progress = () => {
                                         className="dropdown-item delete-item"
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          console.log(
-                                            "Delete Task clicked for task:",
-                                            task.id
-                                          );
-                                          setDeleteTaskModal({
-                                            isOpen: true,
-                                            task,
-                                          });
+                                          console.log("Delete Task clicked for task:", task.id);
+                                          setDeleteTaskModal({ isOpen: true, task });
                                           setTaskMenuOpen(null);
                                         }}
                                       >
@@ -1116,7 +1116,7 @@ const Progress = () => {
           </div>
         )}
       </div>
-      {selectedTask && (
+      {selectedTask && !selectedTask.isDetailView && (
         <CreateTaskModal
           isOpen={!!selectedTask}
           onClose={() => setSelectedTask(null)}
@@ -1132,6 +1132,14 @@ const Progress = () => {
           activeSprintId={activeSprint?.id}
           sprints={sprints}
           suggestedMembers={assigneeModal.suggestedMembers}
+        />
+      )}
+      {selectedTask && selectedTask.isDetailView && (
+        <TaskDetailModal
+          task={selectedTask}
+          onClose={() => setSelectedTask(null)}
+          onUpdateTask={handleUpdateTask}
+          selectedProject={selectedProject}
         />
       )}
       <AssigneeModal

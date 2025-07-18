@@ -1,315 +1,689 @@
-import React, { useState, useEffect } from "react";
-import { X, FileText, MessageSquare, User, Plus } from "lucide-react";
-import UploadDocumentModal from "./UploadDocumentModal";
-import CommentModal from "./CommentModal";
-import "../styles/user/backlog.css";
+// TaskDetailModal.jsx
+import React, { useState, useEffect, useRef } from "react";
+import {
+  X,
+  MessageSquare,
+  Send,
+  Upload,
+  Download,
+  Trash2,
+  FileText,
+  Calendar,
+  User,
+} from "lucide-react";
+import "../styles/user/task-detail.css";
+import { useSidebar } from "../context/SidebarContext";
 
-const TaskDetailModal = ({ isOpen, task, onClose, onUpdate, selectedProject, sprints, suggestedMembers }) => {
+const TaskDetailModal = ({ task, onClose, onUpdateTask, selectedProject }) => {
+  const [comment, setComment] = useState("");
+  const [taskSelectionModal, setTaskSelectionModal] = useState({
+    isOpen: false,
+    files: null,
+  });
   const [documents, setDocuments] = useState([]);
-  const [showDocumentForm, setShowDocumentForm] = useState(false);
-  const [showCommentModal, setShowCommentModal] = useState(null);
+  const [tasks, setTasks] = useState([]);
+  const [activeTab, setActiveTab] = useState("details"); // Thêm trạng thái tab
+  const modalRef = useRef(null);
+  const { projects } = useSidebar();
+  const accessToken = localStorage.getItem("accessToken");
+  const userId = localStorage.getItem("userId");
 
   useEffect(() => {
-    if (isOpen && task) {
+    const handleClickOutside = (event) => {
+      if (modalRef.current && !modalRef.current.contains(event.target)) {
+        onClose();
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+      document.addEventListener("mousedown", handleClickOutside);
+    }, 0);
+
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [onClose]);
+
+  useEffect(() => {
+    if (task && selectedProject) {
       fetchDocuments();
+      fetchTasks();
     }
-  }, [isOpen, task]);
+  }, [task, selectedProject]);
 
   const fetchDocuments = async () => {
+    if (!task || !selectedProject) return;
     try {
-      const userId = localStorage.getItem("userId");
-      const accessToken = localStorage.getItem("accessToken");
       if (!userId || !accessToken) {
-        console.log("Missing userId or accessToken, redirecting to login");
+        alert("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
         window.location.href = "/login";
-        throw new Error("Vui lòng đăng nhập lại");
+        return;
       }
-
-      console.log("Fetching documents for taskId:", task.id, "userId:", userId, "accessToken:", accessToken.substring(0, 20) + "...");
-      const response = await fetch(`http://localhost:8080/api/documents/task/${task.id}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-          userId: userId,
-        },
-        mode: "cors",
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          console.log("Unauthorized: Token may be invalid or expired");
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("userId");
-          window.location.href = "/login";
-          throw new Error("Phiên đăng nhập hết hạn");
+      const response = await fetch(
+        `http://localhost:8080/api/documents/${selectedProject.id}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+            userId: userId,
+          },
         }
+      );
+      if (response.status === 401 || response.status === 403) {
+        alert("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
+        window.location.href = "/login";
+        return;
+      }
+      if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
           errorData.message || `Lấy tài liệu thất bại: ${response.status}`
         );
       }
-
-      const documentsData = await response.json();
-      setDocuments(Array.isArray(documentsData) ? documentsData : []);
+      const data = await response.json();
+      const taskDocuments = data.filter((doc) => doc.taskId === task.id);
+      setDocuments(taskDocuments);
     } catch (err) {
-      console.error("Lỗi khi lấy tài liệu:", err);
-      alert(err.message || "Không thể lấy tài liệu. Vui lòng thử lại.");
-    }
-  };
-
-  const fetchComments = async (taskId) => {
-    try {
-      const userId = localStorage.getItem("userId");
-      const accessToken = localStorage.getItem("accessToken");
-      if (!userId || !accessToken) {
-        console.log("Missing userId or accessToken, redirecting to login");
-        window.location.href = "/login";
-        throw new Error("Vui lòng đăng nhập lại");
-      }
-
-      console.log("Fetching comments for taskId:", taskId, "userId:", userId, "accessToken:", accessToken.substring(0, 20) + "...");
-      const response = await fetch(`http://localhost:8080/api/comments/task/${taskId}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-          userId: userId,
-        },
-        mode: "cors",
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          console.log("Unauthorized: Token may be invalid or expired");
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("userId");
-          window.location.href = "/login";
-          throw new Error("Phiên đăng nhập hết hạn");
-        }
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.message || `Lấy bình luận thất bại: ${response.status}`
-        );
-      }
-
-      const comments = await response.json();
-      return comments;
-    } catch (err) {
-      console.error("Lỗi khi lấy bình luận:", err);
-      alert(err.message || "Không thể lấy bình luận. Vui lòng thử lại.");
-      return [];
-    }
-  };
-
-  const handleUploadDocument = async (file) => {
-    try {
-      const userId = localStorage.getItem("userId");
-      const accessToken = localStorage.getItem("accessToken");
-      if (!userId || !accessToken) {
-        throw new Error("Vui lòng đăng nhập lại");
-      }
-
-      // Kiểm tra định dạng và kích thước tệp
-      const allowedTypes = ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "image/jpeg", "image/png"];
-      const maxSize = 5 * 1024 * 1024; // 5MB
-      if (!allowedTypes.includes(file.type)) {
-        throw new Error("Định dạng tệp không được hỗ trợ. Chỉ chấp nhận .pdf, .doc, .docx, .jpg, .png");
-      }
-      if (file.size > maxSize) {
-        throw new Error("Tệp quá lớn. Kích thước tối đa là 5MB.");
-      }
-
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("projectId", selectedProject.id);
-      if (task.id) {
-        formData.append("taskId", task.id);
-      }
-
-      console.log("Uploading document with formData:", Array.from(formData.entries()), "userId:", userId, "accessToken:", accessToken.substring(0, 20) + "...");
-      const response = await fetch(`http://localhost:8080/api/documents/upload`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          userId: userId,
-        },
-        body: formData,
-        mode: "cors",
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          console.log("Unauthorized: Token may be invalid or expired");
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("userId");
-          window.location.href = "/login";
-          throw new Error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
-        }
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.message || `Tải tài liệu thất bại: ${response.status}`
-        );
-      }
-
-      const responseData = await response.json();
-      console.log("Document uploaded successfully:", responseData);
-
-      // Làm mới danh sách tài liệu
-      await fetchDocuments();
-      setShowDocumentForm(false);
-      alert("Tải tài liệu thành công!");
-    } catch (err) {
-      console.error("Lỗi khi tải tài liệu:", err);
+      console.error("Fetch documents error:", err);
       alert(err.message || "Không thể tải tài liệu. Vui lòng thử lại.");
     }
   };
 
-  const handleAddComment = async (taskId, content) => {
+  const fetchTasks = async () => {
+    if (!selectedProject) return;
     try {
-      const userId = localStorage.getItem("userId");
-      const accessToken = localStorage.getItem("accessToken");
       if (!userId || !accessToken) {
-        console.log("Missing userId or accessToken, redirecting to login");
+        alert("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
         window.location.href = "/login";
-        throw new Error("Vui lòng đăng nhập lại");
+        return;
       }
-
-      console.log("Adding comment for taskId:", taskId, "Content:", content, "userId:", userId, "accessToken:", accessToken.substring(0, 20) + "...");
-      const response = await fetch(`http://localhost:8080/api/comments`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-          userId: userId,
-        },
-        body: JSON.stringify({ taskId, content }),
-        mode: "cors",
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          console.log("Unauthorized: Token may be invalid or expired");
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("userId");
-          window.location.href = "/login";
-          throw new Error("Phiên đăng nhập hết hạn");
+      const sprintsResponse = await fetch(
+        `http://localhost:8080/api/sprints/project/${selectedProject.id}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+            userId: userId,
+          },
         }
+      );
+      if (sprintsResponse.status === 401 || sprintsResponse.status === 403) {
+        alert("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
+        window.location.href = "/login";
+        return;
+      }
+      if (!sprintsResponse.ok) {
+        const errorData = await sprintsResponse.json().catch(() => ({}));
+        throw new Error(
+          errorData.message ||
+            `Lấy danh sách sprint thất bại: ${sprintsResponse.status}`
+        );
+      }
+      const sprints = await sprintsResponse.json();
+      const activeSprint = sprints.find((sprint) => sprint.status === "ACTIVE");
+
+      let allTasks = [];
+      if (activeSprint) {
+        const tasksResponse = await fetch(
+          `http://localhost:8080/api/sprints/tasks/${activeSprint.id}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${accessToken}`,
+              userId: userId,
+            },
+          }
+        );
+        if (tasksResponse.status === 401 || tasksResponse.status === 403) {
+          alert("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
+          window.location.href = "/login";
+          return;
+        }
+        if (!tasksResponse.ok) {
+          const errorData = await tasksResponse.json().catch(() => ({}));
+          throw new Error(
+            errorData.message ||
+              `Lấy danh sách task thất bại: ${tasksResponse.status}`
+          );
+        }
+        const tasksData = await tasksResponse.json();
+        allTasks = [...tasksData];
+      }
+      setTasks(allTasks);
+    } catch (err) {
+      console.error("Fetch tasks error:", err);
+      setTasks([]);
+    }
+  };
+
+  const handleDeleteDocument = async (documentId) => {
+    try {
+      if (!userId || !accessToken) {
+        alert("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
+        window.location.href = "/login";
+        return;
+      }
+      const response = await fetch(
+        `http://localhost:8080/api/documents/${documentId}/delete`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+            userId: userId,
+          },
+        }
+      );
+      if (response.status === 401 || response.status === 403) {
+        alert("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
+        window.location.href = "/login";
+        return;
+      }
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message || `Xóa tài liệu thất bại: ${response.status}`
+        );
+      }
+      setDocuments(documents.filter((doc) => doc.id !== documentId));
+    } catch (err) {
+      console.error("Delete document error:", err);
+      alert(err.message || "Không thể xóa tài liệu. Vui lòng thử lại.");
+    }
+  };
+
+  const handleAddComment = async (documentId) => {
+    if (!comment.trim()) return;
+    try {
+      if (!userId || !accessToken) {
+        alert("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
+        window.location.href = "/login";
+        return;
+      }
+      const response = await fetch(
+        `http://localhost:8080/api/documents/${documentId}/comments`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+            userId: userId,
+          },
+          body: JSON.stringify({ text: comment }),
+        }
+      );
+      if (response.status === 401 || response.status === 403) {
+        alert("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
+        window.location.href = "/login";
+        return;
+      }
+      if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
           errorData.message || `Thêm bình luận thất bại: ${response.status}`
         );
       }
-
-      setShowCommentModal({ ...showCommentModal, comments: null });
+      const newComment = await response.json();
+      setDocuments(
+        documents.map((doc) =>
+          doc.id === documentId
+            ? { ...doc, comments: [...(doc.comments || []), newComment] }
+            : doc
+        )
+      );
+      setComment("");
     } catch (err) {
-      console.error("Lỗi khi thêm bình luận:", err);
+      console.error("Comment error:", err);
       alert(err.message || "Không thể thêm bình luận. Vui lòng thử lại.");
     }
   };
 
-  if (!isOpen || !task) return null;
+  const handleFileUpload = async (files, taskId) => {
+    if (!files || !taskId || files.length === 0) {
+      alert("Vui lòng chọn task và ít nhất một file trước khi tải lên.");
+      return;
+    }
+    try {
+      if (!userId || !accessToken) {
+        alert("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
+        window.location.href = "/login";
+        return;
+      }
+      const formData = new FormData();
+      for (let file of files) {
+        formData.append("files", file);
+      }
+      formData.append(
+        "request",
+        new Blob([JSON.stringify({ taskId })], { type: "application/json" })
+      );
+      const response = await fetch(
+        `http://localhost:8080/api/documents/${selectedProject.id}/upload`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            userId: userId,
+          },
+          body: formData,
+        }
+      );
+      if (response.status === 401 || response.status === 403) {
+        alert("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
+        window.location.href = "/login";
+        return;
+      }
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message || `Tải lên thất bại: ${response.status}`
+        );
+      }
+      const newDocuments = await response.json();
+      setDocuments([...documents, ...newDocuments.filter((doc) => doc.taskId === task.id)]);
+      setTaskSelectionModal({ isOpen: false, files: null });
+    } catch (err) {
+      console.error("Upload error:", err);
+      alert(
+        err.message ||
+          "Không thể tải lên tài liệu. Vui lòng kiểm tra định dạng tệp và thử lại."
+      );
+    }
+  };
 
-  return (
-    <div className="modal-overlay">
-      <div className="task-detail-modal">
-        <div className="task-detail-modal-header">
-          <h3 className="task-detail-modal-title">{task.title}</h3>
-          <button onClick={onClose} className="modal-close-btn">
-            <X size={16} />
-          </button>
-        </div>
-        <div className="task-detail-modal-content">
-          <div className="task-info">
-            <p><strong>ID:</strong> {selectedProject.shortName}-{task.id}</p>
-            <p><strong>Mô tả:</strong> {task.description || "Không có mô tả"}</p>
-            <p><strong>Trạng thái:</strong> {task.status.replace("_", " ")}</p>
-            <p><strong>Người thực hiện:</strong> {task.assignee?.name || "Chưa gán"}</p>
-            <p><strong>Độ ưu tiên:</strong> {task.priority}</p>
-            <p><strong>Ngày bắt đầu:</strong> {task.startDate ? new Date(task.startDate).toLocaleString() : "N/A"}</p>
-            <p><strong>Ngày kết thúc:</strong> {task.endDate ? new Date(task.endDate).toLocaleString() : "N/A"}</p>
+  const handleOpenTaskModal = (files) => {
+    setTaskSelectionModal({ isOpen: true, files: files || null });
+    fetchTasks();
+  };
+
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  };
+
+  const getFileIcon = (type) => {
+    switch (type) {
+      case "pdf":
+        return "📄";
+      case "doc":
+      case "docx":
+        return "📝";
+      case "xls":
+      case "xlsx":
+        return "📊";
+      case "ppt":
+      case "pptx":
+        return "📈";
+      case "jpg":
+      case "jpeg":
+      case "png":
+      case "gif":
+        return "🖼️";
+      case "css":
+        return "🎨";
+      case "js":
+        return "📜";
+      case "sketch":
+      case "xd":
+        return "🎨";
+      default:
+        return "📎";
+    }
+  };
+
+  const getPriorityColor = (priority) => {
+    switch (priority) {
+      case "High":
+        return "text-red-600 bg-red-50";
+      case "Medium":
+        return "text-yellow-600 bg-yellow-50";
+      case "Low":
+        return "text-green-600 bg-green-50";
+      default:
+        return "text-gray-600 bg-gray-100";
+    }
+  };
+
+  const getTypeColor = (type) => {
+    switch (type) {
+      case "Story":
+        return "text-green-600 bg-green-50";
+      case "Bug":
+        return "text-red-600 bg-red-50";
+      case "Task":
+        return "text-blue-600 bg-blue-50";
+      default:
+        return "text-gray-600 bg-gray-100";
+    }
+  };
+
+  const TaskSelectionModal = ({ isOpen, files, onClose }) => {
+    const [searchQuery, setSearchQuery] = useState("");
+    const [selectedTask, setSelectedTask] = useState(null);
+    const [selectedFiles, setSelectedFiles] = useState(files);
+
+    const filteredTasks = tasks.filter((t) =>
+      t.title.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    const handleUpload = () => {
+      if (!selectedTask) {
+        alert("Vui lòng chọn một task trước.");
+        return;
+      }
+      if (!selectedFiles || selectedFiles.length === 0) {
+        alert("Vui lòng chọn ít nhất một file.");
+        return;
+      }
+      handleFileUpload(selectedFiles, selectedTask.id);
+    };
+
+    if (!isOpen) return null;
+
+    return (
+      <div className="modal-overlay">
+        <div className="modal-container">
+          <div className="modal-header">
+            <h2>Chọn task để tải tài liệu</h2>
+            <button className="modal-close-btn" onClick={onClose}>
+              <X size={16} />
+            </button>
           </div>
-
-          <div className="documents-section">
-            <div className="documents-section-header">
-              <h3 className="documents-section-title">Tài liệu đính kèm</h3>
-              <button
-                className="btn-upload-document"
-                onClick={() => setShowDocumentForm(true)}
+          <div className="modal-body">
+            <input
+              type="text"
+              placeholder="Tìm kiếm task..."
+              className="task-search-input"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <div className="task-dropdown">
+              <select
+                value={selectedTask ? selectedTask.id : ""}
+                onChange={(e) => {
+                  const task = tasks.find((t) => t.id === parseInt(e.target.value));
+                  setSelectedTask(task);
+                }}
+                className="task-select"
               >
-                <Plus size={16} />
-                Tải lên tài liệu
-              </button>
+                <option value="">Chọn task</option>
+                {filteredTasks.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.title} ({t.status})
+                  </option>
+                ))}
+              </select>
             </div>
-            <div className="documents-list">
-              {documents.length > 0 ? (
-                documents.map((document) => (
-                  <div key={document.id} className="document-row">
-                    <div className="document-icon">
-                      <FileText size={16} />
-                    </div>
-                    <a
-                      href={`http://localhost:8080/${document.filePath}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="document-name"
-                    >
-                      {document.fileName}
-                    </a>
-                    <div className="document-uploaded-by">
-                      {document.uploadedBy?.name || "Không rõ"}
-                    </div>
-                    <div className="document-uploaded-at">
-                      {new Date(document.uploadedAt).toLocaleString()}
-                    </div>
-                    <button
-                      className="document-comment-button"
-                      onClick={async () => {
-                        const comments = await fetchComments(task.id);
-                        setShowCommentModal({ taskId: task.id, comments });
-                      }}
-                    >
-                      <MessageSquare size={16} />
-                      Bình luận
-                    </button>
-                  </div>
-                ))
-              ) : (
-                <p className="empty-state">Không có tài liệu nào</p>
+            <div className="file-picker">
+              <label className="btn btn-upload">
+                Chọn file
+                <input
+                  type="file"
+                  multiple
+                  className="file-input"
+                  onChange={(e) => setSelectedFiles(e.target.files)}
+                />
+              </label>
+              {selectedFiles && (
+                <p className="file-count">
+                  Đã chọn {selectedFiles.length} tệp
+                </p>
               )}
             </div>
           </div>
-
-          <div className="comments-section">
-            <div className="comments-section-header">
-              <h3 className="comments-section-title">Bình luận</h3>
-              <button
-                className="btn-add-comment"
-                onClick={async () => {
-                  const comments = await fetchComments(task.id);
-                  setShowCommentModal({ taskId: task.id, comments });
-                }}
-              >
-                <MessageSquare size={16} />
-                Thêm bình luận
-              </button>
-            </div>
+          <div className="modal-footer">
+            <button className="btn btn-cancel" onClick={onClose}>
+              Hủy
+            </button>
+            <button
+              className="btn btn-primary"
+              onClick={handleUpload}
+              disabled={!selectedTask || !selectedFiles || selectedFiles.length === 0}
+            >
+              Tải lên
+            </button>
           </div>
         </div>
-        <UploadDocumentModal
-          isOpen={showDocumentForm}
-          onClose={() => setShowDocumentForm(false)}
-          onSubmit={handleUploadDocument}
-        />
-        <CommentModal
-          isOpen={showCommentModal !== null}
-          taskId={showCommentModal?.taskId}
-          comments={showCommentModal?.comments}
-          onClose={() => setShowCommentModal(null)}
-          onSubmit={handleAddComment}
-          fetchComments={fetchComments}
-        />
       </div>
+    );
+  };
+
+  if (!task) return null;
+
+  return (
+    <div className="modal-overlay">
+      <div className="task-modal" ref={modalRef} onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <div className="modal-title-section">
+            <h3 className="modal-title">
+              {selectedProject.shortName}-{task.id} {task.title}
+            </h3>
+            <p className="modal-subtitle">
+              <User size={12} /> {task.assigneeName || "Unknown"} &bull;{" "}
+              <Calendar size={12} /> {new Date(task.createdAt).toLocaleString()}
+            </p>
+          </div>
+          <button className="modal-close" onClick={onClose}>
+            <X size={16} />
+          </button>
+        </div>
+
+        <div className="modal-tabs">
+          <button
+            className={`tab-btn ${activeTab === "details" ? "active" : ""}`}
+            onClick={() => setActiveTab("details")}
+          >
+            Chi tiết
+          </button>
+          <button
+            className={`tab-btn ${activeTab === "documents" ? "active" : ""}`}
+            onClick={() => setActiveTab("documents")}
+          >
+            Tài liệu ({documents.length})
+          </button>
+          <button
+            className={`tab-btn ${activeTab === "comments" ? "active" : ""}`}
+            onClick={() => setActiveTab("comments")}
+          >
+            Bình luận
+          </button>
+        </div>
+
+        <div className="modal-content">
+          {activeTab === "details" && (
+            <div className="task-details">
+              <div className="detail-item">
+                <span className="detail-label">Loại:</span>
+                <span className={`detail-value ${getTypeColor(task.type)}`}>
+                  {task.type || "Task"}
+                </span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-label">Trạng thái:</span>
+                <span className="detail-value">{task.status}</span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-label">Ưu tiên:</span>
+                <span className={`detail-value ${getPriorityColor(task.priority)}`}>
+                  {task.priority}
+                </span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-label">Người thực hiện:</span>
+                <span className="detail-value">
+                  {task.assigneeName || "Chưa gán"}
+                </span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-label">Ngày bắt đầu:</span>
+                <span className="detail-value">
+                  {task.startDate
+                    ? new Date(task.startDate).toLocaleDateString()
+                    : "Chưa đặt"}
+                </span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-label">Ngày kết thúc:</span>
+                <span className="detail-value">
+                  {task.endDate
+                    ? new Date(task.endDate).toLocaleDateString()
+                    : "Chưa đặt"}
+                </span>
+              </div>
+              <div className="detail-item">
+                <span className="detail-label">Mô tả:</span>
+                <span className="detail-value description">
+                  {task.description || "Không có mô tả"}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "documents" && (
+            <div className="documents-section">
+              <div className="documents-header">
+                <FileText size={16} />
+                <span>Tài liệu ({documents.length})</span>
+                <label className="btn btn-upload">
+                  <Upload size={16} />
+                  Tải lên
+                  <input
+                    type="file"
+                    multiple
+                    className="file-input"
+                    onChange={(e) => handleOpenTaskModal(e.target.files)}
+                  />
+                </label>
+              </div>
+              {documents.length > 0 ? (
+                <div className="documents-list">
+                  {documents.map((doc) => (
+                    <div key={doc.id} className="document-item">
+                      <div className="file-info">
+                        <div className="file-icon">{getFileIcon(doc.type)}</div>
+                        <div className="file-details">
+                          <p className="file-name">{doc.name}</p>
+                          <div className="file-meta">
+                            <span className="file-uploader">
+                              <User size={12} /> {doc.uploaderId}
+                            </span>
+                            <span className="file-date">
+                              <Calendar size={12} />{" "}
+                              {new Date(doc.uploadDate).toLocaleDateString()}
+                            </span>
+                            <span className="file-size">{formatFileSize(doc.size)}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="file-actions">
+                        <a
+                          href={doc.url}
+                          download
+                          className="file-action-btn"
+                          title="Tải xuống"
+                        >
+                          <Download size={16} />
+                        </a>
+                        <button
+                          className="file-action-btn file-remove"
+                          title="Xóa"
+                          onClick={() => handleDeleteDocument(doc.id)}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="no-results">Chưa có tài liệu nào</p>
+              )}
+            </div>
+          )}
+
+          {activeTab === "comments" && (
+            <div className="comments-section">
+              {documents.map((doc) => (
+                <div key={doc.id} className="document-comments">
+                  <div className="comments-header">
+                    <FileText size={16} />
+                    <span>{doc.name} ({doc.comments?.length || 0})</span>
+                  </div>
+                  {doc.comments && doc.comments.length > 0 ? (
+                    <div className="comments-list">
+                      {doc.comments.map((comment) => (
+                        <div key={comment.id} className="comment-item">
+                          <div className="comment-avatar">
+                            {comment.avatar ? (
+                              <img src={comment.avatar} alt={comment.user} />
+                            ) : (
+                              <span>{comment.user?.charAt(0).toUpperCase()}</span>
+                            )}
+                          </div>
+                          <div className="comment-content">
+                            <div className="comment-header">
+                              <span className="comment-author">{comment.user}</span>
+                              <span className="comment-time">
+                                {new Date(comment.timestamp).toLocaleString()}
+                              </span>
+                            </div>
+                            <p className="comment-text">{comment.text}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="no-results">Chưa có bình luận nào</p>
+                  )}
+                  <div className="comment-form">
+                    <div className="comment-input-container">
+                      <div className="current-user-avatar">U</div>
+                      <input
+                        type="text"
+                        value={comment}
+                        onChange={(e) => setComment(e.target.value)}
+                        placeholder="Viết bình luận..."
+                        className="comment-input"
+                        onKeyPress={(e) => {
+                          if (e.key === "Enter" && comment.trim()) {
+                            handleAddComment(doc.id);
+                            setComment("");
+                          }
+                        }}
+                      />
+                      <button
+                        className="btn-send-comment"
+                        onClick={() => {
+                          if (comment.trim()) {
+                            handleAddComment(doc.id);
+                            setComment("");
+                          }
+                        }}
+                        disabled={!comment.trim()}
+                      >
+                        <Send size={16} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <TaskSelectionModal
+        isOpen={taskSelectionModal.isOpen}
+        files={taskSelectionModal.files}
+        onClose={() => setTaskSelectionModal({ isOpen: false, files: null })}
+      />
     </div>
   );
 };

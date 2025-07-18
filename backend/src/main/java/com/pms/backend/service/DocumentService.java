@@ -82,7 +82,7 @@ public class DocumentService {
         String[] allowedTypes = {"pdf", "doc", "docx", "jpg", "jpeg", "png", "gif", "xd", "css", "js"};
 
         // Define a stable upload directory with documents subfolder
-        String uploadDir = "D:/Hoc_Ky_Ha_2025/Quan_Li_Du_An/pms_project/backend/uploads/documents/";
+        String uploadDir = "D:/pms_project/backend/uploads/documents";
 
         for (MultipartFile file : files) {
             // Validate file
