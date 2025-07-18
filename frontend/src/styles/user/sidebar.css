@@ -150,3 +150,17 @@ hr {
   padding: 0 5px;
   margin: 5px 5px 0 0;
 }
+@media (max-width: 768px) {
+  .sidebar-container {
+    position: fixed;
+    left: 0;
+    top: 30px;
+    width: 250px;
+    padding: 20px 0 0 0;
+    background-color: white;
+    z-index: 1000;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    border-right: 1px solid rgba(35, 35, 35, 0.1);
+    transition: width 0.3s ease-in-out;
+  }
+}

@@ -27,6 +27,8 @@ public enum ErrorStatus {
     INVALID_FILE_TYPE(400, "Định dạng tệp không được hỗ trợ!"),
     FILE_UPLOAD_FAILED(500, "Tải lên tệp thất bại!"),
     INVALID_COMMENT(400, "Nội dung bình luận không hợp lệ!"),
+     NOTIFICATION_NOT_FOUND(400, "Notification not found"),
+    NOTIFICATION_CREATION_FAILED(400, "Create failed"),
     INVALID_ROLE(400, "Vai trò không hợp lệ!");
 
     private final int status;

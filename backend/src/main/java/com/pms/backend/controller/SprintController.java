@@ -1,26 +1,37 @@
 package com.pms.backend.controller;
 
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.pms.backend.dto.TaskDTO;
+import com.pms.backend.dto.request.SprintCreationRequest;
 import com.pms.backend.dto.request.TaskCreationRequest;
 import com.pms.backend.dto.request.TaskUpdateRequest;
-import com.pms.backend.dto.request.SprintCreationRequest;
-import com.pms.backend.dto.TaskDTO;
 import com.pms.backend.entity.Sprint;
 import com.pms.backend.entity.Task;
 import com.pms.backend.exception.AppException;
 import com.pms.backend.exception.ErrorStatus;
 import com.pms.backend.service.SprintService;
-import jakarta.validation.constraints.NotNull;
+
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -353,4 +364,9 @@ public class SprintController {
             );
         }
     }
+     @GetMapping("/count")
+    public ResponseEntity<Integer> getTaskCount() {
+        return ResponseEntity.ok(sprintService.getTaskCount());
+    }
+
 }

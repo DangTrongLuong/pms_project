@@ -21,6 +21,8 @@ const People = () => {
   const accessToken = localStorage.getItem("accessToken");
   const userId = localStorage.getItem("userId");
   const currentUserEmail = localStorage.getItem("userEmail");
+  const currentUserName = localStorage.getItem("userName");
+  const currentUserAvatarUrl = localStorage.getItem("avatarUrl");
 
   useEffect(() => {
     if (projects && projects.length > 0) {
@@ -175,12 +177,12 @@ const People = () => {
 
   const handleAddMember = async () => {
     if (!isLeader) {
-      triggerError("Chỉ trưởng nhóm mới có thể thêm thành viên");
+      triggerError("Only the group leader can add members");
       return;
     }
 
     if (!newMemberEmails.length || !selectedProject) {
-      triggerError("Vui lòng nhập ít nhất một email hợp lệ");
+      triggerError("Please enter at least one valid email");
       return;
     }
 
@@ -231,7 +233,182 @@ const People = () => {
 
         const addedMember = await response.json();
         addedMembers.push(addedMember);
-        triggerSuccess(`Đã thêm ${email} thành công`);
+        triggerSuccess(`Add member successfully`);
+      }
+
+      // Create webhook requests for n8n with default values
+      const webhookRequests = addedMembers.map((addedMember) => ({
+        sender: {
+          id: userId,
+          name: currentUserName || "Unknown User",
+          email: currentUserEmail,
+          avatarUrl:
+            currentUserAvatarUrl ||
+            "http://localhost:8080/uploads/avatars/default-avatar.png",
+        },
+        receiver: {
+          id: addedMember.id,
+          name: addedMember.name || "Unknown Member",
+          email: addedMember.email,
+          avatarUrl:
+            addedMember.avatarUrl ||
+            "http://localhost:8080/uploads/avatars/default-avatar.png",
+        },
+        project: {
+          projectName:
+            selectedProject.name ||
+            selectedProject.project_name ||
+            "Unknown Project",
+        },
+      }));
+
+      // Log webhookRequests for debugging
+      console.log("webhookRequests:", JSON.stringify(webhookRequests, null, 2));
+
+      // Send requests to n8n webhook and collect responses
+      const n8nResponses = [];
+      for (const request of webhookRequests) {
+        const response = await fetch(
+          "https://n8n.quanliduan-pms.site/webhook/send_email",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(request),
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          console.error(
+            "Webhook error for",
+            request.receiver.email,
+            ":",
+            response.status,
+            errorData
+          );
+          triggerError(
+            `Failed to send notification to n8n for ${
+              request.receiver.email
+            }: ${errorData.message || response.statusText}`
+          );
+          continue;
+        }
+
+        const n8nResponse = await response.json();
+        n8nResponses.push(
+          ...(Array.isArray(n8nResponse) ? n8nResponse : [n8nResponse])
+        );
+      }
+
+      // Log n8nResponses for debugging
+      console.log("n8nResponses:", JSON.stringify(n8nResponses, null, 2));
+
+      // Validate n8nResponses, allowing null avatars but requiring project.name
+      const validResponses = n8nResponses.filter((resp) => {
+        const isValid =
+          resp.sender &&
+          resp.sender.id &&
+          resp.sender.name &&
+          resp.sender.email &&
+          resp.receiver &&
+          resp.receiver.id &&
+          resp.receiver.name &&
+          resp.receiver.email &&
+          resp.project &&
+          resp.project.name;
+        if (!isValid) {
+          const errors = [];
+          if (!resp.sender) errors.push("Sender is missing");
+          else {
+            if (!resp.sender.id) errors.push("Sender ID is missing");
+            if (!resp.sender.name) errors.push("Sender name is missing");
+            if (!resp.sender.email) errors.push("Sender email is missing");
+          }
+          if (!resp.receiver) errors.push("Receiver is missing");
+          else {
+            if (!resp.receiver.id) errors.push("Receiver ID is missing");
+            if (!resp.receiver.name) errors.push("Receiver name is missing");
+            if (!resp.receiver.email) errors.push("Receiver email is missing");
+          }
+          if (!resp.project || !resp.project.name)
+            errors.push("Project name is missing");
+          console.warn("Invalid n8n response:", resp, "Errors:", errors);
+          triggerError(
+            `Invalid response data from n8n for recipient: ${
+              resp.receiver?.email || "unknown"
+            }. Errors: ${errors.join("; ")}`
+          );
+        }
+        return isValid;
+      });
+
+      if (validResponses.length === 0) {
+        throw new Error("No valid n8n responses to save to database");
+      }
+
+      // Send validated responses to backend
+      const backendResponse = await fetch(
+        `${process.env.REACT_APP_API_URL}/api/notifications/webhook/send_email`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+            userId: userId,
+          },
+          body: JSON.stringify(validResponses),
+        }
+      );
+
+      if (!backendResponse.ok) {
+        const errorData = await backendResponse.json().catch(() => ({}));
+        console.error(
+          "Backend save notification error:",
+          backendResponse.status,
+          errorData
+        );
+        triggerError(
+          `Failed to save notifications to database: ${
+            errorData.message || backendResponse.statusText
+          }`
+        );
+        return;
+      }
+
+      // Fetch updated notifications
+      const fetchResponse = await fetch(
+        `${
+          process.env.REACT_APP_API_URL
+        }/api/notifications/recipient/${encodeURIComponent(currentUserEmail)}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+            userId: userId,
+          },
+        }
+      );
+
+      if (fetchResponse.ok) {
+        const updatedNotifications = await fetchResponse.json();
+        window.dispatchEvent(new Event("notificationUpdate"));
+        triggerSuccess("Notifications saved and updated successfully");
+      } else {
+        const errorData = await fetchResponse.json().catch(() => ({}));
+        console.error(
+          "Fetch notifications error:",
+          fetchResponse.status,
+          errorData
+        );
+        triggerError(
+          `Failed to fetch updated notifications: ${
+            errorData.message || fetchResponse.statusText
+          }`
+        );
       }
 
       setSelectedProject({
@@ -245,20 +422,20 @@ const People = () => {
       setEmailSuggestions([]);
     } catch (err) {
       console.error("Add members error:", err);
-      triggerError(err.message || "Thêm thành viên thất bại");
+      triggerError(err.message || "Add member failed");
     }
   };
 
   const handleRemoveMember = async (projectId, email) => {
     if (!isLeader) {
-      triggerError("Chỉ trưởng nhóm mới có thể xóa thành viên");
+      triggerError("Only the group leader can delete members");
       return;
     }
 
     try {
       let token = accessToken;
       if (!userId || !token) {
-        throw new Error("Vui lòng đăng nhập lại để tiếp tục");
+        throw new Error("Please log in again to continue");
       }
 
       let response = await fetch(
@@ -360,7 +537,7 @@ const People = () => {
 
       await fetchPeople();
       setActionMenu(null);
-      triggerSuccess(`transferred team leader to ${email}`);
+      triggerSuccess(`Transferred team leader to ${email}`);
     } catch (err) {
       console.error("Transfer leader error:", err);
       triggerError(err.message || "Team leader transfer failed");

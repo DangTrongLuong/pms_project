@@ -43,7 +43,8 @@ public class SecurityConfig {
                         "/api/projects/**",
                         "/api/members/**",
                         "/api/sprints/**",// Thêm /api/sprints vào danh sách cho phép
-                        "/api/documents/**" // Thêm endpoint cho tài liệu
+                        "/api/documents/**", // Thêm endpoint cho tài liệu,
+                        "/api/notifications/**"
                 ).permitAll()
                 .requestMatchers("/api/comments/**").authenticated() // Bình luận yêu cầu xác thực
                 .anyRequest().authenticated())

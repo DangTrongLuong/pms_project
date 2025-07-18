@@ -1,4 +1,3 @@
-
 .project-container-select {
   width: 100%;
   height: 100vh;
@@ -17,6 +16,7 @@
   width: 30px;
   height: 30px;
   display: flex;
+  justify-content: center;
   align-items: center;
   margin-right: 5px;
 }
@@ -47,13 +47,27 @@
   font-size: 14px;
 }
 
-.tab#overview .tab-icon { background-color: #d1d5db; }
-.tab#summary .tab-icon { background-color: #3b82f6; }
-.tab#backlog .tab-icon { background-color: #7F4CE7; }
-.tab#board .tab-icon { background-color: #A155E9; }
-.tab#timeline .tab-icon { background-color: #8b5cf6; }
-.tab#documents .tab-icon { background-color: #bfdbfe; }
-.tab#people .tab-icon { background-color: #c4b5fd; }
+.tab#overview .tab-icon {
+  background-color: #d1d5db;
+}
+.tab#summary .tab-icon {
+  background-color: #3b82f6;
+}
+.tab#backlog .tab-icon {
+  background-color: #7f4ce7;
+}
+.tab#board .tab-icon {
+  background-color: #a155e9;
+}
+.tab#timeline .tab-icon {
+  background-color: #8b5cf6;
+}
+.tab#documents .tab-icon {
+  background-color: #bfdbfe;
+}
+.tab#people .tab-icon {
+  background-color: #c4b5fd;
+}
 
 .project-action-bellow-navbar {
   width: 100%;
@@ -128,6 +142,7 @@
     align-items: flex-start;
     gap: 10px;
   }
+
   .tabs {
     flex-direction: row;
     padding: 0 10px;
