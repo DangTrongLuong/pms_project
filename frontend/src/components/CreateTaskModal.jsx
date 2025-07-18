@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import "../styles/user/create-task-modal.css";
 
+
 const CreateTaskModal = ({
   isOpen,
   onClose,

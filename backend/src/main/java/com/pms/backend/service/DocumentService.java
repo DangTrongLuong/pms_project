@@ -1,5 +1,16 @@
 package com.pms.backend.service;
 
+import java.io.File;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.pms.backend.dto.request.DocumentAssignmentRequest;
 import com.pms.backend.dto.request.DocumentCommentRequest;
 import com.pms.backend.dto.request.DocumentCreationRequest;
@@ -22,20 +33,11 @@ import com.pms.backend.repository.MemberRepository;
 import com.pms.backend.repository.ProjectRepository;
 import com.pms.backend.repository.TaskRepository;
 import com.pms.backend.repository.UserRepository;
+
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.File;
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -79,7 +81,7 @@ public class DocumentService {
         String[] allowedTypes = { "pdf", "doc", "docx", "jpg", "jpeg", "png", "gif", "xd", "css", "js" };
 
         // Define a stable upload directory with documents subfolder
-        String uploadDir = "C:/pms_project/uploads/documents/";
+        String uploadDir = "D:/pms_project/backend/uploads/documents";
 
         for (MultipartFile file : files) {
             // Validate file
