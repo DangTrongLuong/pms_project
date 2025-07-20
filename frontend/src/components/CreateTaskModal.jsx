@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import "../styles/user/create-task-modal.css";
 
-
 const CreateTaskModal = ({
   isOpen,
   onClose,
@@ -275,6 +274,7 @@ const CreateTaskModal = ({
               <input
                 type="datetime-local"
                 value={formData.startDate}
+                required
                 onChange={(e) =>
                   setFormData({ ...formData, startDate: e.target.value })
                 }
@@ -288,6 +288,7 @@ const CreateTaskModal = ({
               </label>
               <input
                 type="datetime-local"
+                required
                 value={formData.endDate}
                 onChange={(e) =>
                   setFormData({ ...formData, endDate: e.target.value })
