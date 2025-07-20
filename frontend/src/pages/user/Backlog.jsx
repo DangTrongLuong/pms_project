@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useContext,
+} from "react";
 import {
   Plus,
   Play,
@@ -16,6 +22,7 @@ import { useSidebar } from "../../context/SidebarContext";
 import CreateTaskModal from "../../components/CreateTaskModal";
 import CreateSprintModal from "../../components/CreateSprintModal";
 import "../../styles/user/backlog.css";
+import { NotificationContext } from "../../context/NotificationContext";
 
 const Backlog = () => {
   const { id } = useParams();
@@ -27,6 +34,8 @@ const Backlog = () => {
   const [showSprintForm, setShowSprintForm] = useState(false);
   const [sprintMenuOpen, setSprintMenuOpen] = useState(null);
   const [taskMenuOpen, setTaskMenuOpen] = useState(null);
+  const { triggerSuccess } = useContext(NotificationContext);
+
   const [deleteSprintModal, setDeleteSprintModal] = useState({
     isOpen: false,
     sprint: null,
@@ -66,7 +75,7 @@ const Backlog = () => {
 
       console.log("Fetching sprints for projectId:", selectedProject.id);
       const sprintResponse = await fetch(
-        `http://localhost:8080/api/sprints/project/${selectedProject.id}`,
+        `${process.env.REACT_APP_API_URL}/api/sprints/project/${selectedProject.id}`,
         {
           method: "GET",
           headers: {
@@ -98,7 +107,7 @@ const Backlog = () => {
       for (const sprint of sprintsData) {
         console.log("Fetching tasks for sprintId:", sprint.id);
         const taskResponse = await fetch(
-          `http://localhost:8080/api/sprints/tasks/${sprint.id}`,
+          `${process.env.REACT_APP_API_URL}/api/sprints/tasks/${sprint.id}`,
           {
             method: "GET",
             headers: {
@@ -129,7 +138,7 @@ const Backlog = () => {
 
       console.log("Fetching backlog tasks for projectId:", selectedProject.id);
       const backlogTasksResponse = await fetch(
-        `http://localhost:8080/api/sprints/tasks/backlog/${selectedProject.id}`,
+        `${process.env.REACT_APP_API_URL}/api/sprints/tasks/backlog/${selectedProject.id}`,
         {
           method: "GET",
           headers: {
@@ -153,7 +162,7 @@ const Backlog = () => {
       console.log("Tasks fetched:", allTasks);
 
       const membersResponse = await fetch(
-        `http://localhost:8080/api/members/project/${selectedProject.id}`,
+        `${process.env.REACT_APP_API_URL}/api/members/project/${selectedProject.id}`,
         {
           method: "GET",
           headers: {
@@ -214,8 +223,8 @@ const Backlog = () => {
       };
 
       const endpoint = newTask.sprintId
-        ? `http://localhost:8080/api/sprints/task/${newTask.sprintId}`
-        : `http://localhost:8080/api/sprints/task/backlog/${newTask.projectId}`;
+        ? `${process.env.REACT_APP_API_URL}/api/sprints/task/${newTask.sprintId}`
+        : `${process.env.REACT_APP_API_URL}/api/sprints/task/backlog/${newTask.projectId}`;
 
       if (newTask.sprintId) {
         const sprint = sprints.find((s) => s.id === newTask.sprintId);
@@ -244,6 +253,8 @@ const Backlog = () => {
       }
 
       await fetchSprintsAndTasks();
+      triggerSuccess(`You have successfully added the task.`);
+
       setShowTaskForm(null);
     } catch (err) {
       console.error("Lỗi khi tạo task:", err);
@@ -277,7 +288,7 @@ const Backlog = () => {
       };
 
       const response = await fetch(
-        `http://localhost:8080/api/sprints/task/${taskId}`,
+        `${process.env.REACT_APP_API_URL}/api/sprints/task/${taskId}`,
         {
           method: "PUT",
           headers: {
@@ -301,6 +312,7 @@ const Backlog = () => {
       }
 
       await fetchSprintsAndTasks();
+      triggerSuccess(`You have successfully updated the task.`);
       setEditingTask(null);
       setShowTaskForm(null);
     } catch (err) {
@@ -317,7 +329,7 @@ const Backlog = () => {
 
       console.log("Starting sprintId:", sprintId);
       const response = await fetch(
-        `http://localhost:8080/api/sprints/${sprintId}/start`,
+        `${process.env.REACT_APP_API_URL}/api/sprints/${sprintId}/start`,
         {
           method: "PUT",
           headers: {
@@ -353,7 +365,7 @@ const Backlog = () => {
 
       console.log("Completing sprintId:", sprintId);
       const response = await fetch(
-        `http://localhost:8080/api/sprints/${sprintId}/complete`,
+        `${process.env.REACT_APP_API_URL}/api/sprints/${sprintId}/complete`,
         {
           method: "PUT",
           headers: {
@@ -389,7 +401,7 @@ const Backlog = () => {
         endDate,
       });
       const response = await fetch(
-        `http://localhost:8080/api/sprints/${sprintId}`,
+        `${process.env.REACT_APP_API_URL}/api/sprints/${sprintId}`,
         {
           method: "PUT",
           headers: {
@@ -430,7 +442,7 @@ const Backlog = () => {
         moveTasksToBacklog
       );
       const response = await fetch(
-        `http://localhost:8080/api/sprints/${sprint.id}`,
+        `${process.env.REACT_APP_API_URL}/api/sprints/${sprint.id}`,
         {
           method: "DELETE",
           headers: {
@@ -450,6 +462,7 @@ const Backlog = () => {
       }
 
       await fetchSprintsAndTasks();
+      triggerSuccess(`You have successfully deleted the Sprint.`);
       setDeleteSprintModal({ isOpen: false, sprint: null });
     } catch (err) {
       console.error("Lỗi khi xóa sprint:", err);
@@ -465,7 +478,7 @@ const Backlog = () => {
 
       console.log("Deleting taskId:", task.id);
       const response = await fetch(
-        `http://localhost:8080/api/sprints/task/${task.id}`,
+        `${process.env.REACT_APP_API_URL}/api/sprints/task/${task.id}`,
         {
           method: "DELETE",
           headers: {
@@ -484,6 +497,8 @@ const Backlog = () => {
       }
 
       await fetchSprintsAndTasks();
+      triggerSuccess(`You have successfully deleted the task`);
+
       setDeleteTaskModal({ isOpen: false, task: null });
       setSelectedTasks((prev) => {
         const newSet = new Set(prev);
@@ -518,7 +533,7 @@ const Backlog = () => {
         newStatus
       );
       const response = await fetch(
-        `http://localhost:8080/api/sprints/task/${taskId}/status`,
+        `${process.env.REACT_APP_API_URL}/api/sprints/task/${taskId}/status`,
         {
           method: "PUT",
           headers: {
@@ -565,7 +580,7 @@ const Backlog = () => {
         assigneeEmail
       );
       const response = await fetch(
-        `http://localhost:8080/api/sprints/task/${taskId}/assignee?projectId=${selectedProject.id}`,
+        `${process.env.REACT_APP_API_URL}/api/sprints/task/${taskId}/assignee?projectId=${selectedProject.id}`,
         {
           method: "PUT",
           headers: {
@@ -600,7 +615,7 @@ const Backlog = () => {
 
       console.log("Auto assigning taskId:", taskId);
       const response = await fetch(
-        `http://localhost:8080/api/members/project/${selectedProject.id}`,
+        `${process.env.REACT_APP_API_URL}/api/members/project/${selectedProject.id}`,
         {
           method: "GET",
           headers: {
@@ -641,7 +656,7 @@ const Backlog = () => {
 
       console.log("Fetching members for projectId:", selectedProject.id);
       const response = await fetch(
-        `http://localhost:8080/api/members/project/${selectedProject.id}`,
+        `${process.env.REACT_APP_API_URL}/api/members/project/${selectedProject.id}`,
         {
           method: "GET",
           headers: {
@@ -679,9 +694,9 @@ const Backlog = () => {
 
       console.log("Searching assignees for query:", query, "taskId:", taskId);
       const response = await fetch(
-        `http://localhost:8080/api/members/search?query=${encodeURIComponent(
-          query
-        )}`,
+        `${
+          process.env.REACT_APP_API_URL
+        }/api/members/search?query=${encodeURIComponent(query)}`,
         {
           method: "GET",
           headers: {
@@ -745,7 +760,7 @@ const Backlog = () => {
       }
 
       const response = await fetch(
-        `http://localhost:8080/api/sprints/task/${task.id}/sprint`,
+        `${process.env.REACT_APP_API_URL}/api/sprints/task/${task.id}/sprint`,
         {
           method: "PUT",
           headers: {
@@ -834,9 +849,19 @@ const Backlog = () => {
     return !sprints.some((s) => s.status === "ACTIVE" && s.id !== sprintId);
   };
 
-  const AssigneeModal = ({ isOpen, taskId, suggestedMembers, onClose }) => {
+  const AssigneeModal = ({
+    isOpen,
+    taskId,
+    suggestedMembers: initialMembers,
+    onClose,
+  }) => {
     const [searchQuery, setSearchQuery] = useState("");
+    const [filteredMembers, setFilteredMembers] = useState([]);
     const dropdownRef = useRef(null);
+
+    useEffect(() => {
+      setFilteredMembers([]); // Reset filteredMembers khi mở modal
+    }, [isOpen]);
 
     useEffect(() => {
       const handleClickOutside = (event) => {
@@ -852,88 +877,109 @@ const Backlog = () => {
         document.removeEventListener("mousedown", handleClickOutside);
     }, [onClose]);
 
-    if (!isOpen || !taskId) return null;
+    const handleSearchAssignees = async (query) => {
+      try {
+        const userId = localStorage.getItem("userId");
+        const accessToken = localStorage.getItem("accessToken");
+        if (!userId || !accessToken) throw new Error("Vui lòng đăng nhập lại");
 
-    const filteredMembers = suggestedMembers.filter(
-      (member) =>
-        member.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        member.email?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+        const response = await fetch(
+          `${
+            process.env.REACT_APP_API_URL
+          }/api/members/search?query=${encodeURIComponent(query)}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${accessToken}`,
+              userId: userId,
+            },
+            credentials: "include",
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(
+            errorData.message ||
+              `Tìm kiếm người dùng thất bại: ${response.status}`
+          );
+        }
+
+        const users = await response.json();
+        setFilteredMembers(users || []);
+      } catch (err) {
+        console.error("Lỗi khi tìm kiếm người dùng:", err);
+        alert(
+          err.message || "Không thể tìm kiếm người dùng. Vui lòng thử lại."
+        );
+      }
+    };
 
     const handleSelectAssignee = (email) => {
       handleUpdateTaskAssignee(taskId, email);
+      onClose();
     };
 
+    const handleInputChange = (e) => {
+      const value = e.target.value;
+      setSearchQuery(value);
+      if (value.length > 0) {
+        handleSearchAssignees(value);
+      } else {
+        setFilteredMembers([]); // Reset khi không nhập
+      }
+    };
+
+    if (!isOpen || !taskId) return null;
+
     return (
-      <div className="assignee-modal-overlay">
-        <div className="assignee-modal" ref={dropdownRef}>
+      <div className="assignee-modal-overlay-list">
+        <div className="assignee-modal-list" ref={dropdownRef}>
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              if (e.target.value.length > 2) {
-                handleSearchAssignees(e.target.value, taskId);
-              }
-            }}
+            onChange={handleInputChange}
             placeholder="Search users by name or email..."
-            className="search-input"
+            className="search-input-member"
           />
           {filteredMembers.length > 0 ? (
-            <ul className="assignee-suggestion-list">
+            <ul className="assignee-suggestion-list-member">
               {filteredMembers.slice(0, 8).map((member, index) => (
                 <li
                   key={index}
                   onClick={() => handleSelectAssignee(member.email)}
-                  className="assignee-suggestion-item"
+                  className="assignee-suggestion-item-member"
                 >
-                  {member.avatarUrl ? (
+                  <div className="assignee-avatar-container">
                     <img
                       src={member.avatarUrl}
                       alt="Avatar"
-                      className="assignee-avatar"
+                      className="assignee-avatar-member"
                     />
-                  ) : (
-                    <div
-                      className="assignee-initials"
-                      style={{
-                        backgroundColor: getAvatarColor(member.name),
-                        color: "#fff",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        width: "24px",
-                        height: "24px",
-                        borderRadius: "50%",
-                        fontSize: "12px",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      {getInitials(member.name)}
-                    </div>
-                  )}
-                  <div className="assignee-info">
-                    <span className="assignee-name">{member.name}</span>
-                    <span className="assignee-email">{member.email}</span>
+                  </div>
+                  <div className="assignee-info-member">
+                    <p className="assignee-name-member">{member.name}</p>
+                    <p className="assignee-email-member">{member.email}</p>
                   </div>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="no-results">No matching members found</p>
+            <p className="no-results-member">No matching members found</p>
           )}
-          <div className="assignee-options">
+          <div className="assignee-options-actions">
             <button
               onClick={() => handleSelectAssignee("")}
-              className="unassign-btn"
+              className="unassign-btn-yet"
             >
-              Chưa gán
+              Not assigned
             </button>
             <button
               onClick={() => handleAutoAssign(taskId)}
-              className="auto-assign-btn"
+              className="auto-assign-btn-auto"
             >
-              Tự động
+              Auto
             </button>
           </div>
         </div>
@@ -1053,7 +1099,7 @@ const Backlog = () => {
           </div>
           <div className="edit-dates-modal-content">
             <div className="create-sprint-form-group">
-              <label className="create-sprint-form-label">Start Date *</label>
+              <label className="create-sprint-form-label">Start Date</label>
               <input
                 type="date"
                 required
@@ -1064,7 +1110,7 @@ const Backlog = () => {
               />
             </div>
             <div className="create-sprint-form-group">
-              <label className="create-sprint-form-label">End Date *</label>
+              <label className="create-sprint-form-label">End Date</label>
               <input
                 type="date"
                 required
@@ -1100,107 +1146,113 @@ const Backlog = () => {
           {...provided.draggableProps}
           {...provided.dragHandleProps}
         >
-          <input
-            type="checkbox"
-            checked={selectedTasks.has(task.id)}
-            onChange={() => handleToggleTaskSelection(task.id)}
-            className="task-checkbox"
-          />
-          <div className="task-id" style={{ color: "#0052cc" }}>
-            {selectedProject.shortName}-{task.id}
+          <div className="checkbox-task-id">
+            <input
+              type="checkbox"
+              checked={selectedTasks.has(task.id)}
+              onChange={() => handleToggleTaskSelection(task.id)}
+              className="task-checkbox"
+            />
+            <div className="task-id" style={{ color: "#0052cc" }}>
+              {selectedProject.shortName}Task {task.id}
+            </div>
+            <div className="task-title">{task.title}</div>
           </div>
-          <div className="task-title">{task.title}</div>
-          <div className="task-status-dropdown">
-            <select
-              value={task.status}
-              onChange={(e) => handleUpdateTaskStatus(task.id, e.target.value)}
-              className="status-select"
-            >
-              <option value="TODO">TO DO</option>
-              <option value="IN_PROGRESS">IN PROGRESS</option>
-              <option value="IN_REVIEW">IN REVIEW</option>
-              <option value="COMPLETED">DONE</option>
-            </select>
-            <ChevronDown className="status-dropdown-icon" />
-          </div>
-          <div className="task-epic">-</div>
-          <div className="task-assignee">
-            {task.assigneeEmail ? (
-              <button
-                className="assignee-avatar"
-                title={`Người thực hiện: ${task.assigneeName || "Unknown"}`}
-                onClick={() => fetchProjectMembers(task.id)}
+          <div className="status-assignee-icon">
+            <div className="task-status-dropdown">
+              <select
+                value={task.status}
+                onChange={(e) =>
+                  handleUpdateTaskStatus(task.id, e.target.value)
+                }
+                className="status-select"
               >
-                {task.assigneeAvatarUrl ? (
-                  <img
-                    src={task.assigneeAvatarUrl}
-                    alt="Avatar"
-                    className="assignee-avatar-img"
-                  />
-                ) : (
-                  <div
-                    className="assignee-initials"
-                    style={{
-                      backgroundColor: getAvatarColor(task.assigneeName),
-                      color: "#fff",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      width: "24px",
-                      height: "24px",
-                      borderRadius: "50%",
-                      fontSize: "12px",
-                      fontWeight: "bold",
+                <option value="TODO">TO DO</option>
+                <option value="IN_PROGRESS">IN PROGRESS</option>
+                <option value="IN_REVIEW">IN REVIEW</option>
+                <option value="COMPLETED">DONE</option>
+              </select>
+              <ChevronDown className="status-dropdown-icon" />
+            </div>
+
+            <div className="task-assignee">
+              {task.assigneeEmail ? (
+                <button
+                  className="assignee-avatar"
+                  title={`Người thực hiện: ${task.assigneeName || "Unknown"}`}
+                  onClick={() => fetchProjectMembers(task.id)}
+                >
+                  {task.assigneeAvatarUrl ? (
+                    <img
+                      src={task.assigneeAvatarUrl}
+                      alt="Avatar"
+                      className="assignee-avatar-img"
+                    />
+                  ) : (
+                    <div
+                      className="assignee-initials"
+                      style={{
+                        backgroundColor: getAvatarColor(task.assigneeName),
+                        color: "#fff",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: "24px",
+                        height: "24px",
+                        borderRadius: "50%",
+                        fontSize: "12px",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {getInitials(task.assigneeName)}
+                    </div>
+                  )}
+                </button>
+              ) : (
+                <button
+                  className="assign-user-button"
+                  title="Chưa gán"
+                  onClick={() => fetchProjectMembers(task.id)}
+                >
+                  <User className="unassigned-icon" style={{ opacity: 0.5 }} />
+                </button>
+              )}
+            </div>
+            <div className="task-menu-container">
+              <button
+                className="task-menu-button"
+                onClick={() =>
+                  setTaskMenuOpen(taskMenuOpen === task.id ? null : task.id)
+                }
+              >
+                <MoreVertical />
+              </button>
+              {taskMenuOpen === task.id && (
+                <div className="task-dropdown-menu">
+                  <button
+                    className="dropdown-item"
+                    onClick={() => {
+                      setEditingTask(task);
+                      setShowTaskForm(task.sprintId);
+                      setTaskMenuOpen(null);
                     }}
                   >
-                    {getInitials(task.assigneeName)}
-                  </div>
-                )}
-              </button>
-            ) : (
-              <button
-                className="assign-user-button"
-                title="Chưa gán"
-                onClick={() => fetchProjectMembers(task.id)}
-              >
-                <User className="unassigned-icon" style={{ opacity: 0.5 }} />
-              </button>
-            )}
-          </div>
-          <div className="task-menu-container">
-            <button
-              className="task-menu-button"
-              onClick={() =>
-                setTaskMenuOpen(taskMenuOpen === task.id ? null : task.id)
-              }
-            >
-              <MoreVertical />
-            </button>
-            {taskMenuOpen === task.id && (
-              <div className="task-dropdown-menu">
-                <button
-                  className="dropdown-item"
-                  onClick={() => {
-                    setEditingTask(task);
-                    setShowTaskForm(task.sprintId);
-                    setTaskMenuOpen(null);
-                  }}
-                >
-                  <Edit2 size={16} />
-                  Edit Task
-                </button>
-                <button
-                  className="dropdown-item delete-item"
-                  onClick={() => {
-                    setDeleteTaskModal({ isOpen: true, task });
-                    setTaskMenuOpen(null);
-                  }}
-                >
-                  <Trash2 size={16} />
-                  Delete Task
-                </button>
-              </div>
-            )}
+                    <Edit2 size={16} />
+                    Edit Task
+                  </button>
+                  <button
+                    className="dropdown-item delete-item"
+                    onClick={() => {
+                      setDeleteTaskModal({ isOpen: true, task });
+                      setTaskMenuOpen(null);
+                    }}
+                  >
+                    <Trash2 size={16} />
+                    Delete Task
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -1213,8 +1265,19 @@ const Backlog = () => {
     <DragDropContext onDragEnd={onDragEnd}>
       <div className="backlog-container">
         <div className="backlog-header">
-          <h1 className="backlog-title">Backlog</h1>
-          <p className="backlog-subtitle">Plan and manage your sprints</p>
+          <div className="backlog-header-content-1">
+            <h1 className="backlog-title">Backlog</h1>
+            <p className="backlog-subtitle">Plan and manage your sprints</p>
+          </div>
+          <div className="btn-create-sprint-1">
+            <button
+              className="btn-create-sprint"
+              onClick={() => setShowSprintForm(true)}
+            >
+              <Plus />
+              Create Sprint
+            </button>
+          </div>
         </div>
 
         <div className="sprints-section">
@@ -1244,7 +1307,7 @@ const Backlog = () => {
                           }
                         >
                           <Calendar size={16} />
-                          Add dates
+                          Edit date
                         </button>
                       </div>
                       <div className="sprint-actions">
@@ -1262,57 +1325,63 @@ const Backlog = () => {
                             {statusCounts.done} Done
                           </span>
                         </div>
-                        {sprint.status !== "ACTIVE" && (
-                          <button
-                            className={`btn-start-sprint ${
-                              canStartSprint(sprint.id) ? "active" : "disabled"
-                            }`}
-                            onClick={() =>
-                              canStartSprint(sprint.id) &&
-                              handleStartSprint(sprint.id)
-                            }
-                            disabled={!canStartSprint(sprint.id)}
-                          >
-                            <Play />
-                            Start Sprint
-                          </button>
-                        )}
-                        {sprint.status === "ACTIVE" && (
-                          <button
-                            className="btn-complete-sprint"
-                            onClick={() => handleCompleteSprint(sprint.id)}
-                          >
-                            Complete Sprint
-                          </button>
-                        )}
-                        <div className="sprint-menu-container">
-                          <button
-                            className="sprint-menu-button"
-                            onClick={() =>
-                              setSprintMenuOpen(
-                                sprintMenuOpen === sprint.id ? null : sprint.id
-                              )
-                            }
-                          >
-                            <MoreVertical />
-                          </button>
-                          {sprintMenuOpen === sprint.id && (
-                            <div className="sprint-dropdown-menu">
-                              <button
-                                className="dropdown-item delete-item"
-                                onClick={() => {
-                                  setDeleteSprintModal({
-                                    isOpen: true,
-                                    sprint,
-                                  });
-                                  setSprintMenuOpen(null);
-                                }}
-                              >
-                                <Trash2 />
-                                Delete Sprint
-                              </button>
-                            </div>
+                        <div className="sprint-active">
+                          {sprint.status !== "ACTIVE" && (
+                            <button
+                              className={`btn-start-sprint ${
+                                canStartSprint(sprint.id)
+                                  ? "active"
+                                  : "disabled"
+                              }`}
+                              onClick={() =>
+                                canStartSprint(sprint.id) &&
+                                handleStartSprint(sprint.id)
+                              }
+                              disabled={!canStartSprint(sprint.id)}
+                            >
+                              <Play />
+                              Start Sprint
+                            </button>
                           )}
+                          {sprint.status === "ACTIVE" && (
+                            <button
+                              className="btn-complete-sprint"
+                              onClick={() => handleCompleteSprint(sprint.id)}
+                            >
+                              Complete Sprint
+                            </button>
+                          )}
+                          <div className="sprint-menu-container">
+                            <button
+                              className="sprint-menu-button"
+                              onClick={() =>
+                                setSprintMenuOpen(
+                                  sprintMenuOpen === sprint.id
+                                    ? null
+                                    : sprint.id
+                                )
+                              }
+                            >
+                              <MoreVertical />
+                            </button>
+                            {sprintMenuOpen === sprint.id && (
+                              <div className="sprint-dropdown-menu">
+                                <button
+                                  className="dropdown-item delete-item"
+                                  onClick={() => {
+                                    setDeleteSprintModal({
+                                      isOpen: true,
+                                      sprint,
+                                    });
+                                    setSprintMenuOpen(null);
+                                  }}
+                                >
+                                  <Trash2 />
+                                  Delete Sprint
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1329,7 +1398,7 @@ const Backlog = () => {
                         onClick={() => setShowTaskForm(sprint.id)}
                       >
                         <Plus />
-                        Create issue
+                        Create new task
                       </button>
                     </div>
                     {provided.placeholder}
@@ -1338,13 +1407,6 @@ const Backlog = () => {
               </Droppable>
             );
           })}
-          <button
-            className="btn-create-sprint"
-            onClick={() => setShowSprintForm(true)}
-          >
-            <Plus />
-            Create Sprint
-          </button>
         </div>
 
         <Droppable droppableId="backlog">
@@ -1373,7 +1435,7 @@ const Backlog = () => {
                   onClick={() => setShowTaskForm(null)}
                 >
                   <Plus />
-                  Create issue
+                  Create new task
                 </button>
                 {provided.placeholder}
               </div>

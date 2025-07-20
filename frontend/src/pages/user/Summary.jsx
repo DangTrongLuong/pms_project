@@ -258,10 +258,7 @@ const Summary = () => {
               {members.map((member, index) => (
                 <div key={index} className="team-member">
                   <div className="member-avatar">
-                    {member.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
+                    <img src={member.avatarUrl} alt="Member Avatar" />
                   </div>
                   <div>
                     <span className="member-name">{member.name}</span>

@@ -8,13 +8,14 @@ import {
   faClock,
   faChartBar,
 } from "@fortawesome/free-solid-svg-icons";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useContext } from "react";
 import { SidebarProvider, useSidebar } from "../../context/SidebarContext";
 import "../../styles/user/dashboard.css";
 import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
 import Chart from "../../components/Chart";
 import axios from "axios";
+import { NotificationContext } from "../../context/NotificationContext";
 
 const DashboardContent = () => {
   const { isSidebarOpen } = useSidebar();
@@ -27,6 +28,7 @@ const DashboardContent = () => {
   const accessToken = localStorage.getItem("accessToken");
   const projectChartRef = useRef(null);
   const memberChartRef = useRef(null);
+  const { triggerSuccess } = useContext(NotificationContext);
 
   useEffect(() => {
     window.progressCallback = (navigateCallback) => {
@@ -108,6 +110,14 @@ const DashboardContent = () => {
       memberChartRef.current.handleExport();
     }
   };
+
+  useEffect(() => {
+    const authProvider = localStorage.getItem("authProvider");
+    if (authProvider === "google") {
+      triggerSuccess("Welcome, you have logged in successfully");
+      localStorage.removeItem("authProvider");
+    }
+  }, []);
 
   return (
     <div className="container">

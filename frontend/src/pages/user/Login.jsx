@@ -114,7 +114,7 @@ function Login() {
       });
 
       localStorage.setItem("authProvider", result.authProvider || "email");
-      triggerSuccess("");
+      triggerSuccess(`Welcome, you have logged in successfully`);
       navigate(result.role === "ADMIN" ? "/adminuser" : "/dashboard", {
         replace: true,
       });
@@ -132,6 +132,7 @@ function Login() {
   const googleLogin = () => {
     console.log("Logging in with Google");
     localStorage.setItem("authProvider", "google");
+
     window.location.href = `${process.env.REACT_APP_API_URL}/api/auth/login/google`;
   };
 
@@ -146,6 +147,25 @@ function Login() {
           clearInterval(interval);
           progress.style.display = "none";
           navigate("/homepage");
+        } else {
+          width += 10;
+          progress.style.width = width + "%";
+          progress.style.transition = "width 0.3s linear";
+        }
+      }, 100);
+    }
+  };
+  const handleAboutUs = () => {
+    const progress = progressRef.current;
+    if (progress) {
+      progress.style.width = "0%";
+      progress.style.display = "block";
+      let width = 0;
+      const interval = setInterval(() => {
+        if (width >= 100) {
+          clearInterval(interval);
+          progress.style.display = "none";
+          navigate("/aboutus");
         } else {
           width += 10;
           progress.style.width = width + "%";
@@ -254,7 +274,7 @@ function Login() {
               </a>
             </li>
             <li className="homepage-navbar-support-item-login">
-              <a href="#" className="about_us">
+              <a href="#" className="about_us" onClick={handleAboutUs}>
                 ABOUT US
               </a>
             </li>
@@ -308,41 +328,43 @@ function Login() {
                 </div>
               </div>
 
-              <div className="login-button">
-                <button
-                  className={`btn-login ${isLoggingIn ? "loading" : ""}`}
-                  type="submit"
-                  onClick={handleLocalLogin}
-                  disabled={isLoggingIn}
-                >
-                  LOGIN
-                </button>
-              </div>
-              <div className="err-general">
-                {error.general && (
-                  <div className="general-error">
-                    <p className="error-message">{error.general}</p>
-                  </div>
-                )}
-              </div>
-              <div className="divider">
-                <span>Or</span>
-              </div>
+              <div className="btn-login-container">
+                <div className="login-button">
+                  <button
+                    className={`btn-login ${isLoggingIn ? "loading" : ""}`}
+                    type="submit"
+                    onClick={handleLocalLogin}
+                    disabled={isLoggingIn}
+                  >
+                    LOGIN
+                  </button>
+                </div>
+                <div className="err-general">
+                  {error.general && (
+                    <div className="general-error">
+                      <p className="error-message">{error.general}</p>
+                    </div>
+                  )}
+                </div>
+                <div className="divider">
+                  <span>Or</span>
+                </div>
 
-              <div className="login-google">
-                <button
-                  className="btn-google"
-                  type="button"
-                  onClick={googleLogin}
-                  disabled={isLoggingIn}
-                >
-                  <img
-                    src={googleIcon}
-                    alt="Google Logo"
-                    className="google-logo"
-                  />
-                  Login with Google
-                </button>
+                <div className="login-google">
+                  <button
+                    className="btn-google"
+                    type="button"
+                    onClick={googleLogin}
+                    disabled={isLoggingIn}
+                  >
+                    <img
+                      src={googleIcon}
+                      alt="Google Logo"
+                      className="google-logo"
+                    />
+                    Login with Google
+                  </button>
+                </div>
               </div>
               <div className="register">
                 <p>Don't have an account?</p>

@@ -60,6 +60,7 @@ public class SecurityConfig {
                 .logout(logout -> logout
                 .logoutUrl("/api/auth/logout")
                 .logoutSuccessUrl("http://localhost:3000/login")
+                // .logoutSuccessUrl("https://quanliduan-pms.site/login")
                 .invalidateHttpSession(true)
                 .clearAuthentication(true)
                 .deleteCookies("JSESSIONID")

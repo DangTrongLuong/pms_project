@@ -148,3 +148,17 @@
   gap: 6px;
   width: 100%;
 }
+@media (max-width: 768px) {
+  .create-project-header {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: auto;
+  }
+  .create-project-header-image {
+    display: none;
+  }
+  .create-project-title {
+    margin: 10px 0;
+  }
+}

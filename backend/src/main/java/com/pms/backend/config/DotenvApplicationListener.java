@@ -21,6 +21,7 @@ public class DotenvApplicationListener implements ApplicationListener<Applicatio
         try {
             Dotenv dotenv = Dotenv.configure()
                     .directory("./")
+                    // .directory("/www/wwwroot/api-spring.quanliduan-pms.site")
                     .filename(".env")
                     .ignoreIfMissing()
                     .load();
