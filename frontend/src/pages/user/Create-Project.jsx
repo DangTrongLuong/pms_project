@@ -26,6 +26,19 @@ const Create_Project_Content = () => {
     start_date: "",
     end_date: "",
   });
+  const [minDate, setMinDate] = useState(""); // State để lưu ngày hiện tại cho min
+
+  // Lấy ngày hiện tại (10:25 PM +07, 20/07/2025)
+  const getCurrentDate = () => {
+    const now = new Date();
+    now.setHours(12, 0, 0, 0); // Đặt giờ về 00:00:00 để lấy ngày
+    return now.toISOString().split("T")[0]; // Trả về định dạng YYYY-MM-DD
+  };
+
+  useEffect(() => {
+    // Cập nhật minDate khi component mount
+    setMinDate(getCurrentDate());
+  }, []);
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
@@ -50,21 +63,29 @@ const Create_Project_Content = () => {
 
   const handleDateChange = (e) => {
     const { id, value } = e.target;
-    // Validation on input
+    const currentDate = getCurrentDate();
     let errorMsg = "";
-    if (value) {
-      const [year, month, day] = value.split("-").map(Number);
-      if (year < 1900 || year > 2100) {
-        errorMsg = "Invalid year.";
-      } else if (month < 1 || month > 12) {
-        errorMsg = "Month must be between 1 and 12.";
-      } else {
-        const daysInMonth = new Date(year, month, 0).getDate();
-        if (day < 1 || day > daysInMonth) {
-          errorMsg = "Invalid day for this month.";
+
+    // Kiểm tra ngày trong quá khứ
+    if (value && new Date(value) < new Date(currentDate)) {
+      errorMsg = "Date cannot be in the past.";
+    } else {
+      // Validation ngày hợp lệ (năm, tháng, ngày)
+      const [year, month, day] = value ? value.split("-").map(Number) : [];
+      if (value) {
+        if (year < 1900 || year > 2100) {
+          errorMsg = "Invalid year.";
+        } else if (month < 1 || month > 12) {
+          errorMsg = "Month must be between 1 and 12.";
+        } else {
+          const daysInMonth = new Date(year, month, 0).getDate();
+          if (day < 1 || day > daysInMonth) {
+            errorMsg = "Invalid day for this month.";
+          }
         }
       }
     }
+
     setErrors((prev) => ({ ...prev, [id]: errorMsg }));
     if (!errorMsg) {
       setFormData((prev) => ({
@@ -292,8 +313,10 @@ const Create_Project_Content = () => {
                       <input
                         type="date"
                         id="start_date"
+                        required
                         value={formData.start_date}
                         onChange={handleDateChange}
+                        min={minDate} // Sử dụng state minDate
                       />
                       {errors.start_date && (
                         <p
@@ -315,8 +338,10 @@ const Create_Project_Content = () => {
                       <input
                         type="date"
                         id="end_date"
+                        required
                         value={formData.end_date}
                         onChange={handleDateChange}
+                        min={minDate} // Sử dụng state minDate
                       />
                       {errors.end_date && (
                         <p

@@ -11,6 +11,7 @@ import Task from "./pages/user/Task";
 import MyProject from "./pages/user/MyProject";
 import Create_Project from "./pages/user/Create-Project";
 import HomePage from "./pages/user/HomePage";
+import AboutUs from "./pages/user/AboutUs";
 import Profile from "./pages/user/Profile";
 import Backlog from "./pages/user/Backlog";
 import Progress from "./pages/user/Progress";
@@ -45,7 +46,7 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/homepage" element={<HomePage />} />
-
+              <Route path="/aboutus" element={<AboutUs />} />
               <Route
                 path="/loginSuccess"
                 element={<AuthMiddleware>{null}</AuthMiddleware>}

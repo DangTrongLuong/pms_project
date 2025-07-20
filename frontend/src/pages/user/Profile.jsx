@@ -390,11 +390,7 @@ const ProfileContent = () => {
                     Email: <span id="email">{userEmail}</span>
                   </label>
                 </div>
-                <div className="info-field">
-                  <label>
-                    Role: <span id="role">{role}</span>
-                  </label>
-                </div>
+
                 <div className="info-field">
                   <label>
                     Created At: <span id="created-at">{createdAt}</span>
@@ -409,7 +405,7 @@ const ProfileContent = () => {
 
       {showEditNameForm && (
         <div className="modal">
-          <div className="modal-content">
+          <div className="modal-content-update-name">
             <h3>Update Full Name</h3>
             <input
               type="text"
@@ -417,19 +413,19 @@ const ProfileContent = () => {
               onChange={(e) => setNewName(e.target.value)}
               placeholder="Enter new full name"
             />
-            <button onClick={handleUpdateName}>Update</button>
             <button onClick={() => setShowEditNameForm(false)}>Cancel</button>
+            <button onClick={handleUpdateName}>Update</button>
           </div>
         </div>
       )}
 
       {showConfirmForm && (
         <div className="modal">
-          <div className="modal-content">
+          <div className="modal-content-update-name">
             <h3>Confirm</h3>
             <p>{confirmMessage}</p>
-            <button onClick={confirmAction}>Confirm</button>
             <button onClick={() => setShowConfirmForm(false)}>Cancel</button>
+            <button onClick={confirmAction}>Confirm</button>
           </div>
         </div>
       )}

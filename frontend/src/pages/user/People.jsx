@@ -244,7 +244,7 @@ const People = () => {
           email: currentUserEmail,
           avatarUrl:
             currentUserAvatarUrl ||
-            "http://localhost:8080/uploads/avatars/default-avatar.png",
+            `${process.env.REACT_APP_API_URL}/uploads/avatars/default-avatar.png`,
         },
         receiver: {
           id: addedMember.id,
@@ -252,7 +252,7 @@ const People = () => {
           email: addedMember.email,
           avatarUrl:
             addedMember.avatarUrl ||
-            "http://localhost:8080/uploads/avatars/default-avatar.png",
+            `${process.env.REACT_APP_API_URL}/uploads/avatars/default-avatar.png`,
         },
         project: {
           projectName:
@@ -887,30 +887,6 @@ const People = () => {
                 </div>
               );
             })}
-          </div>
-        </div>
-
-        <div className="summary-card">
-          <h3>Team Activity</h3>
-          <div className="activity-list">
-            <div className="activity-item">
-              <div className="activity-icon activity-success">
-                <User />
-              </div>
-              <div className="activity-details">
-                <p className="activity-title">John Doe completed 3 tasks</p>
-                <p className="activity-time">2 hours ago</p>
-              </div>
-            </div>
-            <div className="activity-item">
-              <div className="activity-icon activity-primary">
-                <UserPlus />
-              </div>
-              <div className="activity-details">
-                <p className="activity-title">Jane Smith joined the project</p>
-                <p className="activity-time">1 day ago</p>
-              </div>
-            </div>
           </div>
         </div>
       </div>

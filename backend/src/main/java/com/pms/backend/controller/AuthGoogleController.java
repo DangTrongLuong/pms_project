@@ -55,6 +55,7 @@ public class AuthGoogleController {
         if (auth2AuthenticationToken == null) {
             log.error("OAuth2AuthenticationToken is null, redirecting to login");
             response.sendRedirect("http://localhost:3000/login?error=auth_failed");
+            // response.sendRedirect("https://quanliduan-pms.site/login?error=auth_failed");
             return;
         }
 
@@ -79,10 +80,12 @@ public class AuthGoogleController {
 
             // Redirect to frontend
             response.sendRedirect("http://localhost:3000/loginSuccess");
+             //response.sendRedirect("https://quanliduan-pms.site/loginSuccess");
 
         } catch (Exception e) {
             log.error("Error processing OAuth2 login", e);
-            response.sendRedirect("http://localhost:3000/login?error=processing_failed");
+             response.sendRedirect("http://localhost:3000/login?error=processing_failed");
+            // response.sendRedirect("https://quanliduan-pms.site/login?error=processing_failed");
         }
     }
 
