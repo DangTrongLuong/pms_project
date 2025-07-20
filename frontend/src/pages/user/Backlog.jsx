@@ -36,6 +36,67 @@ const Backlog = () => {
   const [sprintMenuOpen, setSprintMenuOpen] = useState(null);
   const [taskMenuOpen, setTaskMenuOpen] = useState(null);
   const { triggerSuccess } = useContext(NotificationContext);
+  const userName = localStorage.getItem("userName");
+  const [members, setMembers] = useState([]);
+  const [error, setError] = useState("");
+  const accessToken = localStorage.getItem("accessToken");
+  const [isLeader, setIsLeader] = useState(false); // State để kiểm tra vai trò LEADER
+
+  const fetchMembers = async () => {
+    if (!selectedProject) return;
+    try {
+      const userId = localStorage.getItem("userId");
+      if (!userId || !accessToken) {
+        throw new Error("Please log in again to continue");
+      }
+
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/api/members/project/${selectedProject.id}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+            userId: userId,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message || `Failed to fetch members: ${response.status}`
+        );
+      }
+
+      const data = await response.json();
+      setMembers(data);
+      console.log("data: ", data);
+      setError("");
+
+      // Kiểm tra vai trò LEADER dựa trên userName
+      const currentMember = data.find((member) => member.name === userName);
+      if (currentMember && currentMember.role === "LEADER") {
+        setIsLeader(true);
+      } else {
+        setIsLeader(false);
+      }
+    } catch (err) {
+      setError(err.message || "An error occurred while fetching members");
+      if (err.message.includes("401") || err.message.includes("403")) {
+        setError("Your session has expired. Please log in again.");
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 2000);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (selectedProject?.id) {
+      fetchMembers();
+    }
+  }, [selectedProject?.id]);
 
   const [deleteSprintModal, setDeleteSprintModal] = useState({
     isOpen: false,
@@ -1270,15 +1331,17 @@ const Backlog = () => {
             <h1 className="backlog-title">Backlog</h1>
             <p className="backlog-subtitle">Plan and manage your sprints</p>
           </div>
-          <div className="btn-create-sprint-1">
-            <button
-              className="btn-create-sprint"
-              onClick={() => setShowSprintForm(true)}
-            >
-              <Plus />
-              Create Sprint
-            </button>
-          </div>
+          {isLeader && (
+            <div className="btn-create-sprint-1">
+              <button
+                className="btn-create-sprint"
+                onClick={() => setShowSprintForm(true)}
+              >
+                <Plus />
+                Create Sprint
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="sprints-section">
@@ -1301,31 +1364,19 @@ const Backlog = () => {
                           {sprintTasks.length} work item
                           {sprintTasks.length !== 1 ? "s" : ""}
                         </span>
-                        <button
-                          className="add-dates-btn"
-                          onClick={() =>
-                            setEditSprintDates({ isOpen: true, sprint })
-                          }
-                        >
-                          <Calendar size={16} />
-                          Edit date
-                        </button>
+                        {isLeader && (
+                          <button
+                            className="add-dates-btn"
+                            onClick={() =>
+                              setEditSprintDates({ isOpen: true, sprint })
+                            }
+                          >
+                            <Calendar size={16} />
+                            Edit date
+                          </button>
+                        )}
                       </div>
-                      <div className="sprint-actions">
-                        <div className="status-counts">
-                          <span className="status-count todo">
-                            {statusCounts.todo} To Do
-                          </span>
-                          <span className="status-count progress">
-                            {statusCounts.inProgress} In Progress
-                          </span>
-                          <span className="status-count in-review">
-                            {statusCounts.inReview} In Review
-                          </span>
-                          <span className="status-count done">
-                            {statusCounts.done} Done
-                          </span>
-                        </div>
+                      {isLeader && (
                         <div className="sprint-active">
                           {sprint.status !== "ACTIVE" && (
                             <button
@@ -1384,7 +1435,7 @@ const Backlog = () => {
                             )}
                           </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                     <div className="sprint-tasks">
                       {sprintTasks.length > 0 ? (

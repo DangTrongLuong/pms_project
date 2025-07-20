@@ -186,8 +186,8 @@ const AboutUs = () => {
             <div className="aboutus-team">
               <h2>Our Team</h2>
               <p>
-                Our team consists of four passionate students from [University
-                Name], each bringing unique skills to develop a project
+                Our team consists of four passionate students from CMC
+                University, each bringing unique skills to develop a project
                 management solution. Together, we combine our expertise to
                 deliver a functional and innovative product.
               </p>
