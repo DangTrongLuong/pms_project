@@ -22,11 +22,8 @@ import { useSidebar } from "../../context/SidebarContext";
 import CreateTaskModal from "../../components/CreateTaskModal";
 import CreateSprintModal from "../../components/CreateSprintModal";
 import "../../styles/user/backlog.css";
-<<<<<<< HEAD
 import TaskDetailModal from "../../components/TaskDetailModal"; // Điều chỉnh đường dẫn nếu cần
-=======
 import { NotificationContext } from "../../context/NotificationContext";
->>>>>>> luong
 
 const Backlog = () => {
   const { id } = useParams();
