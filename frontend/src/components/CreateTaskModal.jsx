@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import "../styles/user/create-task-modal.css";
 
-
 const CreateTaskModal = ({
   isOpen,
   onClose,
@@ -29,6 +28,12 @@ const CreateTaskModal = ({
     useState(suggestedMembers);
   const assigneeInputRef = useRef(null);
   const dropdownRef = useRef(null);
+
+  // Lấy ngày hiện tại theo định dạng ISO cho thuộc tính min
+  const getCurrentDateTime = () => {
+    const now = new Date();
+    return now.toISOString().slice(0, 16); // Định dạng YYYY-MM-DDThh:mm
+  };
 
   useEffect(() => {
     if (editingTask) {
@@ -89,9 +94,9 @@ const CreateTaskModal = ({
         throw new Error("Vui lòng đăng nhập và chọn dự án hợp lệ");
       }
       const response = await fetch(
-        `http://localhost:8080/api/members/search?query=${encodeURIComponent(
-          query
-        )}`,
+        `${
+          process.env.REACT_APP_API_URL
+        }/api/members/search?query=${encodeURIComponent(query)}`,
         {
           method: "GET",
           headers: {
@@ -212,7 +217,9 @@ const CreateTaskModal = ({
         </div>
         <form onSubmit={handleSubmit} className="create-task-modal-content">
           <div className="create-task-form-group">
-            <label className="create-task-form-label">Sprint</label>
+            <label className="create-task-form-label">
+              Sprint <span style={{ color: "red" }}>*</span>
+            </label>
             <select
               value={formData.sprintId || ""}
               onChange={(e) =>
@@ -224,7 +231,6 @@ const CreateTaskModal = ({
               }
               className="create-task-form-select"
             >
-              <option value="">Backlog</option>
               {sprints?.map((sprint) => (
                 <option key={sprint.id} value={sprint.id}>
                   {sprint.name} ({sprint.status})
@@ -233,7 +239,9 @@ const CreateTaskModal = ({
             </select>
           </div>
           <div className="create-task-form-group">
-            <label className="create-task-form-label">Title *</label>
+            <label className="create-task-form-label">
+              Title <span style={{ color: "red" }}>*</span>
+            </label>
             <input
               type="text"
               value={formData.title}
@@ -257,98 +265,27 @@ const CreateTaskModal = ({
               placeholder="Enter task description"
             />
           </div>
-          <div className="create-task-form-group">
-            <label className="create-task-form-label">Assignee</label>
-            <div className="assignee-selector" ref={dropdownRef}>
-              {selectedMember ? (
-                <div
-                  className="selected-assignee"
-                  onClick={() => setIsSuggesting(true)}
-                >
-                  {selectedMember.avatarUrl ? (
-                    <img
-                      src={selectedMember.avatarUrl}
-                      alt="Avatar"
-                      className="assignee-avatar"
-                    />
-                  ) : (
-                    <div
-                      className="assignee-initials"
-                      style={{
-                        backgroundColor: selectedMember.name
-                          ? getAvatarColor(selectedMember.name)
-                          : "#cccccc",
-                      }}
-                    >
-                      {getInitials(selectedMember.name)}
-                    </div>
-                  )}
-                  <span className="assignee-name">{selectedMember.name}</span>
-                  <span className="assignee-email">{selectedMember.email}</span>
-                </div>
-              ) : (
-                <input
-                  type="text"
-                  ref={assigneeInputRef}
-                  value={formData.assigneeEmail}
-                  onChange={(e) => {
-                    setFormData({ ...formData, assigneeEmail: e.target.value });
-                    handleAssigneeSearch(e.target.value);
-                  }}
-                  onFocus={() => handleAssigneeSearch(formData.assigneeEmail)}
-                  className="create-task-form-input"
-                  placeholder="Search for a member..."
-                />
-              )}
-              {isSuggesting && localSuggestedMembers.length > 0 && (
-                <ul className="assignee-suggestion-list">
-                  {localSuggestedMembers.slice(0, 8).map((member, index) => (
-                    <li
-                      key={index}
-                      onClick={() => handleSelectMember(member)}
-                      className="assignee-suggestion-item"
-                    >
-                      {member.avatarUrl ? (
-                        <img
-                          src={member.avatarUrl}
-                          alt="Avatar"
-                          className="assignee-avatar"
-                        />
-                      ) : (
-                        <div
-                          className="assignee-initials"
-                          style={{
-                            backgroundColor: getAvatarColor(member.name),
-                          }}
-                        >
-                          {getInitials(member.name)}
-                        </div>
-                      )}
-                      <div className="assignee-info">
-                        <span className="assignee-name">{member.name}</span>
-                        <span className="assignee-email">{member.email}</span>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </div>
-          
+
+          <div className="create-task-form-group create-task-form-grid">
             <div className="create-task-form-group">
-              <label className="create-task-form-label">Start Date<span style={{ color: "red" }}>*</span></label>
+              <label className="create-task-form-label">
+                Start Date <span style={{ color: "red" }}>*</span>
+              </label>
               <input
                 type="datetime-local"
-                required
                 value={formData.startDate}
+                required
                 onChange={(e) =>
                   setFormData({ ...formData, startDate: e.target.value })
                 }
+                min={getCurrentDateTime()} // Giới hạn ngày trong quá khứ
                 className="create-task-form-input"
               />
             </div>
             <div className="create-task-form-group">
-              <label className="create-task-form-label">End Date<span style={{ color: "red" }}>*</span></label>
+              <label className="create-task-form-label">
+                End Date <span style={{ color: "red" }}>*</span>
+              </label>
               <input
                 type="datetime-local"
                 required
@@ -356,25 +293,29 @@ const CreateTaskModal = ({
                 onChange={(e) =>
                   setFormData({ ...formData, endDate: e.target.value })
                 }
+                min={getCurrentDateTime()} // Giới hạn ngày trong quá khứ
                 className="create-task-form-input"
               />
             </div>
-            <div className="create-task-form-group create-task-form-grid">
-            <div className="create-task-form-group">
-              <label className="create-task-form-label">Priority</label>
-              <select
-                value={formData.priority}
-                onChange={(e) =>
-                  setFormData({ ...formData, priority: e.target.value })
-                }
-                className="create-task-form-select"
-              >
-                <option value="Low">Low</option>
-                <option value="Medium">Medium</option>
-                <option value="High">High</option>
-              </select>
-            </div>
           </div>
+
+          <div className="create-task-form-group">
+            <label className="create-task-form-label">
+              Priority <span style={{ color: "red" }}>*</span>
+            </label>
+            <select
+              value={formData.priority}
+              onChange={(e) =>
+                setFormData({ ...formData, priority: e.target.value })
+              }
+              className="create-task-form-select"
+            >
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+            </select>
+          </div>
+
           <div className="create-task-form-actions">
             <button
               type="button"

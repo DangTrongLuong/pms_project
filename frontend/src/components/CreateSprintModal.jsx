@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import { X } from "lucide-react";
 import "../styles/user/create-sprint-modal.css";
+import { NotificationContext } from "../context/NotificationContext";
 
 const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
   const [sprintFormData, setSprintFormData] = useState({
@@ -8,19 +9,47 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
     startDate: "",
     endDate: "",
     sprintGoal: "",
-    duration: "",
+    duration: "", // Lưu giá trị duration (số tuần hoặc "Custom")
   });
   const [isLoading, setIsLoading] = useState(false);
   const hasSubmitted = useRef(false);
+  const { triggerSuccess } = useContext(NotificationContext);
+
+  // Lấy ngày hiện tại (07:11 PM +07, 20/07/2025)
+  const getCurrentDate = () => {
+    const now = new Date();
+    now.setHours(19, 11, 0, 0); // 07:11 PM +07
+    return now.toISOString().slice(0, 10); // Định dạng YYYY-MM-DD
+  };
 
   useEffect(() => {
-    const today = new Date();
-    today.setHours(13, 34, 0, 0); // 01:34 PM +07
+    const today = getCurrentDate();
     setSprintFormData((prev) => ({
       ...prev,
-      startDate: today.toISOString().slice(0, 10),
+      startDate: today,
     }));
   }, []);
+
+  // Tính endDate dựa trên startDate và số tuần
+  const calculateEndDate = (weeks) => {
+    const start = new Date(sprintFormData.startDate);
+    const end = new Date(start);
+    end.setDate(start.getDate() + weeks * 7);
+    return end.toISOString().slice(0, 10);
+  };
+
+  const handleDurationChange = (e) => {
+    const value = e.target.value;
+    setSprintFormData((prev) => {
+      if (value === "Custom") {
+        return { ...prev, duration: value, endDate: "" }; // Kích hoạt chỉnh sửa thủ công
+      } else if (value) {
+        const weeks = parseInt(value);
+        return { ...prev, duration: value, endDate: calculateEndDate(weeks) };
+      }
+      return { ...prev, duration: value, endDate: "" };
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -44,18 +73,17 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
         startDate: sprintFormData.startDate,
         endDate: sprintFormData.endDate,
         sprintGoal: sprintFormData.sprintGoal,
-        duration: sprintFormData.duration,
+        duration: sprintFormData.duration, // Gửi duration dưới dạng chuỗi
       };
 
       const response = await fetch(
-        `http://localhost:8080/api/sprints/project/${selectedProject.id}`,
+        `${process.env.REACT_APP_API_URL}/api/sprints/project/${selectedProject.id}`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${accessToken}`,
             userId: userId,
-            userName: userName,
             userName: encodeURIComponent(userName), // Mã hóa userName
           },
           body: JSON.stringify(sprintData),
@@ -75,7 +103,7 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
       onSubmit(newSprint);
       setSprintFormData({
         name: "",
-        startDate: new Date().toISOString().slice(0, 10),
+        startDate: getCurrentDate(),
         endDate: "",
         sprintGoal: "",
         duration: "",
@@ -89,6 +117,7 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
       alert(err.message || "Không thể tạo sprint. Vui lòng thử lại.");
     } finally {
       setIsLoading(false);
+      triggerSuccess(`You have successfully added the sprint.`);
       hasSubmitted.current = false;
     }
   };
@@ -110,7 +139,9 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
         </div>
         <form onSubmit={handleSubmit} className="create-sprint-modal-content">
           <div className="create-sprint-form-group">
-            <label className="create-sprint-form-label">Sprint Name <span style={{ color: "red" }}>*</span> </label>
+            <label className="create-sprint-form-label">
+              Sprint Name <span style={{ color: "red" }}>*</span>
+            </label>
             <input
               type="text"
               required
@@ -125,9 +156,29 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
               placeholder="Enter sprint name"
             />
           </div>
+          <div className="create-sprint-form-group">
+            <label className="create-sprint-form-label">
+              Duration <span style={{ color: "red" }}>*</span>
+            </label>
+            <select
+              value={sprintFormData.duration}
+              onChange={handleDurationChange}
+              className="create-sprint-form-select"
+              required
+            >
+              <option value="">Select duration</option>
+              <option value="Custom">Custom</option>
+              <option value="1 week">1 week</option>
+              <option value="2 weeks">2 weeks</option>
+              <option value="3 weeks">3 weeks</option>
+              <option value="4 weeks">4 weeks</option>
+            </select>
+          </div>
           <div className="create-sprint-form-grid">
             <div className="create-sprint-form-group">
-              <label className="create-sprint-form-label">Start Date <span style={{ color: "red" }}>*</span> </label>
+              <label className="create-sprint-form-label">
+                Start Date <span style={{ color: "red" }}>*</span>
+              </label>
               <input
                 type="date"
                 required
@@ -139,11 +190,14 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
                   })
                 }
                 className="create-sprint-form-input"
-                min={new Date().toISOString().slice(0, 10)}
+                min={getCurrentDate()} // Giới hạn ngày trong quá khứ
+                disabled={sprintFormData.duration !== "Custom"} // Vô hiệu hóa khi không chọn Custom
               />
             </div>
             <div className="create-sprint-form-group">
-              <label className="create-sprint-form-label">End Date <span style={{ color: "red" }}>*</span> </label>
+              <label className="create-sprint-form-label">
+                End Date <span style={{ color: "red" }}>*</span>
+              </label>
               <input
                 type="date"
                 required
@@ -155,17 +209,14 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
                   })
                 }
                 className="create-sprint-form-input"
-                min={
-                  sprintFormData.startDate ||
-                  new Date().toISOString().slice(0, 10)
-                }
+                min={sprintFormData.startDate || getCurrentDate()} // Giới hạn ngày nhỏ hơn startDate
+                disabled={sprintFormData.duration !== "Custom"} // Vô hiệu hóa khi không chọn Custom
               />
             </div>
           </div>
           <div className="create-sprint-form-group">
             <label className="create-sprint-form-label">Sprint Goal</label>
-            <input
-              type="text"
+            <textarea
               value={sprintFormData.sprintGoal}
               onChange={(e) =>
                 setSprintFormData({
@@ -175,23 +226,10 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
               }
               className="create-sprint-form-input"
               placeholder="Enter sprint goal"
+              rows="3"
             />
           </div>
-          <div className="create-sprint-form-group">
-            <label className="create-sprint-form-label">Duration</label>
-            <input
-              type="text"
-              value={sprintFormData.duration}
-              onChange={(e) =>
-                setSprintFormData({
-                  ...sprintFormData,
-                  duration: e.target.value,
-                })
-              }
-              className="create-sprint-form-input"
-              placeholder="Thời gian dự kiến"
-            />
-          </div>
+
           <div className="create-sprint-form-actions">
             <button
               type="button"

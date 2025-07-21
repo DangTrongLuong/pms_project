@@ -78,9 +78,10 @@
   justify-content: center;
   align-items: center;
   gap: 10px;
+  width: 270px;
 }
 
-.btn-primary {
+.form-actions-inline .btn-primary {
   background: #01b638;
   color: #fff;
   padding: 10px 15px;
@@ -91,7 +92,7 @@
   transition: all 0.3s ease;
 }
 
-.btn-primary:hover {
+.form-actions-inline .btn-primary:hover {
   background: #00ac34;
   box-shadow: 0 4px 12px rgba(2, 179, 81, 0.3);
 }
@@ -411,7 +412,7 @@
 /* People Summary */
 .people-summary {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 25px;
 }
 
@@ -588,6 +589,10 @@
   /* Add People Form adjustments */
   .add-people-form {
     padding: 20px;
+  }
+  .add-people-form .form-row {
+    display: flex;
+    flex-direction: column !important;
   }
 
   /* Adjust people-header for mobile */

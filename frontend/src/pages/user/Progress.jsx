@@ -59,7 +59,7 @@ const Progress = () => {
         throw new Error("User not authenticated");
       }
       const response = await fetch(
-        `http://localhost:8080/api/members/project/${id}`,
+        `${process.env.REACT_APP_API_URL}/api/members/project/${id}`,
         {
           method: "GET",
           headers: {
@@ -98,7 +98,7 @@ const Progress = () => {
       }
 
       const sprintResponse = await fetch(
-        `http://localhost:8080/api/sprints/project/${selectedProject.id}`,
+        `${process.env.REACT_APP_API_URL}/api/sprints/project/${selectedProject.id}`,
         {
           method: "GET",
           headers: {
@@ -129,7 +129,7 @@ const Progress = () => {
       }
 
       const taskResponse = await fetch(
-        `http://localhost:8080/api/sprints/tasks/${activeSprint.id}`,
+        `${process.env.REACT_APP_API_URL}/api/sprints/tasks/${activeSprint.id}`,
         {
           method: "GET",
           headers: {
@@ -191,7 +191,7 @@ const Progress = () => {
       console.log("Creating task with data:", taskData);
 
       const response = await fetch(
-        `http://localhost:8080/api/sprints/task/${activeSprint.id}`,
+        `${process.env.REACT_APP_API_URL}/api/sprints/task/${activeSprint.id}`,
         {
           method: "POST",
           headers: {
@@ -248,7 +248,7 @@ const Progress = () => {
       console.log("Updating task with data:", taskData);
 
       const response = await fetch(
-        `http://localhost:8080/api/sprints/task/${taskId}`,
+        `${process.env.REACT_APP_API_URL}/api/sprints/task/${taskId}`,
         {
           method: "PUT",
           headers: {
@@ -308,7 +308,7 @@ const Progress = () => {
       console.log("Updating task status with data:", taskData);
 
       const response = await fetch(
-        `http://localhost:8080/api/sprints/task/${taskId}/status`,
+        `${process.env.REACT_APP_API_URL}/api/sprints/task/${taskId}/status`,
         {
           method: "PUT",
           headers: {
@@ -355,7 +355,7 @@ const Progress = () => {
       );
 
       const response = await fetch(
-        `http://localhost:8080/api/sprints/task/${taskId}/assignee?projectId=${selectedProject.id}`,
+        `${process.env.REACT_APP_API_URL}/api/sprints/task/${taskId}/assignee?projectId=${selectedProject.id}`,
         {
           method: "PUT",
           headers: {
@@ -393,7 +393,7 @@ const Progress = () => {
       console.log("Auto assigning taskId:", taskId);
 
       const response = await fetch(
-        `http://localhost:8080/api/members/project/${selectedProject.id}`,
+        `${process.env.REACT_APP_API_URL}/api/members/project/${selectedProject.id}`,
         {
           method: "GET",
           headers: {
@@ -436,7 +436,7 @@ const Progress = () => {
       console.log("Deleting taskId:", task.id);
 
       const response = await fetch(
-        `http://localhost:8080/api/sprints/task/${task.id}`,
+        `${process.env.REACT_APP_API_URL}/api/sprints/task/${task.id}`,
         {
           method: "DELETE",
           headers: {
@@ -473,7 +473,7 @@ const Progress = () => {
       console.log("Fetching members for projectId:", selectedProject.id);
 
       const response = await fetch(
-        `http://localhost:8080/api/members/project/${selectedProject.id}`,
+        `${process.env.REACT_APP_API_URL}/api/members/project/${selectedProject.id}`,
         {
           method: "GET",
           headers: {
@@ -809,12 +809,16 @@ const Progress = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
               {members.map((member, index) => (
-                <div key={index} className="member-avatar" title={member.name}>
+                <div
+                  key={index}
+                  className="member-avatar-progress"
+                  title={member.name}
+                >
                   {member.avatarUrl ? (
                     <img
                       src={member.avatarUrl}
                       alt={member.name}
-                      className="member-avatar-img"
+                      className="member-avatar-img-progress"
                     />
                   ) : (
                     <div
@@ -827,39 +831,41 @@ const Progress = () => {
                 </div>
               ))}
             </div>
-            <div className="grouping-dropdown">
-              <select
-                className="filter-select"
-                value={groupBy}
-                onChange={(e) => setGroupBy(e.target.value)}
-              >
-                <option value="status">Group by Status</option>
-                <option value="assignee">Group by Assignee</option>
-                <option value="priority">Group by Priority</option>
-              </select>
-            </div>
-            <div className="progress-filters">
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="filter-select"
-              >
-                <option value="all">All Status</option>
-                <option value="TODO">To Do</option>
-                <option value="IN_PROGRESS">In Progress</option>
-                <option value="IN_REVIEW">In Review</option>
-                <option value="DONE">Done</option>
-              </select>
-              <select
-                value={filterPriority}
-                onChange={(e) => setFilterPriority(e.target.value)}
-                className="filter-select"
-              >
-                <option value="all">All Priority</option>
-                <option value="High">High</option>
-                <option value="Medium">Medium</option>
-                <option value="Low">Low</option>
-              </select>
+            <div className="dropdown-filters">
+              <div className="grouping-dropdown">
+                <select
+                  className="filter-select"
+                  value={groupBy}
+                  onChange={(e) => setGroupBy(e.target.value)}
+                >
+                  <option value="status">Group by Status</option>
+                  <option value="assignee">Group by Assignee</option>
+                  <option value="priority">Group by Priority</option>
+                </select>
+              </div>
+              <div className="progress-filters">
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="filter-select"
+                >
+                  <option value="all">All Status</option>
+                  <option value="TODO">To Do</option>
+                  <option value="IN_PROGRESS">In Progress</option>
+                  <option value="IN_REVIEW">In Review</option>
+                  <option value="DONE">Done</option>
+                </select>
+                <select
+                  value={filterPriority}
+                  onChange={(e) => setFilterPriority(e.target.value)}
+                  className="filter-select"
+                >
+                  <option value="all">All Priority</option>
+                  <option value="High">High</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Low">Low</option>
+                </select>
+              </div>
             </div>
           </div>
           <div className="kanban-columns">
@@ -922,7 +928,6 @@ const Progress = () => {
                                       : ""
                                   }`}
                                 >
-                                  {selectedProject.shortName}-{task.id}{" "}
                                   {task.title}
                                 </h4>
                                 <div
@@ -956,8 +961,14 @@ const Progress = () => {
                                         className="dropdown-item"
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          console.log("View Details clicked for task:", task.id);
-                                          setSelectedTask({ ...task, isDetailView: true }); // Mở TaskDetailModal
+                                          console.log(
+                                            "View Details clicked for task:",
+                                            task.id
+                                          );
+                                          setSelectedTask({
+                                            ...task,
+                                            isDetailView: true,
+                                          }); // Mở TaskDetailModal
                                           setTaskMenuOpen(null);
                                         }}
                                       >
@@ -967,7 +978,10 @@ const Progress = () => {
                                         className="dropdown-item"
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          console.log("Edit Task clicked for task:", task.id);
+                                          console.log(
+                                            "Edit Task clicked for task:",
+                                            task.id
+                                          );
                                           setSelectedTask(task); // Mở CreateTaskModal
                                           setTaskMenuOpen(null);
                                         }}
@@ -978,7 +992,10 @@ const Progress = () => {
                                         className="dropdown-item"
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          console.log("Assign Member clicked for task:", task.id);
+                                          console.log(
+                                            "Assign Member clicked for task:",
+                                            task.id
+                                          );
                                           fetchProjectMembers(task.id);
                                           setTaskMenuOpen(null);
                                         }}
@@ -989,8 +1006,14 @@ const Progress = () => {
                                         className="dropdown-item delete-item"
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          console.log("Delete Task clicked for task:", task.id);
-                                          setDeleteTaskModal({ isOpen: true, task });
+                                          console.log(
+                                            "Delete Task clicked for task:",
+                                            task.id
+                                          );
+                                          setDeleteTaskModal({
+                                            isOpen: true,
+                                            task,
+                                          });
                                           setTaskMenuOpen(null);
                                         }}
                                       >
@@ -1002,7 +1025,7 @@ const Progress = () => {
                                 </div>
                               </div>
                               <p className="board-task-desc">
-                                {task.description || "Không có mô tả"}
+                                {task.description || "No description available"}
                               </p>
                               <div className="board-task-meta">
                                 <div className="task-type-priority">
@@ -1011,12 +1034,18 @@ const Progress = () => {
                                       task.type
                                     )}`}
                                   >
-                                    {task.type || "Task"}
+                                    {task.type || (
+                                      <div className="task-name-name">
+                                        {selectedProject.shortName}Task{" "}
+                                        {task.id}{" "}
+                                      </div>
+                                    )}
                                   </span>
                                   <span
                                     className={`task-priority ${getPriorityColor(
                                       task.priority
                                     )}`}
+                                    style={{ color: "white" }}
                                   >
                                     {task.priority}
                                   </span>

@@ -8,24 +8,27 @@ import {
   faClock,
   faChartBar,
 } from "@fortawesome/free-solid-svg-icons";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useContext } from "react";
 import { SidebarProvider, useSidebar } from "../../context/SidebarContext";
 import "../../styles/user/dashboard.css";
 import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
 import Chart from "../../components/Chart";
 import axios from "axios";
+import { NotificationContext } from "../../context/NotificationContext";
 
 const DashboardContent = () => {
   const { isSidebarOpen } = useSidebar();
   const [projectCount, setProjectCount] = useState(0);
   const [userCount, setUserCount] = useState(0);
+  const [taskCount, setTaskCount] = useState(0);
   const [totalTasks, setTotalTasks] = useState(0);
   const [overdueTasks, setOverdueTasks] = useState(0);
   const userId = localStorage.getItem("userId");
   const accessToken = localStorage.getItem("accessToken");
   const projectChartRef = useRef(null);
   const memberChartRef = useRef(null);
+  const { triggerSuccess } = useContext(NotificationContext);
 
   useEffect(() => {
     window.progressCallback = (navigateCallback) => {
@@ -72,6 +75,17 @@ const DashboardContent = () => {
         );
         setUserCount(userResponse.data);
 
+        const taskResponse = await axios.get(
+          `${process.env.REACT_APP_API_URL}/api/sprints/count`,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              userId: userId,
+            },
+          }
+        );
+        setTaskCount(taskResponse.data);
+
         setTotalTasks(100);
         setOverdueTasks(15);
       } catch (error) {
@@ -96,6 +110,14 @@ const DashboardContent = () => {
       memberChartRef.current.handleExport();
     }
   };
+
+  useEffect(() => {
+    const authProvider = localStorage.getItem("authProvider");
+    if (authProvider === "google") {
+      triggerSuccess("Welcome, you have logged in successfully");
+      localStorage.removeItem("authProvider");
+    }
+  }, []);
 
   return (
     <div className="container">
@@ -128,7 +150,7 @@ const DashboardContent = () => {
                 <h2>Total Tasks</h2>
                 <div className="color-block-task"></div>
               </div>
-              <p className="count">{totalTasks}</p>
+              <p className="count">{taskCount}</p>
               <p className="des-card">Across all projects</p>
             </div>
             <div className="overview-card">

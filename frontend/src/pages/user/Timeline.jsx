@@ -11,7 +11,11 @@ const Timeline = () => {
   const [sprints, setSprints] = useState([]);
   const [tasks, setTasks] = useState([]);
   const accessToken = localStorage.getItem("accessToken");
-
+  const getCurrentDate = () => {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    return now;
+  };
   useEffect(() => {
     const project = projects.find((p) => p.id === parseInt(id));
     console.log("Selected project from projects:", project);
@@ -102,6 +106,17 @@ const Timeline = () => {
     fetchSprintsAndTasks();
   }, [selectedProject]);
 
+  const getDaysToEndDate = (endDate) => {
+    if (!endDate) return "Not set";
+    const end = new Date(endDate);
+    end.setHours(0, 0, 0, 0);
+    const now = getCurrentDate();
+    const diffTime = end.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    if (diffDays <= 0) return "Expired";
+    return `${diffDays}d`;
+  };
+
   const getTaskDuration = (startDate, endDate) => {
     if (!startDate || !endDate) return "-";
     const start = new Date(startDate);
@@ -113,8 +128,8 @@ const Timeline = () => {
 
   return (
     <div className="tab-content">
-      <div className="section-header">
-        <div className="section-title">
+      <div className="section-header-timeline">
+        <div className="section-title-timeline">
           <h2>Timeline</h2>
           <p>Visual timeline of project tasks</p>
         </div>
@@ -125,81 +140,81 @@ const Timeline = () => {
       </div>
 
       <div className="timeline">
-        <div className="timeline-header">
-          <div className="timeline-grid-header">
-            <div className="timeline-col-task">Task</div>
-            <div className="timeline-col-assignee">Assignee</div>
-            <div className="timeline-col-start">Start Date</div>
-            <div className="timeline-col-end">End Date</div>
-            <div className="timeline-col-duration">Duration</div>
-            <div className="timeline-col-progress">Timeline</div>
-          </div>
-        </div>
-
-        <div className="timeline-body">
-          {tasks.map((task) => (
-            <div key={task.id} className="timeline-item">
-              <div className="timeline-task-info">
-                <div
-                  className={`task-priority-indicator priority-${task.priority.toLowerCase()}`}
-                />
-                <div className="timeline-task-details">
-                  <p className="timeline-task-title">{task.title}</p>
-                  <p className="timeline-task-type">{task.type || "Task"}</p>
-                </div>
-              </div>
-
-              <div className="timeline-task-assignee">
-                <div className="assignee-avatar">
-                  {task.assigneeName
-                    ? task.assigneeName
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")
-                        .toUpperCase()
-                    : task.assigneeEmail
-                    ? task.assigneeEmail
-                        .split("@")[0]
-                        .substring(0, 2)
-                        .toUpperCase()
-                    : "?"}
-                </div>
-                <span>
-                  {task.assigneeName || task.assigneeEmail || "Unassigned"}
-                </span>
-              </div>
-
-              <div className="timeline-date">
-                {task.startDate
-                  ? new Date(task.startDate).toLocaleDateString()
-                  : "Not set"}
-              </div>
-
-              <div className="timeline-date">
-                {task.endDate
-                  ? new Date(task.endDate).toLocaleDateString()
-                  : "Not set"}
-              </div>
-
-              <div className="timeline-duration">
-                <Clock />
-                <span>{getTaskDuration(task.startDate, task.endDate)}</span>
-              </div>
-
-              <div className="timeline-bar-container">
-                <div
-                  className={`timeline-bar status-${task.status
-                    .toLowerCase()
-                    .replace("_", "")}`}
-                >
-                  <div className="timeline-dates">
-                    <span>{task.status}</span>
+        <table className="timeline-table">
+          <thead>
+            <tr className="timeline-grid-header">
+              <th className="timeline-col-task">Task</th>
+              <th className="timeline-col-assignee">Assignee</th>
+              <th className="timeline-col-start">Start Date</th>
+              <th className="timeline-col-end">End Date</th>
+              <th className="timeline-col-duration">Duration</th>
+              <th className="timeline-col-progress">Timeline</th>
+              <th className="timeline-col-status">Status</th>
+            </tr>
+          </thead>
+          <tbody className="timeline-body">
+            {tasks.map((task) => (
+              // <tr>
+              //   <td>d</td>
+              //   <td>d</td>
+              //   <td>d</td>
+              //   <td>d</td>
+              //   <td>d</td>
+              //   <td>d</td>
+              //   <td>s</td>
+              // </tr>
+              <tr key={task.id} className="timeline-item-tr">
+                <td className="timeline-task-info">
+                  <div className="timeline-task-info-inner">
+                    <div
+                      className={`task-priority-indicator priority-${task.priority.toLowerCase()}`}
+                    />
+                    <div className="timeline-task-details">
+                      <p className="timeline-task-title">{task.title}</p>
+                    </div>
                   </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+                </td>
+
+                <td className="timeline-task-assignee-fix">
+                  <div className="name-assignee">
+                    <span>
+                      {task.assigneeName || task.assigneeEmail || "Unassigned"}
+                    </span>
+                  </div>
+                </td>
+                <td className="timeline-date">
+                  {task.startDate
+                    ? new Date(task.startDate).toLocaleDateString()
+                    : "Not set"}
+                </td>
+                <td className="timeline-date">
+                  {task.endDate
+                    ? new Date(task.endDate).toLocaleDateString()
+                    : "Not set"}
+                </td>
+                <td className="timeline-duration-fix">
+                  <Clock />
+                  <span>{getTaskDuration(task.startDate, task.endDate)}</span>
+                </td>
+                <td className="timeline-timeline">
+                  <Clock />
+                  <span style={{ color: "red" }}>
+                    {getDaysToEndDate(task.endDate)}
+                  </span>
+                </td>
+                <td className="timeline-bar-container">
+                  <div
+                    className={`timeline-bar status-${task.status.toLowerCase()}`}
+                  >
+                    <div className="timeline-status">
+                      <span>{task.status}</span>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       <div className="timeline-summary">

@@ -28,6 +28,7 @@ public class TokenFilter extends OncePerRequestFilter {
         if ("OPTIONS".equalsIgnoreCase(method)) {
             response.setStatus(HttpServletResponse.SC_OK);
             response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+            // response.setHeader("Access-Control-Allow-Origin", "https://quanliduan-pms.site");
             response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
             response.setHeader("Access-Control-Allow-Headers", "Authorization, userId, Content-Type, role");
             response.setHeader("Access-Control-Allow-Credentials", "true");
@@ -41,6 +42,7 @@ public class TokenFilter extends OncePerRequestFilter {
                 || path.startsWith("/api/projects/")
                 || path.startsWith("/api/members/")
                 || path.startsWith("/api/sprints/")
+                || path.startsWith("/api/notifications/")
                 || path.startsWith("/api/documents/")
                 || path.startsWith("/api/admin/auth/login")
                 || path.startsWith("/oauth2/")

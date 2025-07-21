@@ -45,7 +45,7 @@ spring:
             client-id: 23955059535-ms7k1vo9hcgjdfhkoup7u3i01pqecq4u.apps.googleusercontent.com
             client-secret: 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
             scope: openid,profile,email
-            redirect-uri: http://localhost:8080/login/oauth2/code/google
+            redirect-uri: ${BACKEND_URL}/login/oauth2/code/google
             authorization-grant-type: authorization_code
             client-authentication-method: client_secret_basic
 

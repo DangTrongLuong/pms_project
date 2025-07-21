@@ -64,6 +64,25 @@ const HomePage = () => {
       }, 100);
     }
   };
+  const handleAboutUs = () => {
+    const progress = progressRef.current;
+    if (progress) {
+      progress.style.width = "0%";
+      progress.style.display = "block";
+      let width = 0;
+      const interval = setInterval(() => {
+        if (width >= 100) {
+          clearInterval(interval);
+          progress.style.display = "none";
+          navigate("/aboutus");
+        } else {
+          width += 10;
+          progress.style.width = width + "%";
+          progress.style.transition = "width 0.1s linear";
+        }
+      }, 100);
+    }
+  };
 
   const titleRef = useRef(null);
   const support1Ref = useRef(null);
@@ -142,7 +161,7 @@ const HomePage = () => {
                 </a>
               </li>
               <li className="homepage-navbar-support-item">
-                <a href="/about" className="about_us">
+                <a href="#" className="about_us" onClick={handleAboutUs}>
                   ABOUT US
                 </a>
               </li>
@@ -174,11 +193,10 @@ const HomePage = () => {
           <div className="bg-overlay">
             <div className="bg-overlay-content">
               <div className="bg-overlay-content-title">
-                <h1>
-                  Track, organize, and resolve tasks from anywhere.
-                </h1>
+                <h1>Track, organize, and resolve tasks from anywhere.</h1>
                 <p>
-                  Break free from clutter and chaos – unleash your productivity with PMS.
+                  Break free from clutter and chaos – unleash your productivity
+                  with PMS.
                 </p>
               </div>
               <div className="bg-overlay-content-buttons">

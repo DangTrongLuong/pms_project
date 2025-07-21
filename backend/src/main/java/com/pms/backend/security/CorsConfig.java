@@ -17,6 +17,7 @@ public class CorsConfig {
                 registry.addMapping("/**")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedOrigins("http://localhost:3000")
+                        // .allowedOrigins("https://quanliduan-pms.site")
                         .allowedHeaders("*")
                         .allowCredentials(true)
                         .exposedHeaders("Access-Control-Allow-Origin", "Access-Control-Allow-Methods", "Access-Control-Allow-Headers");

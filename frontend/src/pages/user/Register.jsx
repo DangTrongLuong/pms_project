@@ -222,6 +222,25 @@ function Register() {
       }, 100);
     }
   };
+  const handleAboutUs = () => {
+    const progress = progressRef.current;
+    if (progress) {
+      progress.style.width = "0%";
+      progress.style.display = "block";
+      let width = 0;
+      const interval = setInterval(() => {
+        if (width >= 100) {
+          clearInterval(interval);
+          progress.style.display = "none";
+          navigate("/aboutus");
+        } else {
+          width += 10;
+          progress.style.width = width + "%";
+          progress.style.transition = "width 0.3s linear";
+        }
+      }, 100);
+    }
+  };
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
@@ -298,12 +317,12 @@ function Register() {
           <ul className="homepage-navbar-support-list-login">
             <li className="homepage-navbar-support-item-login">
               <a href="#" className="home" onClick={handleHomePage}>
-                Home
+                HOME
               </a>
             </li>
             <li className="homepage-navbar-support-item-login">
-              <a href="#" className="about_us">
-                About us
+              <a href="#" className="about_us" onClick={handleAboutUs}>
+                ABOUT US
               </a>
             </li>
           </ul>

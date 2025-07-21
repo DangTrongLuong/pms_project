@@ -43,7 +43,8 @@ public class SecurityConfig {
                         "/api/projects/**",
                         "/api/members/**",
                         "/api/sprints/**",// Thêm /api/sprints vào danh sách cho phép
-                        "/api/documents/**" // Thêm endpoint cho tài liệu
+                        "/api/documents/**", // Thêm endpoint cho tài liệu,
+                        "/api/notifications/**"
                 ).permitAll()
                 .requestMatchers("/api/comments/**").authenticated() // Bình luận yêu cầu xác thực
                 .anyRequest().authenticated())
@@ -59,6 +60,7 @@ public class SecurityConfig {
                 .logout(logout -> logout
                 .logoutUrl("/api/auth/logout")
                 .logoutSuccessUrl("http://localhost:3000/login")
+                // .logoutSuccessUrl("https://quanliduan-pms.site/login")
                 .invalidateHttpSession(true)
                 .clearAuthentication(true)
                 .deleteCookies("JSESSIONID")

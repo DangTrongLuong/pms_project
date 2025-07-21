@@ -6,6 +6,7 @@ import "../../styles/user/dashboard.css";
 import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
 import "../../styles/user/create-project.css";
+import newProject from "../../assets/new_project.jpg";
 
 const Create_Project_Content = () => {
   const { isSidebarOpen, setProjectsSidebar } = useSidebar();
@@ -25,6 +26,19 @@ const Create_Project_Content = () => {
     start_date: "",
     end_date: "",
   });
+  const [minDate, setMinDate] = useState(""); // State để lưu ngày hiện tại cho min
+
+  // Lấy ngày hiện tại (10:25 PM +07, 20/07/2025)
+  const getCurrentDate = () => {
+    const now = new Date();
+    now.setHours(12, 0, 0, 0); // Đặt giờ về 00:00:00 để lấy ngày
+    return now.toISOString().split("T")[0]; // Trả về định dạng YYYY-MM-DD
+  };
+
+  useEffect(() => {
+    // Cập nhật minDate khi component mount
+    setMinDate(getCurrentDate());
+  }, []);
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
@@ -49,21 +63,29 @@ const Create_Project_Content = () => {
 
   const handleDateChange = (e) => {
     const { id, value } = e.target;
-    // Validation on input
+    const currentDate = getCurrentDate();
     let errorMsg = "";
-    if (value) {
-      const [year, month, day] = value.split("-").map(Number);
-      if (year < 1900 || year > 2100) {
-        errorMsg = "Invalid year.";
-      } else if (month < 1 || month > 12) {
-        errorMsg = "Month must be between 1 and 12.";
-      } else {
-        const daysInMonth = new Date(year, month, 0).getDate();
-        if (day < 1 || day > daysInMonth) {
-          errorMsg = "Invalid day for this month.";
+
+    // Kiểm tra ngày trong quá khứ
+    if (value && new Date(value) < new Date(currentDate)) {
+      errorMsg = "Date cannot be in the past.";
+    } else {
+      // Validation ngày hợp lệ (năm, tháng, ngày)
+      const [year, month, day] = value ? value.split("-").map(Number) : [];
+      if (value) {
+        if (year < 1900 || year > 2100) {
+          errorMsg = "Invalid year.";
+        } else if (month < 1 || month > 12) {
+          errorMsg = "Month must be between 1 and 12.";
+        } else {
+          const daysInMonth = new Date(year, month, 0).getDate();
+          if (day < 1 || day > daysInMonth) {
+            errorMsg = "Invalid day for this month.";
+          }
         }
       }
     }
+
     setErrors((prev) => ({ ...prev, [id]: errorMsg }));
     if (!errorMsg) {
       setFormData((prev) => ({
@@ -230,12 +252,17 @@ const Create_Project_Content = () => {
         <div className={`main-container ${!isSidebarOpen ? "full" : ""}`}>
           <div className="create-project-container">
             <div className="create-project-header">
-              <div className="create-project-title">
-                <h2>Create New Project</h2>
-                <p>
-                  Fill in the project details below to complete the project
-                  creation
-                </p>
+              <div className="create-project-header-title">
+                <div className="create-project-title">
+                  <h2>Create New Project</h2>
+                  <p>
+                    Fill in the project details next to complete the project
+                    creation
+                  </p>
+                </div>
+                <div className="create-project-header-image">
+                  <img src={newProject} />
+                </div>
               </div>
               {errors.general && (
                 <p style={{ color: "red" }}>{errors.general}</p>
@@ -265,68 +292,73 @@ const Create_Project_Content = () => {
                     </p>
                   )}
                 </div>
-                <div className="create-project-input">
-                  <label htmlFor="project-description">
-                    Project Description
-                  </label>
-                  <textarea
-                    id="project-description"
-                    placeholder="Project Description"
-                    rows="3"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div className="date">
-                  <div className="create-project-input start-date">
-                    <label htmlFor="start_date">
-                      Start date <span style={{ color: "red" }}>*</span>
+                <div className="create-project-input-time">
+                  <div className="pro-des">
+                    <label htmlFor="project-description">
+                      Project Description
                     </label>
-                    <input
-                      type="date"
-                      required
-                      id="start_date"
-                      value={formData.start_date}
-                      onChange={handleDateChange}
+                    <textarea
+                      id="project-description"
+                      placeholder="Project Description"
+                      rows="3"
+                      value={formData.description}
+                      onChange={handleInputChange}
                     />
-                    {errors.start_date && (
-                      <p
-                        style={{
-                          color: "red",
-                          marginTop: -12,
-                          marginBottom: 6,
-                          fontSize: 15,
-                        }}
-                      >
-                        {errors.start_date}
-                      </p>
-                    )}
                   </div>
-                  <div className="create-project-input end-date">
-                    <label htmlFor="end_date">
-                      End date <span style={{ color: "red" }}>*</span>
-                    </label>
-                    <input
-                      type="date"
-                      required
-                      id="end_date"
-                      value={formData.end_date}
-                      onChange={handleDateChange}
-                    />
-                    {errors.end_date && (
-                      <p
-                        style={{
-                          color: "red",
-                          marginTop: -12,
-                          marginBottom: 6,
-                          fontSize: 15,
-                        }}
-                      >
-                        {errors.end_date}
-                      </p>
-                    )}
+                  <div className="date">
+                    <div className="create-project-input-time start-date">
+                      <label htmlFor="start_date">
+                        Start Date <span style={{ color: "red" }}>*</span>
+                      </label>
+                      <input
+                        type="date"
+                        id="start_date"
+                        required
+                        value={formData.start_date}
+                        onChange={handleDateChange}
+                        min={minDate} // Sử dụng state minDate
+                      />
+                      {errors.start_date && (
+                        <p
+                          style={{
+                            color: "red",
+                            marginTop: -12,
+                            marginBottom: 6,
+                            fontSize: 15,
+                          }}
+                        >
+                          {errors.start_date}
+                        </p>
+                      )}
+                    </div>
+                    <div className="create-project-input-time end-date">
+                      <label htmlFor="end_date">
+                        End Date <span style={{ color: "red" }}>*</span>
+                      </label>
+                      <input
+                        type="date"
+                        id="end_date"
+                        required
+                        value={formData.end_date}
+                        onChange={handleDateChange}
+                        min={minDate} // Sử dụng state minDate
+                      />
+                      {errors.end_date && (
+                        <p
+                          style={{
+                            color: "red",
+                            marginTop: -12,
+                            marginBottom: 6,
+                            fontSize: 15,
+                          }}
+                        >
+                          {errors.end_date}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
+
                 <div className="create-project-input-type">
                   <label htmlFor="project-type">
                     Project Type <span style={{ color: "red" }}>*</span>
@@ -340,7 +372,7 @@ const Create_Project_Content = () => {
                     />
                     <div className="type">
                       <h3>Scrum</h3>
-                      <p>
+                      <p style={{ fontSize: "15px" }}>
                         Move quickly toward your project goals with boards,
                         backlogs, and timelines
                       </p>

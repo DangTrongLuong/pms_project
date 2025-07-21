@@ -86,7 +86,7 @@ body {
   margin-right: 20px;
   margin-top: 30px;
 }
-.register-form{
+.register-form {
   width: 90%;
 }
 .register-form .register-input {
@@ -142,7 +142,7 @@ body {
 .register-form .register-input .input-group-register input:valid ~ label {
   margin-top: -23px !important;
   font-size: 15px;
-  margin-left:0px;
+  margin-left: 0px;
   color: #050505 !important;
   transform: translateY(-50%);
 }
@@ -195,11 +195,11 @@ body {
   color: #0c7ae7;
 }
 
-.login a{
+.login a {
   text-decoration: none;
   color: #0c7ae7;
 }
-.login a:hover{
+.login a:hover {
   text-decoration: underline;
 }
 
@@ -249,31 +249,30 @@ body {
   border-radius: 5px;
 }
 
-@media (max-width: 768px){
-    .homepage-navbar-login-btn{
-      width: 130px !important;
-      margin-top: 10px;
-      margin-left: 10px;
-    }
+@media (max-width: 768px) {
+  .homepage-navbar-login-btn {
+    width: 130px !important;
+    margin-top: 10px;
+    margin-left: 10px;
+  }
 
-    .register-home-1{
-     display:none;
-     width: 0;
-    }
-    .register-home-2{
-      width: 100%;
-    }
+  .register-home-1 {
+    display: none;
+    width: 0;
+  }
+  .register-home-2 {
+    width: 100%;
+  }
 
-    .register-home-1-content-title{
-     width: 100%;
-     margin-left: 0px;
-     padding: 3px 3px;
-    }
-    .register-form{
-      width: 100%;
-    }
-    .register-home-1-content-title p{
-      font-size: 24px;
-    }
-
+  .register-home-1-content-title {
+    width: 100%;
+    margin-left: 0px;
+    padding: 3px 3px;
+  }
+  .register-form {
+    width: 100%;
+  }
+  .register-home-1-content-title p {
+    font-size: 24px;
+  }
 }

@@ -1,5 +1,13 @@
 package com.pms.backend.service;
 
+import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+
 import com.pms.backend.dto.TaskDTO;
 import com.pms.backend.dto.request.SprintCreationRequest;
 import com.pms.backend.dto.request.TaskCreationRequest;
@@ -9,7 +17,6 @@ import com.pms.backend.entity.Sprint;
 import com.pms.backend.entity.Task;
 import com.pms.backend.entity.User;
 import com.pms.backend.enums.SprintStatus;
-import com.pms.backend.enums.TaskStatus;
 import com.pms.backend.exception.AppException;
 import com.pms.backend.exception.ErrorStatus;
 import com.pms.backend.mapper.SprintMapper;
@@ -18,18 +25,11 @@ import com.pms.backend.repository.ProjectRepository;
 import com.pms.backend.repository.SprintRepository;
 import com.pms.backend.repository.TaskRepository;
 import com.pms.backend.repository.UserRepository;
+
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -349,5 +349,8 @@ public class SprintService {
     public Optional<Sprint> getSprintById(Integer sprintId) {
         log.info("Lấy chi tiết sprint cho sprintId: {}", sprintId);
         return sprintRepository.findById((long) sprintId);
+    }
+    public int getTaskCount() {
+        return (int) taskRepository.count();
     }
 }

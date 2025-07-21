@@ -40,6 +40,7 @@ const Documents = () => {
   const assigneeDropdownRef = useRef(null);
   const documentModalRef = useRef(null);
   const accessToken = localStorage.getItem("accessToken");
+  const avatar_url = localStorage.getItem("avatarUrl");
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -103,7 +104,7 @@ const Documents = () => {
       }
 
       const response = await fetch(
-        `http://localhost:8080/api/documents/${selectedProject.id}`,
+        `${process.env.REACT_APP_API_URL}/api/documents/${selectedProject.id}`,
         {
           method: "GET",
           headers: {
@@ -138,7 +139,7 @@ const Documents = () => {
       }
 
       const sprintsResponse = await fetch(
-        `http://localhost:8080/api/sprints/project/${selectedProject.id}`,
+        `${process.env.REACT_APP_API_URL}/api/sprints/project/${selectedProject.id}`,
         {
           method: "GET",
           headers: {
@@ -164,7 +165,7 @@ const Documents = () => {
 
       if (activeSprint) {
         const tasksResponse = await fetch(
-          `http://localhost:8080/api/sprints/tasks/${activeSprint.id}`,
+          `${process.env.REACT_APP_API_URL}/api/sprints/tasks/${activeSprint.id}`,
           {
             method: "GET",
             headers: {
@@ -225,7 +226,7 @@ const Documents = () => {
       );
 
       const response = await fetch(
-        `http://localhost:8080/api/documents/${selectedProject.id}/upload`,
+        `${process.env.REACT_APP_API_URL}/api/documents/${selectedProject.id}/upload`,
         {
           method: "POST",
           headers: {
@@ -287,7 +288,7 @@ const Documents = () => {
     try {
       const userId = localStorage.getItem("userId");
       const response = await fetch(
-        `http://localhost:8080/api/documents/${documentId}/comments`,
+        `${process.env.REACT_APP_API_URL}/api/documents/${documentId}/comments`,
         {
           method: "POST",
           headers: {
@@ -326,7 +327,7 @@ const Documents = () => {
       if (!userId || !accessToken) throw new Error("Vui lòng đăng nhập lại");
 
       const response = await fetch(
-        `http://localhost:8080/api/members/project/${selectedProject.id}`,
+        `${process.env.REACT_APP_API_URL}/api/members/project/${selectedProject.id}`,
         {
           method: "GET",
           headers: {
@@ -355,9 +356,9 @@ const Documents = () => {
       if (!userId || !accessToken) throw new Error("Vui lòng đăng nhập lại");
 
       const response = await fetch(
-        `http://localhost:8080/api/documents/search?query=${encodeURIComponent(
-          query
-        )}`,
+        `${
+          process.env.REACT_APP_API_URL
+        }/api/documents/search?query=${encodeURIComponent(query)}`,
         {
           method: "GET",
           headers: {
@@ -384,7 +385,7 @@ const Documents = () => {
     try {
       const userId = localStorage.getItem("userId");
       const response = await fetch(
-        `http://localhost:8080/api/documents/${documentId}/assign`,
+        `${process.env.REACT_APP_API_URL}/api/documents/${documentId}/assign`,
         {
           method: "POST",
           headers: {
@@ -431,9 +432,9 @@ const Documents = () => {
     try {
       const userId = localStorage.getItem("userId");
       const response = await fetch(
-        `http://localhost:8080/api/documents/${documentId}/assign/${encodeURIComponent(
-          email
-        )}`,
+        `${
+          process.env.REACT_APP_API_URL
+        }/api/documents/${documentId}/assign/${encodeURIComponent(email)}`,
         {
           method: "DELETE",
           headers: {
@@ -612,7 +613,7 @@ const Documents = () => {
             <div className="modal-comments-section">
               <div className="comments-header">
                 <MessageSquare size={16} />
-                <span>Bình luận ({document.comments.length})</span>
+                <span>Comments ({document.comments.length})</span>
               </div>
               {document.comments.length > 0 ? (
                 <div className="modal-comments-list">
@@ -638,7 +639,7 @@ const Documents = () => {
                   ))}
                 </div>
               ) : (
-                <p className="no-results">Chưa có bình luận nào</p>
+                <p className="no-results">No comments yet.</p>
               )}
               <div className="modal-comment-form">
                 <div className="comment-input-container">
@@ -885,18 +886,18 @@ const Documents = () => {
 
   return (
     <div className="tab-content">
-      <div className="section-header">
-        <div className="section-title">
+      <div className="section-header-documents">
+        <div className="section-title-documents">
           <h2>Documents</h2>
-          <p>Quản lý tài liệu dự án với bình luận và phân công</p>
+          <p>Manage project documents with comments and assignments</p>
         </div>
         <div className="upload-controls">
           <button
-            className="btn-primary upload-btn"
+            className="btn-primary-documents upload-btn"
             onClick={() => setTaskSelectionModal({ isOpen: true, files: null })}
           >
             <Plus />
-            <span>Tải lên tài liệu</span>
+            <span>Upload document</span>
           </button>
         </div>
       </div>
@@ -909,9 +910,9 @@ const Documents = () => {
       >
         <Upload />
         <p className="upload-text">
-          Kéo thả file vào đây, hoặc{" "}
+          Drag and drop files here, or{" "}
           <label className="upload-link">
-            duyệt file
+            Click here to select file
             <input
               type="file"
               multiple
@@ -929,10 +930,10 @@ const Documents = () => {
       <div className="documents-container">
         <div className="documents-header">
           <div className="documents-title">
-            <h3>Tất cả tài liệu ({documents.length})</h3>
+            <h3>All Documents ({documents.length})</h3>
             <div className="sort-controls">
-              <button className="sort-btn">Sắp xếp theo tên</button>
-              <button className="sort-btn">Sắp xếp theo ngày</button>
+              <button className="sort-btn">Sort by name</button>
+              <button className="sort-btn">Sort by date</button>
             </div>
           </div>
         </div>
@@ -940,13 +941,13 @@ const Documents = () => {
         {documents.length === 0 ? (
           <div className="empty-state">
             <FileText className="empty-state-icon" />
-            <p className="empty-state-title">Chưa có tài liệu nào</p>
+            <p className="empty-state-title">No documents yet</p>
             <p className="empty-state-description">
-              Tải lên tài liệu để bắt đầu
+              Upload documents to get started
             </p>
           </div>
         ) : (
-          <div className="file-list">
+          <div className="file-list-document">
             {documents.map((document) => (
               <div key={document.id} className="document-item">
                 <div className="document-header">
@@ -958,7 +959,7 @@ const Documents = () => {
                       <p className="file-name">{document.name}</p>
                       <div className="file-meta">
                         <span className="file-uploader">
-                          Người tải: {document.uploader}
+                          Uploader: {document.uploaderName}
                         </span>
                         <span className="file-date">
                           <Calendar size={12} />
@@ -995,7 +996,7 @@ const Documents = () => {
                 <div className="document-assignments">
                   <div className="assignment-header">
                     <Users size={16} />
-                    <span>Người được phân công</span>
+                    <span>Assigned person</span>
                   </div>
                   <div className="assigned-users">
                     {document.assignedUsers.map((assignment) => (
@@ -1050,7 +1051,7 @@ const Documents = () => {
                         }}
                       >
                         <Plus size={14} />
-                        Phân công
+                        Assignment
                       </button>
                     </div>
                   </div>
@@ -1059,7 +1060,7 @@ const Documents = () => {
                 <div className="document-comments">
                   <div className="comments-header">
                     <MessageSquare size={16} />
-                    <span>Bình luận ({document.comments.length})</span>
+                    <span>Comments ({document.comments.length})</span>
                   </div>
                   {document.comments.length > 0 && (
                     <div className="comments-list">
@@ -1089,7 +1090,9 @@ const Documents = () => {
                   )}
                   <div className="comment-form">
                     <div className="comment-input-container">
-                      <div className="current-user-avatar">CU</div>
+                      <div className="current-user-avatar">
+                        <img src={avatar_url}></img>
+                      </div>
                       <input
                         type="text"
                         value={newComment}
