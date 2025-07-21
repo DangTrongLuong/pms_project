@@ -3,6 +3,11 @@ import { Search } from "lucide-react";
 import "../../styles/user/summary.css";
 import { useParams } from "react-router-dom";
 import { useSidebar } from "../../context/SidebarContext";
+import { Pie } from "react-chartjs-2";
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
+
+// Register Chart.js components
+ChartJS.register(ArcElement, Tooltip, Legend);
 
 const Summary = () => {
   const { id } = useParams();
@@ -25,7 +30,7 @@ const Summary = () => {
 
   const fetchTasks = async () => {
     if (!selectedProject || !accessToken) {
-      setError("Project or authentication token is missing");
+      setError("Missing project information or authentication token");
       return;
     }
     setIsLoading(true);
@@ -35,6 +40,7 @@ const Summary = () => {
         throw new Error("Please log in again to continue");
       }
 
+      // Fetch the list of sprints for the project
       const sprintResponse = await fetch(
         `${process.env.REACT_APP_API_URL}/api/sprints/project/${selectedProject.id}`,
         {
@@ -50,24 +56,43 @@ const Summary = () => {
       if (!sprintResponse.ok) {
         const errorData = await sprintResponse.json().catch(() => ({}));
         throw new Error(
-          errorData.message ||
-            `Failed to fetch sprints: ${sprintResponse.status}`
+          errorData.message || `Error fetching sprint list: ${sprintResponse.status}`
         );
       }
 
       const sprints = await sprintResponse.json();
-      const activeSprint = Array.isArray(sprints)
-        ? sprints.find((sprint) => sprint.status === "ACTIVE")
-        : null;
+      
+      // Fetch all tasks from the sprints
+      let allTasks = [];
+      if (Array.isArray(sprints) && sprints.length > 0) {
+        for (const sprint of sprints) {
+          const taskResponse = await fetch(
+            `${process.env.REACT_APP_API_URL}/api/sprints/tasks/${sprint.id}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${accessToken}`,
+                userId: userId,
+              },
+            }
+          );
 
-      if (!activeSprint) {
-        setTasks([]);
-        setError("No active sprint found");
-        return;
+          if (!taskResponse.ok) {
+            const errorData = await taskResponse.json().catch(() => ({}));
+            throw new Error(
+              errorData.message || `Error fetching task list: ${taskResponse.status}`
+            );
+          }
+
+          const sprintTasks = await taskResponse.json();
+          allTasks = allTasks.concat(Array.isArray(sprintTasks) ? sprintTasks : []);
+        }
       }
 
-      const taskResponse = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/sprints/tasks/${activeSprint.id}`,
+      // Fetch tasks from the backlog
+      const backlogResponse = await fetch(
+        `${process.env.REACT_APP_API_URL}/api/sprints/tasks/backlog/${selectedProject.id}`,
         {
           method: "GET",
           headers: {
@@ -78,15 +103,17 @@ const Summary = () => {
         }
       );
 
-      if (!taskResponse.ok) {
-        const errorData = await taskResponse.json().catch(() => ({}));
+      if (!backlogResponse.ok) {
+        const errorData = await backlogResponse.json().catch(() => ({}));
         throw new Error(
-          errorData.message || `Failed to fetch tasks: ${taskResponse.status}`
+          errorData.message || `Error fetching backlog task list: ${backlogResponse.status}`
         );
       }
 
-      const tasks = await taskResponse.json();
-      setTasks(Array.isArray(tasks) ? tasks : []);
+      const backlogTasks = await backlogResponse.json();
+      allTasks = allTasks.concat(Array.isArray(backlogTasks) ? backlogTasks : []);
+
+      setTasks(allTasks);
       setError("");
     } catch (err) {
       setError(err.message || "An error occurred while fetching tasks");
@@ -103,7 +130,7 @@ const Summary = () => {
 
   const fetchMembers = async () => {
     if (!selectedProject || !accessToken) {
-      setError("Project or authentication token is missing");
+      setError("Missing project information or authentication token");
       return;
     }
     setIsLoading(true);
@@ -128,7 +155,7 @@ const Summary = () => {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
-          errorData.message || `Failed to fetch members: ${response.status}`
+          errorData.message || `Error fetching member list: ${response.status}`
         );
       }
 
@@ -157,7 +184,7 @@ const Summary = () => {
 
   const taskStats = {
     total: tasks.length,
-    done: tasks.filter((t) => t.status === "DONE").length,
+    done: tasks.filter((t) => t.status === "COMPLETED").length,
     inProgress: tasks.filter((t) => t.status === "IN_PROGRESS").length,
     todo: tasks.filter((t) => t.status === "TODO").length,
     inReview: tasks.filter((t) => t.status === "IN_REVIEW").length,
@@ -173,6 +200,44 @@ const Summary = () => {
     taskStats.total > 0
       ? Math.round((taskStats.done / taskStats.total) * 100)
       : 0;
+
+  // Pie chart data
+  const pieChartData = {
+    labels: ["To Do", "In Progress", "In Review", "Completed"],
+    datasets: [
+      {
+        data: [taskStats.todo, taskStats.inProgress, taskStats.inReview, taskStats.done],
+        backgroundColor: ["#ff0037ff", "#0096faff", "#ffb700ff", "#0df06cff"],
+        borderColor: ["#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF"],
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  // Pie chart options
+  const pieChartOptions = {
+    plugins: {
+      legend: {
+        position: "right",
+        labels: {
+          boxWidth: 20,
+          padding: 20,
+        },
+      },
+      tooltip: {
+        callbacks: {
+          label: function (context) {
+            const label = context.label || "";
+            const value = context.raw || 0;
+            const total = context.dataset.data.reduce((sum, val) => sum + val, 0);
+            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+            return `${label}: ${value} (${percentage}%)`;
+          },
+        },
+      },
+    },
+    maintainAspectRatio: false,
+  };
 
   if (!selectedProject) {
     return <div>{error || "Project not found"}</div>;
@@ -217,13 +282,13 @@ const Summary = () => {
                 <span className="detail-value">
                   {selectedProject.created_at
                     ? new Date(selectedProject.created_at).toLocaleDateString()
-                    : "N/A"}
+                    : "Unknown"}
                 </span>
               </div>
               <div className="detail-item">
-                <span className="detail-label">Project Lead</span>
+                <span className="detail-label">Project Leader</span>
                 <span className="detail-value">
-                  {selectedProject.leader || "Not specified"}
+                  {selectedProject.leader || "Unknown"}
                 </span>
               </div>
               <div className="detail-item">
@@ -236,23 +301,10 @@ const Summary = () => {
           </div>
 
           <div className="detail-section">
-            <h3>Task Allocation</h3>
-            <div className="detail-list">
-              <div className="detail-item">
-                <span className="detail-label">To Do</span>
-                <span className="detail-value">{taskStats.todo}</span>
-              </div>
-              <div className="detail-item">
-                <span className="detail-label">In Progress</span>
-                <span className="detail-value">{taskStats.inProgress}</span>
-              </div>
-              <div className="detail-item">
-                <span className="detail-label">In Review</span>
-                <span className="detail-value">{taskStats.inReview}</span>
-              </div>
-              <div className="detail-item">
-                <span className="detail-label">Completed</span>
-                <span className="detail-value">{taskStats.done}</span>
+            <h3>Task Distribution</h3>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ height: "150px", width: "250px" }}>
+                <Pie data={pieChartData} options={pieChartOptions} />
               </div>
             </div>
           </div>
