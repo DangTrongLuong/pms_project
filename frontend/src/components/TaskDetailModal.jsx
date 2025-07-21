@@ -284,7 +284,10 @@ const TaskDetailModal = ({ task, onClose, onUpdateTask, selectedProject }) => {
         );
       }
       const newDocuments = await response.json();
-      setDocuments([...documents, ...newDocuments.filter((doc) => doc.taskId === task.id)]);
+      setDocuments([
+        ...documents,
+        ...newDocuments.filter((doc) => doc.taskId === task.id),
+      ]);
       setTaskSelectionModal({ isOpen: false, files: null });
     } catch (err) {
       console.error("Upload error:", err);
@@ -408,7 +411,9 @@ const TaskDetailModal = ({ task, onClose, onUpdateTask, selectedProject }) => {
               <select
                 value={selectedTask ? selectedTask.id : ""}
                 onChange={(e) => {
-                  const task = tasks.find((t) => t.id === parseInt(e.target.value));
+                  const task = tasks.find(
+                    (t) => t.id === parseInt(e.target.value)
+                  );
                   setSelectedTask(task);
                 }}
                 className="task-select"
@@ -432,9 +437,7 @@ const TaskDetailModal = ({ task, onClose, onUpdateTask, selectedProject }) => {
                 />
               </label>
               {selectedFiles && (
-                <p className="file-count">
-                  Đã chọn {selectedFiles.length} tệp
-                </p>
+                <p className="file-count">Đã chọn {selectedFiles.length} tệp</p>
               )}
             </div>
           </div>
@@ -445,7 +448,9 @@ const TaskDetailModal = ({ task, onClose, onUpdateTask, selectedProject }) => {
             <button
               className="btn btn-primary"
               onClick={handleUpload}
-              disabled={!selectedTask || !selectedFiles || selectedFiles.length === 0}
+              disabled={
+                !selectedTask || !selectedFiles || selectedFiles.length === 0
+              }
             >
               Tải lên
             </button>
@@ -459,11 +464,15 @@ const TaskDetailModal = ({ task, onClose, onUpdateTask, selectedProject }) => {
 
   return (
     <div className="modal-overlay">
-      <div className="task-modal" ref={modalRef} onClick={(e) => e.stopPropagation()}>
+      <div
+        className="task-modal"
+        ref={modalRef}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="modal-header">
           <div className="modal-title-section">
             <h3 className="modal-title">
-              {selectedProject.shortName}-{task.id} {task.title}
+              {selectedProject.shortName}Task {task.id} {task.title}
             </h3>
             <p className="modal-subtitle">
               <User size={12} /> {task.assigneeName || "Unknown"} &bull;{" "}
@@ -480,19 +489,19 @@ const TaskDetailModal = ({ task, onClose, onUpdateTask, selectedProject }) => {
             className={`tab-btn ${activeTab === "details" ? "active" : ""}`}
             onClick={() => setActiveTab("details")}
           >
-            Chi tiết
+            Details
           </button>
           <button
             className={`tab-btn ${activeTab === "documents" ? "active" : ""}`}
             onClick={() => setActiveTab("documents")}
           >
-            Tài liệu ({documents.length})
+            Documents ({documents.length})
           </button>
           <button
             className={`tab-btn ${activeTab === "comments" ? "active" : ""}`}
             onClick={() => setActiveTab("comments")}
           >
-            Bình luận
+            Comments
           </button>
         </div>
 
@@ -500,29 +509,31 @@ const TaskDetailModal = ({ task, onClose, onUpdateTask, selectedProject }) => {
           {activeTab === "details" && (
             <div className="task-details">
               <div className="detail-item">
-                <span className="detail-label">Loại:</span>
+                <span className="detail-label">Type:</span>
                 <span className={`detail-value ${getTypeColor(task.type)}`}>
                   {task.type || "Task"}
                 </span>
               </div>
               <div className="detail-item">
-                <span className="detail-label">Trạng thái:</span>
+                <span className="detail-label">Status:</span>
                 <span className="detail-value">{task.status}</span>
               </div>
               <div className="detail-item">
-                <span className="detail-label">Ưu tiên:</span>
-                <span className={`detail-value ${getPriorityColor(task.priority)}`}>
+                <span className="detail-label">Priority:</span>
+                <span
+                  className={`detail-value ${getPriorityColor(task.priority)}`}
+                >
                   {task.priority}
                 </span>
               </div>
               <div className="detail-item">
-                <span className="detail-label">Người thực hiện:</span>
+                <span className="detail-label">Implementer:</span>
                 <span className="detail-value">
                   {task.assigneeName || "Chưa gán"}
                 </span>
               </div>
               <div className="detail-item">
-                <span className="detail-label">Ngày bắt đầu:</span>
+                <span className="detail-label">Start date:</span>
                 <span className="detail-value">
                   {task.startDate
                     ? new Date(task.startDate).toLocaleDateString()
@@ -530,7 +541,7 @@ const TaskDetailModal = ({ task, onClose, onUpdateTask, selectedProject }) => {
                 </span>
               </div>
               <div className="detail-item">
-                <span className="detail-label">Ngày kết thúc:</span>
+                <span className="detail-label">End date:</span>
                 <span className="detail-value">
                   {task.endDate
                     ? new Date(task.endDate).toLocaleDateString()
@@ -538,9 +549,9 @@ const TaskDetailModal = ({ task, onClose, onUpdateTask, selectedProject }) => {
                 </span>
               </div>
               <div className="detail-item">
-                <span className="detail-label">Mô tả:</span>
+                <span className="detail-label">Describe:</span>
                 <span className="detail-value description">
-                  {task.description || "Không có mô tả"}
+                  {task.description || "No description available"}
                 </span>
               </div>
             </div>
@@ -550,10 +561,10 @@ const TaskDetailModal = ({ task, onClose, onUpdateTask, selectedProject }) => {
             <div className="documents-section">
               <div className="documents-header">
                 <FileText size={16} />
-                <span>Tài liệu ({documents.length})</span>
+                <span>Document ({documents.length})</span>
                 <label className="btn btn-upload">
                   <Upload size={16} />
-                  Tải lên
+                  Upload
                   <input
                     type="file"
                     multiple
@@ -578,7 +589,9 @@ const TaskDetailModal = ({ task, onClose, onUpdateTask, selectedProject }) => {
                               <Calendar size={12} />{" "}
                               {new Date(doc.uploadDate).toLocaleDateString()}
                             </span>
-                            <span className="file-size">{formatFileSize(doc.size)}</span>
+                            <span className="file-size">
+                              {formatFileSize(doc.size)}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -603,7 +616,7 @@ const TaskDetailModal = ({ task, onClose, onUpdateTask, selectedProject }) => {
                   ))}
                 </div>
               ) : (
-                <p className="no-results">Chưa có tài liệu nào</p>
+                <p className="no-results">No documents yet</p>
               )}
             </div>
           )}
@@ -614,7 +627,9 @@ const TaskDetailModal = ({ task, onClose, onUpdateTask, selectedProject }) => {
                 <div key={doc.id} className="document-comments">
                   <div className="comments-header">
                     <FileText size={16} />
-                    <span>{doc.name} ({doc.comments?.length || 0})</span>
+                    <span>
+                      {doc.name} ({doc.comments?.length || 0})
+                    </span>
                   </div>
                   {doc.comments && doc.comments.length > 0 ? (
                     <div className="comments-list">
@@ -624,12 +639,16 @@ const TaskDetailModal = ({ task, onClose, onUpdateTask, selectedProject }) => {
                             {comment.avatar ? (
                               <img src={comment.avatar} alt={comment.user} />
                             ) : (
-                              <span>{comment.user?.charAt(0).toUpperCase()}</span>
+                              <span>
+                                {comment.user?.charAt(0).toUpperCase()}
+                              </span>
                             )}
                           </div>
                           <div className="comment-content">
                             <div className="comment-header">
-                              <span className="comment-author">{comment.user}</span>
+                              <span className="comment-author">
+                                {comment.user}
+                              </span>
                               <span className="comment-time">
                                 {new Date(comment.timestamp).toLocaleString()}
                               </span>
@@ -640,7 +659,7 @@ const TaskDetailModal = ({ task, onClose, onUpdateTask, selectedProject }) => {
                       ))}
                     </div>
                   ) : (
-                    <p className="no-results">Chưa có bình luận nào</p>
+                    <p className="no-results">No comments yet</p>
                   )}
                   <div className="comment-form">
                     <div className="comment-input-container">
