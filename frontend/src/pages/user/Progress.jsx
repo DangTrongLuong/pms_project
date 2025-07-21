@@ -928,7 +928,6 @@ const Progress = () => {
                                       : ""
                                   }`}
                                 >
-                                  {selectedProject.shortName}-{task.id}{" "}
                                   {task.title}
                                 </h4>
                                 <div
@@ -962,8 +961,14 @@ const Progress = () => {
                                         className="dropdown-item"
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          console.log("View Details clicked for task:", task.id);
-                                          setSelectedTask({ ...task, isDetailView: true }); // Mở TaskDetailModal
+                                          console.log(
+                                            "View Details clicked for task:",
+                                            task.id
+                                          );
+                                          setSelectedTask({
+                                            ...task,
+                                            isDetailView: true,
+                                          }); // Mở TaskDetailModal
                                           setTaskMenuOpen(null);
                                         }}
                                       >
@@ -973,7 +978,10 @@ const Progress = () => {
                                         className="dropdown-item"
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          console.log("Edit Task clicked for task:", task.id);
+                                          console.log(
+                                            "Edit Task clicked for task:",
+                                            task.id
+                                          );
                                           setSelectedTask(task); // Mở CreateTaskModal
                                           setTaskMenuOpen(null);
                                         }}
@@ -984,7 +992,10 @@ const Progress = () => {
                                         className="dropdown-item"
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          console.log("Assign Member clicked for task:", task.id);
+                                          console.log(
+                                            "Assign Member clicked for task:",
+                                            task.id
+                                          );
                                           fetchProjectMembers(task.id);
                                           setTaskMenuOpen(null);
                                         }}
@@ -995,8 +1006,14 @@ const Progress = () => {
                                         className="dropdown-item delete-item"
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          console.log("Delete Task clicked for task:", task.id);
-                                          setDeleteTaskModal({ isOpen: true, task });
+                                          console.log(
+                                            "Delete Task clicked for task:",
+                                            task.id
+                                          );
+                                          setDeleteTaskModal({
+                                            isOpen: true,
+                                            task,
+                                          });
                                           setTaskMenuOpen(null);
                                         }}
                                       >
@@ -1008,7 +1025,7 @@ const Progress = () => {
                                 </div>
                               </div>
                               <p className="board-task-desc">
-                                {task.description || "Không có mô tả"}
+                                {task.description || "No description available"}
                               </p>
                               <div className="board-task-meta">
                                 <div className="task-type-priority">
@@ -1017,12 +1034,18 @@ const Progress = () => {
                                       task.type
                                     )}`}
                                   >
-                                    {task.type || "Task"}
+                                    {task.type || (
+                                      <div className="task-name-name">
+                                        {selectedProject.shortName}Task{" "}
+                                        {task.id}{" "}
+                                      </div>
+                                    )}
                                   </span>
                                   <span
                                     className={`task-priority ${getPriorityColor(
                                       task.priority
                                     )}`}
+                                    style={{ color: "white" }}
                                   >
                                     {task.priority}
                                   </span>

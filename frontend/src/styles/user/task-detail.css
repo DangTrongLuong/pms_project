@@ -34,15 +34,18 @@
 }
 
 .modal-title-section {
-  flex: 1;
+  display: flex;
+  width: 100%;
+  height: 40px;
 }
-
-.modal-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #172b4d;
-  margin: 0;
-  line-height: 24px;
+.modal-title-section .modal-title {
+  width: auto;
+  height: 100%;
+  margin: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 10px;
 }
 
 .modal-subtitle {
