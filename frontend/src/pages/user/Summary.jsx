@@ -12,25 +12,31 @@ const Summary = () => {
   const [members, setMembers] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const accessToken = localStorage.getItem("accessToken");
 
   useEffect(() => {
     if (projects.length > 0) {
       const project = projects.find((p) => p.id === parseInt(id));
       setSelectedProject(project || null);
+      setError(project ? "" : "Project not found");
     }
   }, [projects, id]);
 
   const fetchTasks = async () => {
-    if (!selectedProject) return;
+    if (!selectedProject || !accessToken) {
+      setError("Project or authentication token is missing");
+      return;
+    }
+    setIsLoading(true);
     try {
       const userId = localStorage.getItem("userId");
-      if (!userId || !accessToken) {
+      if (!userId) {
         throw new Error("Please log in again to continue");
       }
 
       const sprintResponse = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/backlog/sprints/${selectedProject.id}`,
+        `${process.env.REACT_APP_API_URL}/api/sprints/project/${selectedProject.id}`,
         {
           method: "GET",
           headers: {
@@ -50,15 +56,18 @@ const Summary = () => {
       }
 
       const sprints = await sprintResponse.json();
-      const activeSprint = sprints.find((sprint) => sprint.status === "ACTIVE");
+      const activeSprint = Array.isArray(sprints)
+        ? sprints.find((sprint) => sprint.status === "ACTIVE")
+        : null;
+
       if (!activeSprint) {
         setTasks([]);
-        setError("No active sprint to fetch tasks!");
+        setError("No active sprint found");
         return;
       }
 
       const taskResponse = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/backlog/tasks/${activeSprint.id}`,
+        `${process.env.REACT_APP_API_URL}/api/sprints/tasks/${activeSprint.id}`,
         {
           method: "GET",
           headers: {
@@ -77,29 +86,35 @@ const Summary = () => {
       }
 
       const tasks = await taskResponse.json();
-      setTasks(tasks);
+      setTasks(Array.isArray(tasks) ? tasks : []);
       setError("");
     } catch (err) {
-      setError(err.message || "An error occurred while fetching data");
+      setError(err.message || "An error occurred while fetching tasks");
       if (err.message.includes("401") || err.message.includes("403")) {
         setError("Your session has expired. Please log in again.");
         setTimeout(() => {
           window.location.href = "/login";
         }, 2000);
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const fetchMembers = async () => {
-    if (!selectedProject) return;
+    if (!selectedProject || !accessToken) {
+      setError("Project or authentication token is missing");
+      return;
+    }
+    setIsLoading(true);
     try {
       const userId = localStorage.getItem("userId");
-      if (!userId || !accessToken) {
+      if (!userId) {
         throw new Error("Please log in again to continue");
       }
 
       const response = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/members/project/${selectedProject.id}`,
+        `${process.env.REACT_APP_API_URL}/api/members/project/${id}`,
         {
           method: "GET",
           headers: {
@@ -118,7 +133,7 @@ const Summary = () => {
       }
 
       const data = await response.json();
-      setMembers(data);
+      setMembers(Array.isArray(data) ? data : []);
       setError("");
     } catch (err) {
       setError(err.message || "An error occurred while fetching members");
@@ -128,12 +143,16 @@ const Summary = () => {
           window.location.href = "/login";
         }, 2000);
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchTasks();
-    fetchMembers();
+    if (selectedProject) {
+      fetchTasks();
+      fetchMembers();
+    }
   }, [selectedProject]);
 
   const taskStats = {
@@ -155,10 +174,14 @@ const Summary = () => {
       ? Math.round((taskStats.done / taskStats.total) * 100)
       : 0;
 
-  if (!selectedProject) return <div>Loading...</div>;
+  if (!selectedProject) {
+    return <div>{error || "Project not found"}</div>;
+  }
 
   return (
     <div className="summary-container">
+      {isLoading && <div>Loading data...</div>}
+      {error && <p className="error-message">{error}</p>}
       <div className="tab-content">
         <div className="summary-grid">
           <div className="summary-card">
@@ -192,13 +215,15 @@ const Summary = () => {
               <div className="detail-item">
                 <span className="detail-label">Created Date</span>
                 <span className="detail-value">
-                  {new Date(selectedProject.created_at).toLocaleDateString()}
+                  {selectedProject.created_at
+                    ? new Date(selectedProject.created_at).toLocaleDateString()
+                    : "N/A"}
                 </span>
               </div>
               <div className="detail-item">
                 <span className="detail-label">Project Lead</span>
                 <span className="detail-value">
-                  {selectedProject.lead || "Not specified"}
+                  {selectedProject.leader || "Not specified"}
                 </span>
               </div>
               <div className="detail-item">
@@ -254,19 +279,29 @@ const Summary = () => {
 
           <div className="detail-section">
             <h3>Team Members</h3>
-            <div className="team-members">
-              {members.map((member, index) => (
-                <div key={index} className="team-member">
-                  <div className="member-avatar">
-                    <img src={member.avatarUrl} alt="Member Avatar" />
+            {members.length > 0 ? (
+              <div className="team-members">
+                {members.map((member, index) => (
+                  <div key={index} className="team-member">
+                    <div className="member-avatar">
+                      <img
+                        src={member.avatarUrl || "/default-avatar.png"}
+                        alt={member.name || "Member"}
+                        onError={(e) => {
+                          e.target.src = "/default-avatar.png";
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <span className="member-name">{member.name || "Unknown"}</span>
+                      <p className="member-role">{member.role || "Member"}</p>
+                    </div>
                   </div>
-                  <div>
-                    <span className="member-name">{member.name}</span>
-                    <p className="member-role">{member.role || "Member"}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <p>No team members found</p>
+            )}
           </div>
         </div>
 
@@ -283,7 +318,6 @@ const Summary = () => {
           </p>
         </div>
       </div>
-      {error && <p className="error-message">{error}</p>}
     </div>
   );
 };
