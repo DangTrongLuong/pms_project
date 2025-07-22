@@ -57,10 +57,10 @@ spring:
             user-name-attribute: sub
             user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
 
-spring:
-  web:
-    cors:
-      allowed-origins: http://localhost:80
+# spring:
+#   web:
+#     cors:
+#       allowed-origins: http://localhost:80
 # Logging
 logging:
   level:
