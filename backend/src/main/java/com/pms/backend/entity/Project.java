@@ -42,4 +42,6 @@ public class Project {
 
     @Column(name = "end_date")
     LocalDate end_date;
+    @Column(name = "status", nullable = false, columnDefinition = "VARCHAR(255) DEFAULT 'ACTIVE'")
+    String status;
 }

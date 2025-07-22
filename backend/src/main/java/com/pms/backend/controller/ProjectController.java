@@ -104,5 +104,14 @@ public class ProjectController {
         }
         return ResponseEntity.ok(dailyCount);
     }
+    @GetMapping("/count/active")
+    public ResponseEntity<Integer> countActiveProjects() {
+        return ResponseEntity.ok(projectService.countProjectsByStatus("ACTIVE"));
+    }
+
+    @GetMapping("/count/completed")
+    public ResponseEntity<Integer> countCompletedProjects() {
+        return ResponseEntity.ok(projectService.countProjectsByStatus("COMPLETED"));
+    }
 }
 

@@ -16,9 +16,12 @@ import Navbar from "../../components/Navbar";
 import Chart from "../../components/Chart";
 import axios from "axios";
 import { NotificationContext } from "../../context/NotificationContext";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 
 const DashboardContent = () => {
-  const { isSidebarOpen } = useSidebar();
+  const { isSidebarOpen, setProjectsSidebar, projects } = useSidebar();
+  const location = useLocation();
+  const { id } = useParams();
   const [projectCount, setProjectCount] = useState(0);
   const [userCount, setUserCount] = useState(0);
   const [taskCount, setTaskCount] = useState(0);

@@ -382,7 +382,35 @@
   display: flex;
   width: 100%;
 }
+.project-card-type-badge {
+  display: flex;
+  justify-content: start;
+  align-items: center;
+  gap: 5px;
+  width: 50%;
+}
+.project-card-status {
+  width: 50%;
+  display: flex;
+  justify-content: end;
+  align-items: center;
+}
+.project-card-status .project-card-status-content {
+  font-size: 11px;
+  width: auto;
+  height: auto;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-top: -5px;
+  color: white;
+}
 
+.project-card-status .project-active {
+  background-color: #fc9b0a;
+}
+.project-card-status .project-completed {
+  background-color: #06b400;
+}
 .name-button-change .btn-delete-card {
   width: 50%;
   display: flex;

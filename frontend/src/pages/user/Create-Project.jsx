@@ -1,4 +1,3 @@
-/* eslint-disable react/jsx-pascal-case */
 import React, { useEffect, useState } from "react";
 import { SidebarProvider, useSidebar } from "../../context/SidebarContext";
 import { useNavigate } from "react-router-dom";
@@ -18,6 +17,7 @@ const Create_Project_Content = () => {
     start_date: "",
     end_date: "",
     userName: "",
+    status: "ACTIVE", // Thêm trạng thái mặc định là ACTIVE
   });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({
@@ -28,10 +28,10 @@ const Create_Project_Content = () => {
   });
   const [minDate, setMinDate] = useState(""); // State để lưu ngày hiện tại cho min
 
-  // Lấy ngày hiện tại (10:25 PM +07, 20/07/2025)
+  // Lấy ngày hiện tại (11:20 PM +07, 21/07/2025)
   const getCurrentDate = () => {
     const now = new Date();
-    now.setHours(12, 0, 0, 0); // Đặt giờ về 00:00:00 để lấy ngày
+    now.setHours(0, 0, 0, 0); // Đặt giờ về 00:00:00 để lấy ngày
     return now.toISOString().split("T")[0]; // Trả về định dạng YYYY-MM-DD
   };
 
@@ -169,7 +169,7 @@ const Create_Project_Content = () => {
             Authorization: `Bearer ${accessToken}`,
             userId: userId,
           },
-          body: JSON.stringify({ ...formData, userName }),
+          body: JSON.stringify(formData),
         }
       );
 

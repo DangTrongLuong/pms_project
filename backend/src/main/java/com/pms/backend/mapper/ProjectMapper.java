@@ -17,8 +17,12 @@ public interface ProjectMapper {
     @Mapping(target = "created_by_id", ignore = true) // Được xử lý trong service
     @Mapping(target = "created_by_name", ignore = true) // Được xử lý trong service
     @Mapping(target = "leader", ignore = true) // Được xử lý trong service
+    @Mapping(target = "start_date", source = "start_date")
+    @Mapping(target = "end_date", source = "end_date")
+    @Mapping(target = "status", constant = "ACTIVE") // Đặt trạng thái mặc định là ACTIVE
     Project toProject(ProjectCreationRequest request);
 
+    
     ProjectResponse toProjectResponse(Project project);
 
     @Mapping(target = "project_name", source = "project_name")
@@ -28,5 +32,6 @@ public interface ProjectMapper {
     @Mapping(target = "members", source = "members")
     @Mapping(target = "start_date", source = "start_date")
     @Mapping(target = "end_date", source = "end_date")
+    @Mapping(target = "status", source = "status")
     void updateProjectFromRequest(@MappingTarget Project project, ProjectUpdateRequest request);
 }

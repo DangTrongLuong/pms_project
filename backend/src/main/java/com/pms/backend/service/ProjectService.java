@@ -139,6 +139,9 @@ public class ProjectService {
         }
         project.setStart_date(request.getStart_date());
         project.setEnd_date(request.getEnd_date());
+        if (request.getStatus() != null) {
+            project.setStatus(request.getStatus()); // Cập nhật status nếu có
+        }
 
         Project updatedProject = projectRepository.save(project);
         log.info("Project updated: {}", updatedProject);
@@ -172,10 +175,18 @@ public class ProjectService {
                 })
                 .collect(Collectors.toList());
     }
-     public int getProjectCount() {
+
+    public int getProjectCount() {
         return (int) projectRepository.count();
     }
+
     public int countProjectsByDate(LocalDate date) {
         return projectRepository.findByCreatedAt(date).size(); // Sử dụng phương thức từ repository
+    }
+
+    public int countProjectsByStatus(String status) {
+        return (int) projectRepository.findAll().stream()
+                .filter(project -> status.equals(project.getStatus()))
+                .count();
     }
 }

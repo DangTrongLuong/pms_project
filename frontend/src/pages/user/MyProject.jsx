@@ -28,11 +28,11 @@ const getInitials = (name = "") => {
 
 const mapStatusToFrontend = (backendStatus) => {
   const statusMap = {
-    IN_PROGRESS: "Active",
-    COMPLETED: "Completed",
+    IN_PROGRESS: "ACTIVE",
+    COMPLETED: "COMPLETED",
     PLANNING: "Planning",
   };
-  return statusMap[backendStatus] || "Planning";
+  return statusMap[backendStatus] || "ACTIVE";
 };
 
 const mapTypeToFrontend = (backendType) => {
@@ -114,8 +114,8 @@ const Dropdown = ({ label, options, selected, onSelect, className = "" }) => {
 const StatsBar = ({ projects }) => {
   const stats = {
     total: projects.length,
-    active: projects.filter((p) => p.status === "Active").length,
-    completed: projects.filter((p) => p.status === "Completed").length,
+    active: projects.filter((p) => p.status === "ACTIVE").length,
+    completed: projects.filter((p) => p.status === "COMPLETED").length,
   };
 
   return (
@@ -157,14 +157,36 @@ const ProjectCard = ({
     return `rgb(${r}, ${g}, ${b})`;
   };
 
+  const getActiveColor = (status) => {
+    switch (status) {
+      case "ACTIVE":
+        return "project-active";
+      case "COMPLETED":
+        return "project-completed";
+      default:
+        return "status-default";
+    }
+  };
+
   return (
     <div className="project-card" onClick={() => onViewDetails(project.id)}>
       <div className="name-button-change">
-        <div className="project-card-title">
-          <h3>{project.project_name || "Unnamed Project"}</h3>
+        <div className="project-card-type-badge">
+          <div className="project-card-title">
+            <h3>{project.project_name || "Unnamed Project"}</h3>
+          </div>
+          <div className="project-type-badge">
+            ({mapTypeToFrontend(project.project_type)})
+          </div>
         </div>
-        <div className="project-type-badge">
-          ({mapTypeToFrontend(project.project_type)})
+        <div className="project-card-status">
+          <div
+            className={`project-card-status-content ${getActiveColor(
+              project.status
+            )}`}
+          >
+            {project.status}
+          </div>
         </div>
       </div>
 
@@ -302,6 +324,7 @@ const MyProjects = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [projects, setProjects] = useState([]);
+
   const [filteredProjects, setFilteredProjects] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -379,7 +402,7 @@ const MyProjects = () => {
         if (response.ok) {
           const mappedProjects = data.map((project) => ({
             ...project,
-            status: mapStatusToFrontend(project.status || "PLANNING"),
+            status: mapStatusToFrontend(project.status || "ACTIVE"),
             project_type: project.project_type || "kanban",
             progress: project.progress || 0,
           }));
@@ -533,7 +556,7 @@ const MyProjects = () => {
       if (fetchResponse.ok) {
         const mappedProjects = data.map((project) => ({
           ...project,
-          status: mapStatusToFrontend(project.status || "PLANNING"),
+          status: mapStatusToFrontend(project.status || "ACTIVE"),
           project_type: project.project_type || "kanban",
           progress: project.progress || 0,
         }));
@@ -611,7 +634,7 @@ const MyProjects = () => {
       if (fetchResponse.ok) {
         const mappedProjects = data.map((project) => ({
           ...project,
-          status: mapStatusToFrontend(project.status || "PLANNING"),
+          status: mapStatusToFrontend(project.status || "ACTIVE"),
           project_type: project.project_type || "kanban",
           progress: project.progress || 0,
         }));
@@ -689,7 +712,7 @@ const MyProjects = () => {
       if (fetchResponse.ok) {
         const mappedProjects = data.map((project) => ({
           ...project,
-          status: mapStatusToFrontend(project.status || "PLANNING"),
+          status: mapStatusToFrontend(project.status || "ACTIVE"),
           project_type: project.project_type || "kanban",
           progress: project.progress || 0,
         }));
@@ -735,8 +758,8 @@ const MyProjects = () => {
 
   const statusOptions = [
     { value: "all", label: "All Statuses", icon: "fas fa-list" },
-    { value: "Active", label: "Active", icon: "fas fa-play-circle" },
-    { value: "Completed", label: "Completed", icon: "fas fa-check-circle" },
+    { value: "ACTIVE", label: "Active", icon: "fas fa-play-circle" },
+    { value: "COMPLETED", label: "Completed", icon: "fas fa-check-circle" },
     { value: "On Hold", label: "On Hold", icon: "fas fa-pause-circle" },
     { value: "Planning", label: "Planning", icon: "fas fa-clock" },
   ];
