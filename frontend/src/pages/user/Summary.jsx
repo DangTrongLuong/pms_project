@@ -3,6 +3,11 @@ import { Search } from "lucide-react";
 import "../../styles/user/summary.css";
 import { useParams } from "react-router-dom";
 import { useSidebar } from "../../context/SidebarContext";
+import { Pie } from "react-chartjs-2";
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
+
+// Register Chart.js components
+ChartJS.register(ArcElement, Tooltip, Legend);
 
 const Summary = () => {
   const { id } = useParams();
@@ -12,25 +17,32 @@ const Summary = () => {
   const [members, setMembers] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const accessToken = localStorage.getItem("accessToken");
 
   useEffect(() => {
     if (projects.length > 0) {
       const project = projects.find((p) => p.id === parseInt(id));
       setSelectedProject(project || null);
+      setError(project ? "" : "Project not found");
     }
   }, [projects, id]);
 
   const fetchTasks = async () => {
-    if (!selectedProject) return;
+    if (!selectedProject || !accessToken) {
+      setError("Missing project information or authentication token");
+      return;
+    }
+    setIsLoading(true);
     try {
       const userId = localStorage.getItem("userId");
-      if (!userId || !accessToken) {
+      if (!userId) {
         throw new Error("Please log in again to continue");
       }
 
+      // Fetch the list of sprints for the project
       const sprintResponse = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/backlog/sprints/${selectedProject.id}`,
+        `${process.env.REACT_APP_API_URL}/api/sprints/project/${selectedProject.id}`,
         {
           method: "GET",
           headers: {
@@ -44,21 +56,43 @@ const Summary = () => {
       if (!sprintResponse.ok) {
         const errorData = await sprintResponse.json().catch(() => ({}));
         throw new Error(
-          errorData.message ||
-            `Failed to fetch sprints: ${sprintResponse.status}`
+          errorData.message || `Error fetching sprint list: ${sprintResponse.status}`
         );
       }
 
       const sprints = await sprintResponse.json();
-      const activeSprint = sprints.find((sprint) => sprint.status === "ACTIVE");
-      if (!activeSprint) {
-        setTasks([]);
-        setError("No active sprint to fetch tasks!");
-        return;
+      
+      // Fetch all tasks from the sprints
+      let allTasks = [];
+      if (Array.isArray(sprints) && sprints.length > 0) {
+        for (const sprint of sprints) {
+          const taskResponse = await fetch(
+            `${process.env.REACT_APP_API_URL}/api/sprints/tasks/${sprint.id}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${accessToken}`,
+                userId: userId,
+              },
+            }
+          );
+
+          if (!taskResponse.ok) {
+            const errorData = await taskResponse.json().catch(() => ({}));
+            throw new Error(
+              errorData.message || `Error fetching task list: ${taskResponse.status}`
+            );
+          }
+
+          const sprintTasks = await taskResponse.json();
+          allTasks = allTasks.concat(Array.isArray(sprintTasks) ? sprintTasks : []);
+        }
       }
 
-      const taskResponse = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/backlog/tasks/${activeSprint.id}`,
+      // Fetch tasks from the backlog
+      const backlogResponse = await fetch(
+        `${process.env.REACT_APP_API_URL}/api/sprints/tasks/backlog/${selectedProject.id}`,
         {
           method: "GET",
           headers: {
@@ -69,37 +103,45 @@ const Summary = () => {
         }
       );
 
-      if (!taskResponse.ok) {
-        const errorData = await taskResponse.json().catch(() => ({}));
+      if (!backlogResponse.ok) {
+        const errorData = await backlogResponse.json().catch(() => ({}));
         throw new Error(
-          errorData.message || `Failed to fetch tasks: ${taskResponse.status}`
+          errorData.message || `Error fetching backlog task list: ${backlogResponse.status}`
         );
       }
 
-      const tasks = await taskResponse.json();
-      setTasks(tasks);
+      const backlogTasks = await backlogResponse.json();
+      allTasks = allTasks.concat(Array.isArray(backlogTasks) ? backlogTasks : []);
+
+      setTasks(allTasks);
       setError("");
     } catch (err) {
-      setError(err.message || "An error occurred while fetching data");
+      setError(err.message || "An error occurred while fetching tasks");
       if (err.message.includes("401") || err.message.includes("403")) {
         setError("Your session has expired. Please log in again.");
         setTimeout(() => {
           window.location.href = "/login";
         }, 2000);
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const fetchMembers = async () => {
-    if (!selectedProject) return;
+    if (!selectedProject || !accessToken) {
+      setError("Missing project information or authentication token");
+      return;
+    }
+    setIsLoading(true);
     try {
       const userId = localStorage.getItem("userId");
-      if (!userId || !accessToken) {
+      if (!userId) {
         throw new Error("Please log in again to continue");
       }
 
       const response = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/members/project/${selectedProject.id}`,
+        `${process.env.REACT_APP_API_URL}/api/members/project/${id}`,
         {
           method: "GET",
           headers: {
@@ -113,12 +155,12 @@ const Summary = () => {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
-          errorData.message || `Failed to fetch members: ${response.status}`
+          errorData.message || `Error fetching member list: ${response.status}`
         );
       }
 
       const data = await response.json();
-      setMembers(data);
+      setMembers(Array.isArray(data) ? data : []);
       setError("");
     } catch (err) {
       setError(err.message || "An error occurred while fetching members");
@@ -128,17 +170,21 @@ const Summary = () => {
           window.location.href = "/login";
         }, 2000);
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchTasks();
-    fetchMembers();
+    if (selectedProject) {
+      fetchTasks();
+      fetchMembers();
+    }
   }, [selectedProject]);
 
   const taskStats = {
     total: tasks.length,
-    done: tasks.filter((t) => t.status === "DONE").length,
+    done: tasks.filter((t) => t.status === "COMPLETED").length,
     inProgress: tasks.filter((t) => t.status === "IN_PROGRESS").length,
     todo: tasks.filter((t) => t.status === "TODO").length,
     inReview: tasks.filter((t) => t.status === "IN_REVIEW").length,
@@ -155,10 +201,52 @@ const Summary = () => {
       ? Math.round((taskStats.done / taskStats.total) * 100)
       : 0;
 
-  if (!selectedProject) return <div>Loading...</div>;
+  // Pie chart data
+  const pieChartData = {
+    labels: ["To Do", "In Progress", "In Review", "Completed"],
+    datasets: [
+      {
+        data: [taskStats.todo, taskStats.inProgress, taskStats.inReview, taskStats.done],
+        backgroundColor: ["#ff0037ff", "#0096faff", "#ffb700ff", "#0df06cff"],
+        borderColor: ["#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF"],
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  // Pie chart options
+  const pieChartOptions = {
+    plugins: {
+      legend: {
+        position: "right",
+        labels: {
+          boxWidth: 20,
+          padding: 20,
+        },
+      },
+      tooltip: {
+        callbacks: {
+          label: function (context) {
+            const label = context.label || "";
+            const value = context.raw || 0;
+            const total = context.dataset.data.reduce((sum, val) => sum + val, 0);
+            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+            return `${label}: ${value} (${percentage}%)`;
+          },
+        },
+      },
+    },
+    maintainAspectRatio: false,
+  };
+
+  if (!selectedProject) {
+    return <div>{error || "Project not found"}</div>;
+  }
 
   return (
     <div className="summary-container">
+      {isLoading && <div>Loading data...</div>}
+      {error && <p className="error-message">{error}</p>}
       <div className="tab-content">
         <div className="summary-grid">
           <div className="summary-card">
@@ -192,13 +280,15 @@ const Summary = () => {
               <div className="detail-item">
                 <span className="detail-label">Created Date</span>
                 <span className="detail-value">
-                  {new Date(selectedProject.created_at).toLocaleDateString()}
+                  {selectedProject.created_at
+                    ? new Date(selectedProject.created_at).toLocaleDateString()
+                    : "Unknown"}
                 </span>
               </div>
               <div className="detail-item">
-                <span className="detail-label">Project Lead</span>
+                <span className="detail-label">Project Leader</span>
                 <span className="detail-value">
-                  {selectedProject.lead || "Not specified"}
+                  {selectedProject.leader || "Unknown"}
                 </span>
               </div>
               <div className="detail-item">
@@ -211,23 +301,10 @@ const Summary = () => {
           </div>
 
           <div className="detail-section">
-            <h3>Task Allocation</h3>
-            <div className="detail-list">
-              <div className="detail-item">
-                <span className="detail-label">To Do</span>
-                <span className="detail-value">{taskStats.todo}</span>
-              </div>
-              <div className="detail-item">
-                <span className="detail-label">In Progress</span>
-                <span className="detail-value">{taskStats.inProgress}</span>
-              </div>
-              <div className="detail-item">
-                <span className="detail-label">In Review</span>
-                <span className="detail-value">{taskStats.inReview}</span>
-              </div>
-              <div className="detail-item">
-                <span className="detail-label">Completed</span>
-                <span className="detail-value">{taskStats.done}</span>
+            <h3>Task Distribution</h3>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ height: "150px", width: "250px" }}>
+                <Pie data={pieChartData} options={pieChartOptions} />
               </div>
             </div>
           </div>
@@ -254,19 +331,29 @@ const Summary = () => {
 
           <div className="detail-section">
             <h3>Team Members</h3>
-            <div className="team-members">
-              {members.map((member, index) => (
-                <div key={index} className="team-member">
-                  <div className="member-avatar">
-                    <img src={member.avatarUrl} alt="Member Avatar" />
+            {members.length > 0 ? (
+              <div className="team-members">
+                {members.map((member, index) => (
+                  <div key={index} className="team-member">
+                    <div className="member-avatar">
+                      <img
+                        src={member.avatarUrl || "/default-avatar.png"}
+                        alt={member.name || "Member"}
+                        onError={(e) => {
+                          e.target.src = "/default-avatar.png";
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <span className="member-name">{member.name || "Unknown"}</span>
+                      <p className="member-role">{member.role || "Member"}</p>
+                    </div>
                   </div>
-                  <div>
-                    <span className="member-name">{member.name}</span>
-                    <p className="member-role">{member.role || "Member"}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <p>No team members found</p>
+            )}
           </div>
         </div>
 
@@ -283,7 +370,6 @@ const Summary = () => {
           </p>
         </div>
       </div>
-      {error && <p className="error-message">{error}</p>}
     </div>
   );
 };

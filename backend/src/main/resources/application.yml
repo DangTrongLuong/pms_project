@@ -11,17 +11,20 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
       enabled: true
-    # session:
-    #   tracking-modes: cookie
-    #   cookie:
-    #     http-only: true
-    #     secure: false
   # MySQL
   datasource:
     url: ${DATASOURCE_URL}
     username: ${DATASOURCE_USER}
     password: ${DATASOURCE_PASSWORD}
-
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 10
+      max-lifetime: 1800000
+      connection-init-sql: SELECT 1
+      initialization-fail-timeout: 0
+      minimum-idle: 5
+      idle-timeout: 600000
   jpa:
     hibernate:
       ddl-auto: update
@@ -54,6 +57,10 @@ spring:
             user-name-attribute: sub
             user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
 
+# spring:
+#   web:
+#     cors:
+#       allowed-origins: http://localhost:80
 # Logging
 logging:
   level:

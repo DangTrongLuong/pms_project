@@ -44,6 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class DocumentService {
+
     DocumentRepository documentRepository;
     DocumentCommentRepository documentCommentRepository;
     DocumentAssignmentRepository documentAssignmentRepository;
@@ -78,7 +79,7 @@ public class DocumentService {
         }
 
         List<DocumentResponse> responses = new ArrayList<>();
-        String[] allowedTypes = { "pdf", "doc", "docx", "jpg", "jpeg", "png", "gif", "xd", "css", "js" };
+        String[] allowedTypes = {"pdf", "doc", "docx", "jpg", "jpeg", "png", "gif", "xd", "css", "js"};
 
         // Define a stable upload directory with documents subfolder
         String uploadDir = "D:/pms_project/backend/uploads/documents";
@@ -277,8 +278,8 @@ public class DocumentService {
                 .orElseThrow(() -> new AppException(ErrorStatus.USER_NOTFOUND));
 
         List<User> users = userRepository.findAll().stream()
-                .filter(user -> user.getEmail().toLowerCase().contains(query.toLowerCase()) ||
-                        user.getName().toLowerCase().contains(query.toLowerCase()))
+                .filter(user -> user.getEmail().toLowerCase().contains(query.toLowerCase())
+                || user.getName().toLowerCase().contains(query.toLowerCase()))
                 .collect(Collectors.toList());
 
         return users.stream().map(user -> {
