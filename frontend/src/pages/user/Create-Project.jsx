@@ -1,15 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { SidebarProvider, useSidebar } from "../../context/SidebarContext";
 import { useNavigate } from "react-router-dom";
-import "../../styles/user/dashboard.css";
 import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
+import "../../styles/user/dashboard.css";
 import "../../styles/user/create-project.css";
 import newProject from "../../assets/new_project.jpg";
+import { NotificationContext } from "../../context/NotificationContext";
 
 const Create_Project_Content = () => {
   const { isSidebarOpen, setProjectsSidebar } = useSidebar();
   const navigate = useNavigate();
+  const { triggerSuccess } = useContext(NotificationContext);
   const [formData, setFormData] = useState({
     project_name: "",
     description: "",
@@ -17,7 +19,7 @@ const Create_Project_Content = () => {
     start_date: "",
     end_date: "",
     userName: "",
-    status: "ACTIVE", // Thêm trạng thái mặc định là ACTIVE
+    status: "ACTIVE",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({
@@ -31,7 +33,6 @@ const Create_Project_Content = () => {
   // Lấy ngày hiện tại (11:20 PM +07, 21/07/2025)
   const getCurrentDate = () => {
     const now = new Date();
-    now.setHours(0, 0, 0, 0); // Đặt giờ về 00:00:00 để lấy ngày
     return now.toISOString().split("T")[0]; // Trả về định dạng YYYY-MM-DD
   };
 
@@ -169,7 +170,8 @@ const Create_Project_Content = () => {
             Authorization: `Bearer ${accessToken}`,
             userId: userId,
           },
-          body: JSON.stringify(formData),
+          credentials: "include",
+          body: JSON.stringify({ ...formData, userName }),
         }
       );
 
@@ -178,16 +180,21 @@ const Create_Project_Content = () => {
         const project = data.result;
         console.log("Project created:", project);
 
+        // Lưu thông tin project vào localStorage, bao gồm start_date và end_date
         const projects = JSON.parse(localStorage.getItem("projects") || "[]");
-        projects.push(project);
+        projects.push({
+          ...project,
+          start_date: formData.start_date,
+          end_date: formData.end_date,
+        });
         localStorage.setItem("projects", JSON.stringify(projects));
 
         setProjectsSidebar(projects);
 
         if (window.progressCallback) {
-          window.progressCallback(() => navigate("/dashboard"));
+          window.progressCallback(() => navigate("/myProject"));
         } else {
-          navigate("/dashboard");
+          navigate("/myProject");
         }
       } else {
         throw new Error(data.message || "Failed to create project");
@@ -199,6 +206,7 @@ const Create_Project_Content = () => {
       }));
       console.error("Create project error:", err);
     } finally {
+      triggerSuccess("Create project successful");
       setIsLoading(false);
     }
   };
@@ -276,6 +284,7 @@ const Create_Project_Content = () => {
                     type="text"
                     id="project-name"
                     placeholder="Project Name"
+                    required
                     value={formData.project_name}
                     onChange={handleInputChange}
                   />
@@ -367,6 +376,7 @@ const Create_Project_Content = () => {
                     <input
                       type="checkbox"
                       id="project-type"
+                      required
                       checked={formData.project_type === "Scrum"}
                       onChange={handleCheckboxChange}
                     />

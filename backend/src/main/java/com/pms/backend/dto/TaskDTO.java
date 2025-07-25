@@ -1,15 +1,17 @@
 package com.pms.backend.dto;
 
+import java.time.LocalDateTime;
+
 import com.pms.backend.enums.TaskStatus;
+
 import lombok.Getter;
 import lombok.Setter;
-
-import java.time.LocalDateTime;
 
 @Getter
 @Setter
 public class TaskDTO {
     private Integer id;
+    private Integer taskNumber;
     private String title;
     private String description;
     private String priority;

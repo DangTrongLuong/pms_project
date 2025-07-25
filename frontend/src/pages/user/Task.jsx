@@ -44,7 +44,8 @@ const TaskContent = () => {
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           throw new Error(
-            errorData.message || `Lỗi khi lấy danh sách dự án: ${response.status}`
+            errorData.message ||
+              `Error while getting project list: ${response.status}`
           );
         }
 
@@ -55,9 +56,11 @@ const TaskContent = () => {
           setSelectedProjectId(data[0].id);
         }
       } catch (err) {
-        setError(err.message || "Đã xảy ra lỗi khi lấy danh sách dự án");
+        setError(
+          err.message || "An error occurred while retrieving the project list."
+        );
         if (err.message.includes("401") || err.message.includes("403")) {
-          setError("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+          setError("Your session has expired. Please log in again.");
           setTimeout(() => {
             navigate("/login");
           }, 2000);
@@ -96,7 +99,8 @@ const TaskContent = () => {
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           throw new Error(
-            errorData.message || `Lỗi khi lấy danh sách sprint: ${response.status}`
+            errorData.message ||
+              `Error while getting sprint list: ${response.status}`
           );
         }
 
@@ -104,9 +108,11 @@ const TaskContent = () => {
         setSprints(Array.isArray(data) ? data : []);
         setSelectedSprintId(null); // Mặc định chọn backlog
       } catch (err) {
-        setError(err.message || "Đã xảy ra lỗi khi lấy danh sách sprint");
+        setError(
+          err.message || "An error occurred while retrieving the sprint list."
+        );
         if (err.message.includes("401") || err.message.includes("403")) {
-          setError("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+          setError("Your session has expired. Please log in again.");
           setTimeout(() => {
             navigate("/login");
           }, 2000);
@@ -146,7 +152,8 @@ const TaskContent = () => {
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           throw new Error(
-            errorData.message || `Lỗi khi lấy danh sách nhiệm vụ: ${response.status}`
+            errorData.message ||
+              `Error while getting task list: ${response.status}`
           );
         }
 
@@ -155,17 +162,22 @@ const TaskContent = () => {
         let filteredTasks = Array.isArray(data) ? data : [];
         if (priorityFilter !== "All") {
           filteredTasks = filteredTasks.filter(
-            (task) => task.priority.toLowerCase() === priorityFilter.toLowerCase()
+            (task) =>
+              task.priority.toLowerCase() === priorityFilter.toLowerCase()
           );
         }
         // Lọc nhiệm vụ được giao cho người dùng
-        const userTasks = filteredTasks.filter((task) => task.assigneeId === userId);
+        const userTasks = filteredTasks.filter(
+          (task) => task.assigneeId === userId
+        );
         setTasks(userTasks);
         setError("");
       } catch (err) {
-        setError(err.message || "Đã xảy ra lỗi khi lấy danh sách nhiệm vụ");
+        setError(
+          err.message || "An error occurred while retrieving the task list."
+        );
         if (err.message.includes("401") || err.message.includes("403")) {
-          setError("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+          setError("Your session has expired. Please log in again.");
           setTimeout(() => {
             navigate("/login");
           }, 2000);
@@ -176,7 +188,14 @@ const TaskContent = () => {
     };
 
     fetchTasks();
-  }, [selectedProjectId, selectedSprintId, userId, accessToken, navigate, priorityFilter]);
+  }, [
+    selectedProjectId,
+    selectedSprintId,
+    userId,
+    accessToken,
+    navigate,
+    priorityFilter,
+  ]);
 
   // Xử lý thanh tiến trình
   useEffect(() => {
@@ -225,20 +244,22 @@ const TaskContent = () => {
           />
         </div>
         <div className={`main-container-task ${!isSidebarOpen ? "full" : ""}`}>
-          <section className="project" aria-label="Tổng quan dự án">
-            <h2>Danh sách dự án</h2>
+          <section className="project" aria-label="Project overview">
+            <h2>Project List</h2>
             {isLoading ? (
-              <div>Đang tải...</div>
+              <div>Loading...</div>
             ) : error ? (
               <div className="error">{error}</div>
             ) : projects.length === 0 ? (
-              <div>Không có dự án nào</div>
+              <div>No projects</div>
             ) : (
               <div className="project-list">
                 {projects.map((project) => (
                   <div
                     key={project.id}
-                    className={`project-item ${selectedProjectId === project.id ? "selected" : ""}`}
+                    className={`project-item ${
+                      selectedProjectId === project.id ? "selected" : ""
+                    }`}
                     onClick={() => {
                       setSelectedProjectId(project.id);
                       setSelectedSprintId(null); // Reset sprint khi chọn dự án mới
@@ -252,39 +273,37 @@ const TaskContent = () => {
                       }
                     }}
                   >
-                    {project.project_name || project.name} {/* Sử dụng project_name để đồng bộ với Sidebar */}
+                    <p>{project.project_name || project.name} </p>
                   </div>
                 ))}
               </div>
             )}
           </section>
-          <section className="sprint" aria-label="Danh sách sprint">
-            <h2>Danh sách sprint</h2>
+          <section className="sprint" aria-label="Sprint list">
+            <h2>Backlog List</h2>
+            <p
+              style={{
+                fontSize: "17px",
+                fontWeight: "bold",
+                marginBottom: "5px",
+              }}
+            >
+              Sprint List
+            </p>
             {isLoading ? (
-              <div>Đang tải...</div>
+              <div>Loading...</div>
             ) : error ? (
               <div className="error">{error}</div>
             ) : sprints.length === 0 && selectedSprintId === null ? (
-              <div>Không có sprint nào, hiển thị backlog</div>
+              <div>No sprints, show backlog</div>
             ) : (
               <div className="sprint-list">
-                <div
-                  className={`sprint-item ${selectedSprintId === null ? "selected" : ""}`}
-                  onClick={() => setSelectedSprintId(null)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      setSelectedSprintId(null);
-                    }
-                  }}
-                >
-                  Backlog
-                </div>
                 {sprints.map((sprint) => (
                   <div
                     key={sprint.id}
-                    className={`sprint-item ${selectedSprintId === sprint.id ? "selected" : ""}`}
+                    className={`sprint-item ${
+                      selectedSprintId === sprint.id ? "selected" : ""
+                    }`}
                     onClick={() => setSelectedSprintId(sprint.id)}
                     role="button"
                     tabIndex={0}
@@ -300,60 +319,84 @@ const TaskContent = () => {
               </div>
             )}
           </section>
-          <section className="task" aria-label="Danh sách nhiệm vụ">
+          <section className="my-task-list" aria-label="Danh sách nhiệm vụ">
             <div className="task-header">
-              <h2>Nhiệm vụ được giao</h2>
+              <h2>Assigned Tasks</h2>
               <div className="filter-container">
                 <button
-                  className={`filter-btn ${priorityFilter === "All" ? "active" : ""}`}
+                  className={`filter-btn-all-active ${
+                    priorityFilter === "All" ? "active" : ""
+                  }`}
                   aria-label="Lọc tất cả mức ưu tiên"
                   onClick={() => handlePriorityFilter("All")}
                 >
-                  Tất cả
+                  All
                 </button>
                 <button
-                  className={`filter-btn ${priorityFilter === "High" ? "active" : ""}`}
-                  aria-label="Lọc mức ưu tiên cao"
-                  onClick={() => handlePriorityFilter("High")}
-                >
-                  Cao
-                </button>
-                <button
-                  className={`filter-btn ${priorityFilter === "Medium" ? "active" : ""}`}
-                  aria-label="Lọc mức ưu tiên trung bình"
-                  onClick={() => handlePriorityFilter("Medium")}
-                >
-                  Trung bình
-                </button>
-                <button
-                  className={`filter-btn ${priorityFilter === "Low" ? "active" : ""}`}
+                  className={`filter-btn-low-active ${
+                    priorityFilter === "Low" ? "active" : ""
+                  }`}
                   aria-label="Lọc mức ưu tiên thấp"
                   onClick={() => handlePriorityFilter("Low")}
                 >
-                  Thấp
+                  Low
+                </button>
+
+                <button
+                  className={`filter-btn-medium-active ${
+                    priorityFilter === "Medium" ? "active" : ""
+                  }`}
+                  aria-label="Lọc mức ưu tiên trung bình"
+                  onClick={() => handlePriorityFilter("Medium")}
+                >
+                  Medium
+                </button>
+                <button
+                  className={`filter-btn-high-active ${
+                    priorityFilter === "High" ? "active" : ""
+                  }`}
+                  aria-label="Lọc mức ưu tiên cao"
+                  onClick={() => handlePriorityFilter("High")}
+                >
+                  Hight
                 </button>
               </div>
             </div>
             {isLoading ? (
-              <div>Đang tải...</div>
+              <div>Loading...</div>
             ) : error ? (
               <div className="error">{error}</div>
             ) : tasks.length === 0 ? (
-              <div>Không có nhiệm vụ nào</div>
+              <div>No tasks</div>
             ) : (
-              <div className="task-list">
+              <div className="task-list-map">
+                <div className="my-task-item my-task-css">
+                  <p className="my-task-item-title">Name tasks</p>
+                  <div className="my-task-item-priority-div">
+                    <p className="my-task-item-priority-div">Priority</p>
+                  </div>
+                  <p className="my-task-item-status">Status</p>
+                </div>
                 {tasks.map((task) => (
-                  <div key={task.id} className="task-item">
-                    <span className={`priority ${task.priority.toLowerCase()}`}>
-                      {task.priority}
-                    </span>
-                    <span>{task.title}</span>
-                    <span className="status">{task.status}</span> {/* Hiển thị trạng thái nhiệm vụ */}
+                  <div key={task.id} className="my-task-item">
+                    <p className="my-task-item-title">{task.title}</p>
+                    <div className="my-task-item-priority-div">
+                      <p
+                        className={`my-task-item-priority ${task.priority.toLowerCase()}`}
+                      >
+                        {task.priority}
+                      </p>
+                    </div>
+                    <p className="my-task-item-status">{task.status}</p>{" "}
+                    {/* Hiển thị trạng thái nhiệm vụ */}
                   </div>
                 ))}
               </div>
             )}
           </section>
+          <div className="empty-my-task">
+            <p>Empty</p>
+          </div>
         </div>
       </div>
     </div>

@@ -230,7 +230,9 @@
 .create-task-comment-btn:hover {
   background-color: #0747a6;
 }
-
+.create-task-error {
+  padding: 0 20px;
+}
 /* Responsive Design */
 @media (max-width: 768px) {
   .create-task-form-grid {

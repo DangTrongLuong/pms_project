@@ -22,7 +22,7 @@ import { useSidebar } from "../../context/SidebarContext";
 import CreateTaskModal from "../../components/CreateTaskModal";
 import CreateSprintModal from "../../components/CreateSprintModal";
 import "../../styles/user/backlog.css";
-import TaskDetailModal from "../../components/TaskDetailModal"; // Điều chỉnh đường dẫn nếu cần
+import TaskDetailModal from "../../components/TaskDetailModal";
 import { NotificationContext } from "../../context/NotificationContext";
 
 const Backlog = () => {
@@ -30,6 +30,7 @@ const Backlog = () => {
   const { projects } = useSidebar();
   const [selectedProject, setSelectedProject] = useState(null);
   const [tasks, setTasks] = useState([]);
+  // console.log("task: ", tasks);
   const [sprints, setSprints] = useState([]);
   const [showTaskForm, setShowTaskForm] = useState(null);
   const [showSprintForm, setShowSprintForm] = useState(false);
@@ -37,10 +38,25 @@ const Backlog = () => {
   const [taskMenuOpen, setTaskMenuOpen] = useState(null);
   const { triggerSuccess } = useContext(NotificationContext);
   const userName = localStorage.getItem("userName");
+  const [activeTab, setActiveTab] = useState("documents");
   const [members, setMembers] = useState([]);
   const [error, setError] = useState("");
   const accessToken = localStorage.getItem("accessToken");
-  const [isLeader, setIsLeader] = useState(false); // State để kiểm tra vai trò LEADER
+  const [isLeader, setIsLeader] = useState(false);
+  const [projectStartDate, setProjectStartDate] = useState(null);
+  const [projectEndDate, setProjectEndDate] = useState(null);
+
+  useEffect(() => {
+    if (projects.length > 0) {
+      const project = projects.find((p) => p.id === parseInt(id));
+      setSelectedProject(project || null);
+
+      if (project) {
+        setProjectStartDate(project.start_date);
+        setProjectEndDate(project.end_date);
+      }
+    }
+  }, [projects, id]);
 
   const fetchMembers = async () => {
     if (!selectedProject) return;
@@ -74,7 +90,6 @@ const Backlog = () => {
       console.log("data: ", data);
       setError("");
 
-      // Kiểm tra vai trò LEADER dựa trên userName
       const currentMember = data.find((member) => member.name === userName);
       if (currentMember && currentMember.role === "LEADER") {
         setIsLeader(true);
@@ -221,7 +236,6 @@ const Backlog = () => {
       }
 
       setTasks(allTasks);
-      console.log("Tasks fetched:", allTasks);
 
       const membersResponse = await fetch(
         `${process.env.REACT_APP_API_URL}/api/members/project/${selectedProject.id}`,
@@ -650,22 +664,32 @@ const Backlog = () => {
             Authorization: `Bearer ${accessToken}`,
             userId: userId,
           },
+          credentials: "include",
           body: JSON.stringify({ assigneeEmail }),
         }
       );
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.message || `Cập nhật assignee thất bại: ${response.status}`
-        );
+        const errorMessage =
+          errorData.message || `Cập nhật assignee thất bại: ${response.status}`;
+        console.error("Error response from server:", errorData);
+        throw new Error(errorMessage);
       }
+
+      const updatedTask = await response.json();
 
       await fetchSprintsAndTasks();
       setAssigneeModal({ isOpen: false, taskId: null, suggestedMembers: [] });
+      triggerSuccess("Assignee updated successfully.");
     } catch (err) {
       console.error("Lỗi khi cập nhật assignee:", err);
-      alert(err.message || "Không thể cập nhật assignee. Vui lòng thử lại.");
+      if (err.message.includes("401") || err.message.includes("403")) {
+        alert("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
+        setTimeout(() => (window.location.href = "/login"), 2000);
+      } else {
+        alert(err.message || "Không thể cập nhật assignee. Vui lòng thử lại.");
+      }
     }
   };
 
@@ -704,6 +728,7 @@ const Backlog = () => {
 
       const randomMember = members[Math.floor(Math.random() * members.length)];
       await handleUpdateTaskAssignee(taskId, randomMember.email);
+      triggerSuccess("Task auto-assigned successfully.");
     } catch (err) {
       console.error("Lỗi khi tự động gán:", err);
       alert(err.message || "Không thể tự động gán. Vui lòng thử lại.");
@@ -909,6 +934,17 @@ const Backlog = () => {
   });
   const canStartSprint = (sprintId) => {
     return !sprints.some((s) => s.status === "ACTIVE" && s.id !== sprintId);
+  };
+  const canCreateSprint = () => {
+    return !sprints.some((s) => s.status === "ACTIVE");
+  };
+
+  const handleCreateSprintClick = () => {
+    if (!canCreateSprint()) {
+      alert("Vui lòng hoàn thành Sprint trước");
+      return;
+    }
+    setShowSprintForm(true);
   };
 
   const AssigneeModal = ({
@@ -1216,7 +1252,7 @@ const Backlog = () => {
               className="task-checkbox"
             />
             <div className="task-id" style={{ color: "#0052cc" }}>
-              {selectedProject.shortName}Task {task.id}
+              {selectedProject.shortName}Task {task.taskNumber}
             </div>
             <div className="task-title">{task.title}</div>
           </div>
@@ -1335,7 +1371,11 @@ const Backlog = () => {
             <div className="btn-create-sprint-1">
               <button
                 className="btn-create-sprint"
-                onClick={() => setShowSprintForm(true)}
+                onClick={handleCreateSprintClick}
+                disabled={!canCreateSprint()}
+                title={
+                  canCreateSprint() ? "" : "Vui lòng hoàn thành Sprint trước"
+                }
               >
                 <Plus />
                 Create Sprint
@@ -1378,7 +1418,7 @@ const Backlog = () => {
                       </div>
                       {isLeader && (
                         <div className="sprint-active">
-                          {sprint.status !== "ACTIVE" && (
+                          {sprint.status === "PLANNED" && (
                             <button
                               className={`btn-start-sprint ${
                                 canStartSprint(sprint.id)
@@ -1401,6 +1441,11 @@ const Backlog = () => {
                               onClick={() => handleCompleteSprint(sprint.id)}
                             >
                               Complete Sprint
+                            </button>
+                          )}
+                          {sprint.status === "COMPLETED" && (
+                            <button className="btn-complete-sprint">
+                              Completed
                             </button>
                           )}
                           <div className="sprint-menu-container">
@@ -1484,7 +1529,7 @@ const Backlog = () => {
                 )}
                 <button
                   className="btn-create-task-in-backlog"
-                  onClick={() => setShowTaskForm(sprints.id)}
+                  onClick={() => setShowTaskForm(null)}
                 >
                   <Plus />
                   Create new task
@@ -1525,6 +1570,7 @@ const Backlog = () => {
             }}
             onUpdateTask={handleUpdateTask}
             selectedProject={selectedProject}
+            setParentActiveTab={setActiveTab}
           />
         )}
         <CreateSprintModal
@@ -1532,6 +1578,8 @@ const Backlog = () => {
           onClose={() => setShowSprintForm(false)}
           onSubmit={handleAddSprint}
           selectedProject={selectedProject}
+          projectStartDate={projectStartDate} // Thêm prop mới
+          projectEndDate={projectEndDate}
         />
         <DeleteSprintModal
           isOpen={deleteSprintModal.isOpen}

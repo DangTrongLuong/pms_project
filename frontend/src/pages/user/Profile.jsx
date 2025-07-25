@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/alt-text */
 /* eslint-disable jsx-a11y/img-redundant-alt */
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import { SidebarProvider, useSidebar } from "../../context/SidebarContext";
 import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
@@ -8,10 +8,12 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare, faTrashCan } from "@fortawesome/free-regular-svg-icons";
 import "../../styles/user/profile.css";
 import { useUser } from "../../context/UserContext";
+import { NotificationContext } from "../../context/NotificationContext";
 
 const ProfileContent = () => {
   const { isSidebarOpen } = useSidebar();
   const { user, setUser } = useUser();
+  const { triggerSuccess } = useContext(NotificationContext);
   const [userName, setUserName] = useState(
     localStorage.getItem("userName") || "User"
   );
@@ -282,7 +284,7 @@ const ProfileContent = () => {
           headers.Authorization = `Bearer ${token}`;
         }
         const response = await fetch(
-          `${process.env.REACT_APP_API_URL}/api/auth/update-user/${storedEmail}`,
+          `${process.env.REACT_APP_API_URL}/api/auth/update-user-by-email/${storedEmail}`,
           {
             method: "PUT",
             headers: headers,
@@ -296,6 +298,7 @@ const ProfileContent = () => {
           localStorage.setItem("userName", newName);
           if (fullNameRef.current) fullNameRef.current.textContent = newName;
           setShowEditNameForm(false);
+          triggerSuccess("Name updated successfully.");
         } else {
           console.error("Failed to update name");
         }
@@ -402,11 +405,7 @@ const ProfileContent = () => {
                     Email: <span id="email" ref={emailRef}></span>
                   </label>
                 </div>
-                <div className="info-field">
-                  <label>
-                    Role: <span id="role" ref={roleRef}></span>
-                  </label>
-                </div>
+
                 <div className="info-field">
                   <label>
                     Created At: <span id="created-at" ref={createdAtRef}></span>

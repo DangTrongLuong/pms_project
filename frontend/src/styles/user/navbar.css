@@ -364,11 +364,10 @@ body.dark-mode .theme-option svg {
   .profile-response {
     display: flex;
     width: 80px;
-    gap: 10px;
-    margin-left: -40px;
+    margin-left: -60px;
   }
   .profile-response .profile-icon {
-    width: 45px;
+    width: 35px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -377,7 +376,7 @@ body.dark-mode .theme-option svg {
     border-radius: 4px;
   }
   .profile-response .profile-icon:hover {
-    background-color: #949494;
+    background-color: #e6e6e6;
   }
   .profile-response .profile-icon .number-notification {
     position: absolute;

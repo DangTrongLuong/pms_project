@@ -621,6 +621,41 @@
   max-width: 450px; /* Tăng max-width để modal lớn hơn */
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2); /* Bóng đổ nhẹ hơn, hiện đại hơn */
 }
+
+.status-dropdown-menu {
+  position: absolute;
+  top: 0;
+  left: 100%; /* Hiển thị bên cạnh nút Change Status */
+  background: #fff;
+  border: 1px solid #dfe1e6;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 1010; /* Đảm bảo hiển thị trên task-dropdown-menu */
+  min-width: 120px;
+  margin-left: 5px;
+}
+
+.status-change-menu {
+  display: inline-block; /* Hiển thị cùng cấp với task-dropdown-menu */
+}
+
+.status-suggestion-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.status-suggestion-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.status-suggestion-item:hover {
+  background: #f0f0f0;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .progress-filters {

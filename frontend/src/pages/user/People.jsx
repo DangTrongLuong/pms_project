@@ -263,7 +263,7 @@ const People = () => {
       }));
 
       // Log webhookRequests for debugging
-      console.log("webhookRequests:", JSON.stringify(webhookRequests, null, 2));
+      // console.log("webhookRequests:", JSON.stringify(webhookRequests, null, 2));
 
       // Send requests to n8n webhook and collect responses
       const n8nResponses = [];

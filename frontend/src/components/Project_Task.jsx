@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useContext } from "react";
 import { SidebarProvider, useSidebar } from "../context/SidebarContext";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import "../styles/user/dashboard.css";
@@ -15,6 +15,7 @@ import Comments from "../pages/user/Comments";
 import Documents from "../pages/user/Documents";
 import People from "../pages/user/People";
 import ProjectTabs from "./ProjectTabs";
+import { NotificationContext } from "../context/NotificationContext";
 
 const ProjectTaskContent = () => {
   const { isSidebarOpen, setProjectsSidebar } = useSidebar();
@@ -31,6 +32,7 @@ const ProjectTaskContent = () => {
   const [showConfirmForm, setShowConfirmForm] = useState(false);
   const navigate = useNavigate();
   const progressRef = useRef(null);
+  const { triggerSuccess } = useContext(NotificationContext);
 
   const fetchMembers = async () => {
     try {
@@ -140,15 +142,23 @@ const ProjectTaskContent = () => {
       case "summary":
         return <Summary project={selectedProject} />;
       case "backlog":
-        return <Backlog project={selectedProject} />;
+        return (
+          <Backlog project={selectedProject} setActiveTab={setActiveTab} />
+        );
       case "board":
-        return <Progress project={selectedProject} />;
+        return (
+          <Progress project={selectedProject} setActiveTab={setActiveTab} />
+        );
       case "timeline":
-        return <Timeline project={selectedProject} />;
+        return (
+          <Timeline project={selectedProject} setActiveTab={setActiveTab} />
+        );
       case "documents":
-        return <Documents project={selectedProject} />;
+        return (
+          <Documents project={selectedProject} setActiveTab={setActiveTab} />
+        );
       case "people":
-        return <People project={selectedProject} />;
+        return <People project={selectedProject} setActiveTab={setActiveTab} />;
       default:
         return <Summary project={selectedProject} />;
     }
@@ -192,7 +202,7 @@ const ProjectTaskContent = () => {
         setProjectsSidebar(updatedProjects);
         localStorage.setItem("projects", JSON.stringify(updatedProjects));
         setShowConfirmForm(false);
-        // Chuyển về dashboard sau khi hoàn thành
+        triggerSuccess("The project has been completed.");
       } else {
         throw new Error("Failed to complete project");
       }

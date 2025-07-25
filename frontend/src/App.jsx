@@ -31,6 +31,7 @@ import { UserProvider } from "./context/UserContext";
 import ProjectTask from "./components/Project_Task";
 import CustomCursor from "./components/CustomCursor";
 import TaskDetails from "./pages/user/TaskDetail";
+
 // import CustomCursor from "./components/CustomCursor";
 
 function App() {

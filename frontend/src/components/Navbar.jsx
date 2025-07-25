@@ -109,7 +109,6 @@ const Navbar = () => {
         (n) => n.status === "UNREAD"
       ).length;
       setUnreadCount(unread);
-      console.log("Fetched notifications:", notificationsArray);
     } catch (err) {
       console.error("Fetch notifications error:", err);
     }

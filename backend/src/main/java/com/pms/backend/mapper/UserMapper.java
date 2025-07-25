@@ -10,9 +10,14 @@ import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {
+    @Mapping(target = "name", source = "name")
+    @Mapping(target = "email", source = "email")
+    @Mapping(target = "password", source= "password")
     User toUser(UserCreationRequest request);
+
     @Mapping(target = "name", source = "name")
     @Mapping(target = "email", source = "email")
     UserResponse toUserResponse(User user);
+
     void updateUser(@MappingTarget User user, UserUpdateRequest request);
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import {
   FileText,
   Upload,
@@ -15,7 +15,22 @@ import {
 import "../../styles/user/documents.css";
 import { useParams } from "react-router-dom";
 import { useSidebar } from "../../context/SidebarContext";
+import { NotificationContext } from "../../context/NotificationContext";
 
+const SearchBarDocument = ({ searchQuery, onSearchChange }) => {
+  return (
+    <div className="search-container-document">
+      <input
+        type="text"
+        className="search-input-document"
+        placeholder="Search document..."
+        value={searchQuery}
+        onChange={(e) => onSearchChange(e.target.value)}
+        aria-label="Search document"
+      />
+    </div>
+  );
+};
 const Documents = () => {
   const { id } = useParams();
   const { projects } = useSidebar();
@@ -25,6 +40,8 @@ const Documents = () => {
   const [selectedDocument, setSelectedDocument] = useState(null);
   const [newComment, setNewComment] = useState("");
   const [showAssignDropdown, setShowAssignDropdown] = useState(null);
+  const { triggerSuccess } = useContext(NotificationContext);
+  const [searchQuery, setSearchQuery] = useState("");
   const [taskSelectionModal, setTaskSelectionModal] = useState({
     isOpen: false,
     files: null,
@@ -41,6 +58,19 @@ const Documents = () => {
   const documentModalRef = useRef(null);
   const accessToken = localStorage.getItem("accessToken");
   const avatar_url = localStorage.getItem("avatarUrl");
+  const [filteredDocuments, setFilteredDocuments] = useState([]);
+
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      const filtered = documents.filter((document) =>
+        document.name?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredDocuments(filtered);
+    } else {
+      // Khi input rỗng thì hiển thị toàn bộ danh sách
+      setFilteredDocuments(documents);
+    }
+  }, [searchQuery, documents]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -214,6 +244,15 @@ const Documents = () => {
 
     try {
       const userId = localStorage.getItem("userId");
+      const accessToken = localStorage.getItem("accessToken");
+      if (!userId || !accessToken) {
+        throw new Error("Vui lòng đăng nhập lại để tiếp tục");
+      }
+
+      if (!selectedProject || !selectedProject.id) {
+        throw new Error("Dự án không được chọn hoặc không hợp lệ");
+      }
+
       const formData = new FormData();
       for (let file of files) {
         console.log("Appending file:", file.name);
@@ -222,8 +261,15 @@ const Documents = () => {
       console.log("Appending request with taskId:", taskId);
       formData.append(
         "request",
-        new Blob([JSON.stringify({ taskId })], { type: "application/json" })
+        new Blob([JSON.stringify({ taskId: Number(taskId) })], {
+          type: "application/json",
+        })
       );
+
+      // Log FormData entries
+      for (let pair of formData.entries()) {
+        console.log("FormData entry:", pair[0], pair[1]);
+      }
 
       const response = await fetch(
         `${process.env.REACT_APP_API_URL}/api/documents/${selectedProject.id}/upload`,
@@ -239,14 +285,16 @@ const Documents = () => {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        console.error("Error response from server:", errorData);
         throw new Error(
-          errorData.message || `Upload failed: ${response.status}`
+          errorData.message || `Upload thất bại: ${response.status}`
         );
       }
 
       const newDocuments = await response.json();
-      console.log("Upload successful, received documents:", newDocuments);
+      console.log("Upload thành công, nhận được documents:", newDocuments);
       setDocuments([...documents, ...newDocuments]);
+      triggerSuccess("Upload document successful");
       setTaskSelectionModal({ isOpen: false, files: null });
     } catch (err) {
       console.error("Upload error:", err);
@@ -544,7 +592,7 @@ const Documents = () => {
               <div className="modal-title-info">
                 <h3 className="modal-title">{document.name}</h3>
                 <p className="modal-subtitle">
-                  Tải lên bởi {document.uploader} vào{" "}
+                  Tải lên bởi {document.uploaderName} vào{" "}
                   {new Date(document.uploadDate).toLocaleString()}
                 </p>
               </div>
@@ -554,11 +602,11 @@ const Documents = () => {
             </button>
           </div>
 
-          <div className="modal-content">
+          <div className="modal-content-view-document">
             <div className="document-preview">
               <div className="preview-placeholder">
                 <div className="preview-icon">{getFileIcon(document.type)}</div>
-                <p>File preview not available</p>
+
                 <button className="btn-download">
                   <Download size={16} /> Download File
                 </button>
@@ -596,7 +644,7 @@ const Documents = () => {
               </div>
               <div className="detail-item">
                 <span className="detail-label">File type:</span>
-                <span className="file-type-badge">
+                <span className="detail-value">
                   {document.type.toUpperCase()}
                 </span>
               </div>
@@ -608,69 +656,6 @@ const Documents = () => {
                   </span>
                 </div>
               )}
-            </div>
-
-            <div className="modal-comments-section">
-              <div className="comments-header">
-                <MessageSquare size={16} />
-                <span>Comments ({document.comments.length})</span>
-              </div>
-              {document.comments.length > 0 ? (
-                <div className="modal-comments-list">
-                  {document.comments.map((comment) => (
-                    <div key={comment.id} className="modal-comment-item">
-                      <div className="comment-avatar">
-                        {comment.avatar ? (
-                          <img src={comment.avatar} alt={comment.user} />
-                        ) : (
-                          comment.user?.charAt(0).toUpperCase()
-                        )}
-                      </div>
-                      <div className="comment-content">
-                        <div className="comment-header">
-                          <span className="comment-author">{comment.user}</span>
-                          <span className="comment-time">
-                            {new Date(comment.timestamp).toLocaleString()}
-                          </span>
-                        </div>
-                        <p className="comment-text">{comment.text}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="no-results">No comments yet.</p>
-              )}
-              <div className="modal-comment-form">
-                <div className="comment-input-container">
-                  <div className="current-user-avatar">CU</div>
-                  <input
-                    type="text"
-                    value={modalComment}
-                    onChange={(e) => setModalComment(e.target.value)}
-                    placeholder="Thêm bình luận..."
-                    className="comment-input"
-                    onKeyPress={(e) => {
-                      if (e.key === "Enter" && modalComment.trim()) {
-                        handleAddComment(document.id, modalComment);
-                        setModalComment("");
-                      }
-                    }}
-                  />
-                  <button
-                    className="btn-send-comment"
-                    onClick={() => {
-                      if (modalComment.trim()) {
-                        handleAddComment(document.id, modalComment);
-                        setModalComment("");
-                      }
-                    }}
-                    disabled={!modalComment.trim()}
-                  >
-                    <Send size={16} />
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -763,7 +748,7 @@ const Documents = () => {
 
             <div className="file-picker">
               <label className="btn btn-upload">
-                Chọn file
+                Choose file
                 <input
                   type="file"
                   multiple
@@ -773,7 +758,7 @@ const Documents = () => {
               </label>
               {selectedFiles && (
                 <p style={{ marginTop: "8px" }}>
-                  Đã chọn {selectedFiles.length} tệp
+                  Selected {selectedFiles.length} file
                 </p>
               )}
             </div>
@@ -932,13 +917,17 @@ const Documents = () => {
           <div className="documents-title">
             <h3>All Documents ({documents.length})</h3>
             <div className="sort-controls">
+              <SearchBarDocument
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+              />
               <button className="sort-btn">Sort by name</button>
               <button className="sort-btn">Sort by date</button>
             </div>
           </div>
         </div>
 
-        {documents.length === 0 ? (
+        {filteredDocuments.length === 0 ? (
           <div className="empty-state">
             <FileText className="empty-state-icon" />
             <p className="empty-state-title">No documents yet</p>
@@ -948,7 +937,7 @@ const Documents = () => {
           </div>
         ) : (
           <div className="file-list-document">
-            {documents.map((document) => (
+            {filteredDocuments.map((document) => (
               <div key={document.id} className="document-item">
                 <div className="document-header">
                   <div className="file-info">
@@ -993,131 +982,140 @@ const Documents = () => {
                   </div>
                 </div>
 
-                <div className="document-assignments">
-                  <div className="assignment-header">
-                    <Users size={16} />
-                    <span>Assigned person</span>
-                  </div>
-                  <div className="assigned-users">
-                    {document.assignedUsers.map((assignment) => (
-                      <div key={assignment.id} className="assigned-user">
-                        <div className="user-avatar">
-                          {assignment.userAvatar ? (
-                            <img
-                              src={assignment.userAvatar}
-                              alt={assignment.userName}
-                            />
-                          ) : (
-                            assignment.userName?.charAt(0).toUpperCase()
-                          )}
-                        </div>
-                        <div className="user-info">
-                          <span className="user-name">
-                            {assignment.userName}
-                          </span>
-                          <span
-                            className={`user-role ${getRoleColor(
-                              assignment.role
-                            )}`}
-                          >
-                            {assignment.role}
-                          </span>
-                        </div>
-                        <button
-                          className="remove-assignment"
-                          onClick={() =>
-                            handleRemoveAssignment(
-                              document.id,
-                              assignment.userName
-                            )
-                          }
-                          title="Xóa phân công"
-                        >
-                          <X size={12} />
-                        </button>
+                <div className="assigments-comments">
+                  <div className="document-assignments">
+                    <div className="assignments-header-btn-add">
+                      <div className="assignment-header">
+                        <Users size={16} />
+                        <span>Assigned person</span>
                       </div>
-                    ))}
-                    <div
-                      className="assign-user-dropdown"
-                      ref={(el) => {
-                        if (el) dropdownRefs.current[document.id] = el;
-                      }}
-                    >
-                      <button
-                        className="btn-assign-user"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          fetchProjectMembers(document.id);
+                      <div
+                        className="assign-user-dropdown"
+                        ref={(el) => {
+                          if (el) dropdownRefs.current[document.id] = el;
                         }}
                       >
-                        <Plus size={14} />
-                        Assignment
-                      </button>
+                        <button
+                          className="btn-assign-user"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            fetchProjectMembers(document.id);
+                          }}
+                        >
+                          <Plus size={14} />
+                          Assignment
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                </div>
-
-                <div className="document-comments">
-                  <div className="comments-header">
-                    <MessageSquare size={16} />
-                    <span>Comments ({document.comments.length})</span>
-                  </div>
-                  {document.comments.length > 0 && (
-                    <div className="comments-list">
-                      {document.comments.map((comment) => (
-                        <div key={comment.id} className="comment-item">
-                          <div className="comment-avatar">
-                            {comment.avatar ? (
-                              <img src={comment.avatar} alt={comment.user} />
+                    <div className="assigned-users">
+                      {document.assignedUsers.map((assignment) => (
+                        <div key={assignment.id} className="assigned-user">
+                          <div className="user-avatar">
+                            {assignment.userAvatar ? (
+                              <img
+                                src={assignment.userAvatar}
+                                alt={assignment.userName}
+                              />
                             ) : (
-                              comment.user?.charAt(0).toUpperCase()
+                              assignment.userName?.charAt(0).toUpperCase()
                             )}
                           </div>
-                          <div className="comment-content">
-                            <div className="comment-header">
-                              <span className="comment-author">
-                                {comment.user}
-                              </span>
-                              <span className="comment-time">
-                                {new Date(comment.timestamp).toLocaleString()}
-                              </span>
-                            </div>
-                            <p className="comment-text">{comment.text}</p>
+                          <div className="user-info">
+                            <span className="user-name">
+                              {assignment.userName}
+                            </span>
+                            <span
+                              className={`user-role ${getRoleColor(
+                                assignment.role
+                              )}`}
+                            >
+                              {assignment.role}
+                            </span>
                           </div>
+                          <button
+                            className="remove-assignment"
+                            onClick={() =>
+                              handleRemoveAssignment(
+                                document.id,
+                                assignment.userName
+                              )
+                            }
+                            title="Xóa phân công"
+                          >
+                            <X size={12} />
+                          </button>
                         </div>
                       ))}
                     </div>
-                  )}
-                  <div className="comment-form">
-                    <div className="comment-input-container">
-                      <div className="current-user-avatar">
-                        <img src={avatar_url}></img>
+                  </div>
+
+                  <div className="document-comments">
+                    <div className="comments-header">
+                      <MessageSquare size={16} />
+                      <span>Comments ({document.comments.length})</span>
+                    </div>
+                    {document.comments.length > 0 && (
+                      <div className="comments-list">
+                        {document.comments.map((comment) => (
+                          <div key={comment.id} className="comment-item">
+                            <div className="comment-avatar">
+                              {comment.avatar ? (
+                                <img src={comment.avatar} alt={comment.user} />
+                              ) : (
+                                comment.user?.charAt(0).toUpperCase()
+                              )}
+                            </div>
+                            <div className="comment-content">
+                              <p
+                                className="comment-text"
+                                style={{ fontSize: "15px" }}
+                              >
+                                {comment.text}
+                              </p>
+                              <div className="comment-header">
+                                <span className="comment-author">
+                                  {comment.user}
+                                </span>
+                                <span className="comment-time">
+                                  {new Date(comment.timestamp).toLocaleString()}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                      <input
-                        type="text"
-                        value={newComment}
-                        onChange={(e) => setNewComment(e.target.value)}
-                        placeholder="Thêm bình luận..."
-                        className="comment-input"
-                        onKeyPress={(e) => {
-                          if (e.key === "Enter" && newComment.trim()) {
-                            handleAddComment(document.id, newComment);
-                            setNewComment("");
-                          }
-                        }}
-                      />
-                      <button
-                        className="btn-send-comment"
-                        onClick={() => {
-                          if (newComment.trim()) {
-                            handleAddComment(document.id, newComment);
-                            setNewComment("");
-                          }
-                        }}
-                        disabled={!newComment.trim()}
-                      >
-                        <Send size={14} />
-                      </button>
+                    )}
+                    <div className="comment-form">
+                      <div className="comment-input-container">
+                        <div className="current-user-avatar">
+                          <img src={avatar_url}></img>
+                        </div>
+                        <input
+                          type="text"
+                          value={newComment}
+                          onChange={(e) => setNewComment(e.target.value)}
+                          placeholder="Comments..."
+                          className="comment-input"
+                          onKeyPress={(e) => {
+                            if (e.key === "Enter" && newComment.trim()) {
+                              handleAddComment(document.id, newComment);
+                              setNewComment("");
+                            }
+                          }}
+                        />
+                        <button
+                          className="btn-send-comment"
+                          onClick={() => {
+                            if (newComment.trim()) {
+                              handleAddComment(document.id, newComment);
+                              setNewComment("");
+                            }
+                          }}
+                          disabled={!newComment.trim()}
+                        >
+                          <Send size={14} />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

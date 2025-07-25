@@ -39,6 +39,7 @@ public interface TaskMapper {
     void updateTaskFromRequest(TaskUpdateRequest request, @MappingTarget Task task);
 
     @Mapping(target = "id", source = "id")
+    @Mapping(target = "taskNumber", source = "taskNumber")
     @Mapping(target = "title", source = "title")
     @Mapping(target = "description", source = "description")
     @Mapping(target = "startDate", source = "startDate")

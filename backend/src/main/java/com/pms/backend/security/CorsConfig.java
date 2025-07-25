@@ -20,7 +20,9 @@ public class CorsConfig {
                         // .allowedOrigins("https://quanliduan-pms.site")
                         .allowedHeaders("*")
                         .allowCredentials(true)
-                        .exposedHeaders("Access-Control-Allow-Origin", "Access-Control-Allow-Methods", "Access-Control-Allow-Headers");
+                        .exposedHeaders("Access-Control-Allow-Origin", "Access-Control-Allow-Methods", "Access-Control-Allow-Headers","Location",
+                            "Content-Type")
+                            .maxAge(3600);
             }
 
             @Override

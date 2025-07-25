@@ -3,7 +3,14 @@ import { X } from "lucide-react";
 import "../styles/user/create-sprint-modal.css";
 import { NotificationContext } from "../context/NotificationContext";
 
-const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
+const CreateSprintModal = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  selectedProject,
+  projectStartDate,
+  projectEndDate,
+}) => {
   const [sprintFormData, setSprintFormData] = useState({
     name: "",
     startDate: "",
@@ -66,6 +73,15 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
       const accessToken = localStorage.getItem("accessToken");
       if (!userId || !accessToken || !selectedProject?.id) {
         throw new Error("Vui lòng đăng nhập và chọn dự án hợp lệ");
+      }
+      const sprintStart = new Date(sprintFormData.startDate);
+      const sprintEnd = new Date(sprintFormData.endDate);
+      const projStart = new Date(projectStartDate);
+      const projEnd = new Date(projectEndDate);
+
+      if (sprintStart < projStart || sprintEnd > projEnd) {
+        alert("Sprint time should not exceed project time!");
+        return;
       }
 
       const sprintData = {

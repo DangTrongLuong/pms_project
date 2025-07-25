@@ -83,7 +83,7 @@ public class ProjectController {
         return ResponseEntity.ok(projectResponse);
     }
 
-    @DeleteMapping("/{projectId}")
+    @DeleteMapping("/delete/{projectId}")
     public ResponseEntity<String> deleteProject(
             @PathVariable("projectId") int projectId,
             @RequestHeader("userId") String userId) {

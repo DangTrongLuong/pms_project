@@ -186,13 +186,13 @@
 }
 
 .confirm-modal-completed h3 {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   margin-bottom: 10px;
-  color: #2a5298;
+  color: rgb(0, 0, 0, 0.8);
 }
 
 .confirm-modal-completed p {
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: #4a5568;
   margin-bottom: 20px;
 }
@@ -213,8 +213,8 @@
 }
 
 .btn-cancel-completed {
-  background-color: #e2e8f0;
-  color: #2a5298;
+  background-color: #eff1f5;
+  color: #f83636;
 }
 
 .btn-cancel-completed:hover {
@@ -222,12 +222,12 @@
 }
 
 .btn-confirm-completed {
-  background-color: #2a5298;
+  background-color: #00a23b;
   color: white;
 }
 
 .btn-confirm-completed:hover {
-  background-color: #1e3a8a;
+  background-color: #00ae31;
 }
 /* Responsive design */
 @media (max-width: 768px) {

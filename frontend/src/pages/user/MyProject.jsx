@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useContext } from "react";
 import { SidebarProvider, useSidebar } from "../../context/SidebarContext";
 import "../../styles/user/dashboard.css";
 import "../../styles/user/my_project.css";
@@ -8,6 +8,7 @@ import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
+import { NotificationContext } from "../../context/NotificationContext";
 
 // Utility functions
 const formatDate = (dateString) => {
@@ -289,13 +290,6 @@ const ProjectsList = ({
         <i className="fas fa-folder-open" />
         <h3>No projects found</h3>
         <p>Try adjusting your search or filter criteria.</p>
-        <button
-          className="btn btn-primary"
-          onClick={() => navigate("/create-project")}
-        >
-          <i className="fas fa-plus" />
-          Create New Project
-        </button>
       </div>
     );
   }
@@ -341,6 +335,7 @@ const MyProjects = () => {
   const actionRef = useRef(null);
   const currentUserEmail = localStorage.getItem("userEmail");
   const currentUser = localStorage.getItem("userName");
+  const { triggerSuccess } = useContext(NotificationContext);
 
   useEffect(() => {
     window.progressCallback = (navigateCallback) => {
@@ -679,7 +674,7 @@ const MyProjects = () => {
       const accessToken = localStorage.getItem("accessToken");
 
       const response = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/projects/${projectId}`,
+        `${process.env.REACT_APP_API_URL}/api/projects/delete/${projectId}`,
         {
           method: "DELETE",
           headers: {
@@ -687,6 +682,7 @@ const MyProjects = () => {
             Authorization: `Bearer ${accessToken}`,
             userId: userId,
           },
+          credentials: "include",
         }
       );
 
@@ -725,6 +721,7 @@ const MyProjects = () => {
       }
 
       setDeleteProjectConfirm(null);
+      triggerSuccess("The project has been successfully deleted.");
     } catch (err) {
       setError(err.message || "Error deleting project");
       console.error("Delete project error:", err);
@@ -760,8 +757,6 @@ const MyProjects = () => {
     { value: "all", label: "All Statuses", icon: "fas fa-list" },
     { value: "ACTIVE", label: "Active", icon: "fas fa-play-circle" },
     { value: "COMPLETED", label: "Completed", icon: "fas fa-check-circle" },
-    { value: "On Hold", label: "On Hold", icon: "fas fa-pause-circle" },
-    { value: "Planning", label: "Planning", icon: "fas fa-clock" },
   ];
 
   const sortOptions = [
