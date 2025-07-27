@@ -193,9 +193,10 @@ const ProjectTaskContent = () => {
       );
 
       if (response.ok) {
+        const updatedProject = await response.json();
         const updatedProjects = projects.map((project) =>
           project.id === parseInt(id)
-            ? { ...project, status: "COMPLETED" }
+            ? { ...project, status: updatedProject.status }
             : project
         );
         setProjects(updatedProjects);

@@ -19,5 +19,6 @@ public class ProjectUpdateRequest {
     String description;
     LocalDate start_date; 
     LocalDate end_date;
+    String status;
 
 }
