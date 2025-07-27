@@ -81,6 +81,14 @@ public class DocumentController {
         return ResponseEntity.noContent().build();
     }
 
+    @DeleteMapping("/{documentId}")
+public ResponseEntity<Void> deleteDocument(
+        @PathVariable Integer documentId,
+        @RequestHeader("userId") String userId) {
+    documentService.deleteDocument(documentId, userId);
+    return ResponseEntity.noContent().build();
+}
+
     @GetMapping("/search")
     public ResponseEntity<List<DocumentResponse>> searchUsers(
             @RequestParam String query,

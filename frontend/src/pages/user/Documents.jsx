@@ -31,6 +31,29 @@ const SearchBarDocument = ({ searchQuery, onSearchChange }) => {
     </div>
   );
 };
+const DeleteDocumentConfirmModal = ({ document, onConfirm, onCancel }) => {
+  if (!document) return null;
+
+  return (
+    <div className="delete-document-modal-overlay">
+      <div className="delete-document-modal-container">
+        <h3>Confirm document deletion</h3>
+        <p>
+          Are you sure you want to delete the document "{document.name}"? This
+          action cannot be undone.
+        </p>
+        <div className="delete-document-modal-actions">
+          <button className="delete-document-cancel-btn" onClick={onCancel}>
+            Cancel
+          </button>
+          <button className="delete-document-confirm-btn" onClick={onConfirm}>
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const Documents = () => {
   const { id } = useParams();
@@ -53,6 +76,8 @@ const Documents = () => {
     documentId: null,
     suggestedMembers: [],
   });
+  const [deleteDocumentConfirm, setDeleteDocumentConfirm] = useState(null);
+  const deleteModalRef = useRef(null);
   const dropdownRefs = useRef({});
   const taskModalRef = useRef(null);
   const assigneeDropdownRef = useRef(null);
@@ -103,6 +128,13 @@ const Documents = () => {
       ) {
         setSelectedDocument(null);
       }
+      if (
+        deleteDocumentConfirm &&
+        deleteModalRef.current &&
+        !deleteModalRef.current.contains(event.target)
+      ) {
+        setDeleteDocumentConfirm(null);
+      }
     };
 
     const timeoutId = setTimeout(() => {
@@ -118,6 +150,7 @@ const Documents = () => {
     taskSelectionModal.isOpen,
     assigneeModal.isOpen,
     selectedDocument,
+    deleteDocumentConfirm,
   ]);
 
   useEffect(() => {
@@ -337,6 +370,40 @@ const Documents = () => {
     } catch (err) {
       console.error("Download error:", err);
       alert(err.message || "Không thể tải xuống tài liệu. Vui lòng thử lại.");
+    }
+  };
+  const handleDeleteDocument = async (documentId) => {
+    try {
+      const userId = localStorage.getItem("userId");
+      if (!userId || !accessToken) {
+        throw new Error("Vui lòng đăng nhập lại để tiếp tục");
+      }
+
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/api/documents/${documentId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+            userId: userId,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message || `Xóa tài liệu thất bại: ${response.status}`
+        );
+      }
+
+      setDocuments(documents.filter((doc) => doc.id !== documentId));
+      setDeleteDocumentConfirm(null);
+      triggerSuccess("Document deleted successfully.");
+    } catch (err) {
+      console.error("Delete document error:", err);
+      alert(err.message || "Không thể xóa tài liệu. Vui lòng thử lại.");
     }
   };
 
@@ -627,7 +694,7 @@ const Documents = () => {
               <div className="modal-title-info">
                 <h3 className="modal-title">{document.name}</h3>
                 <p className="modal-subtitle">
-                  Tải lên bởi {document.uploaderName} vào{" "}
+                  Uploaded by {document.uploaderName} to{" "}
                   {new Date(document.uploadDate).toLocaleString()}
                 </p>
               </div>
@@ -1017,7 +1084,11 @@ const Documents = () => {
                     >
                       <Download />
                     </button>
-                    <button className="file-action-btn file-remove" title="Xóa">
+                    <button
+                      className="file-action-btn file-remove"
+                      title="Xóa"
+                      onClick={() => setDeleteDocumentConfirm(document)}
+                    >
                       <Trash2 />
                     </button>
                   </div>
@@ -1260,6 +1331,11 @@ const Documents = () => {
       <DocumentDetailModal
         document={selectedDocument}
         onClose={() => setSelectedDocument(null)}
+      />
+      <DeleteDocumentConfirmModal
+        document={deleteDocumentConfirm}
+        onConfirm={() => handleDeleteDocument(deleteDocumentConfirm.id)}
+        onCancel={() => setDeleteDocumentConfirm(null)}
       />
     </div>
   );

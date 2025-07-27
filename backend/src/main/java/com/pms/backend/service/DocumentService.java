@@ -2,6 +2,9 @@ package com.pms.backend.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +14,7 @@ import java.util.stream.Collectors;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.pms.backend.dto.request.DocumentAssignmentRequest;
@@ -97,10 +101,14 @@ public class DocumentService {
                 log.info("No taskId provided, uploading document without task association");
             }
 
+            // Sử dụng đường dẫn tương đối
+            Path uploadPath = Paths.get("uploads/documents/");
+            Path absoluteUploadPath = Paths.get(System.getProperty("user.dir")).resolve(uploadPath);
+            log.info("Resolved upload path: {}", absoluteUploadPath.toString());
+
             List<DocumentResponse> responses = new ArrayList<>();
             String[] allowedTypes = {"pdf", "doc", "docx", "jpg", "jpeg", "png", "gif", "xd", "css", "js"};
-             String uploadDir = "E:/PMS/backend/uploads/documents/"; // Đảm bảo dấu / ở cuối
-             //Path uploadPath = Paths.get("uploads/documents/" );
+
             for (MultipartFile file : files) {
                 // Validate file
                 if (file == null || file.isEmpty()) {
@@ -121,27 +129,30 @@ public class DocumentService {
                     throw new AppException(ErrorStatus.INVALID_FILE_TYPE, "Định dạng tệp không được hỗ trợ: " + fileExtension);
                 }
 
-                // Save file to disk
-                String fileName = System.currentTimeMillis() + "-" + file.getOriginalFilename();
-                String filePath = uploadDir + fileName;
-                log.info("Saving file to: {}", filePath);
+                // Làm sạch tên tệp
+                String fileName = System.currentTimeMillis() + "-" + file.getOriginalFilename().replaceAll("[^a-zA-Z0-9.-]", "_");
+                Path filePath = absoluteUploadPath.resolve(fileName);
+                File dest = filePath.toFile();
+                File parentDir = dest.getParentFile();
+
+                // Tạo thư mục nếu chưa tồn tại
+                if (!Files.exists(filePath.getParent())) {
+                    log.info("Creating directory: {}", parentDir.getAbsolutePath());
+                    Files.createDirectories(filePath.getParent());
+                }
+
+                // Kiểm tra quyền ghi
+                if (!Files.isWritable(filePath.getParent())) {
+                    log.error("No write permission for directory: {}", parentDir.getAbsolutePath());
+                    throw new AppException(ErrorStatus.FILE_UPLOAD_FAILED, "Không có quyền ghi vào thư mục: " + parentDir.getAbsolutePath());
+                }
+
+                // Lưu tệp
                 try {
-                    File dest = new File(filePath);
-                    File parentDir = dest.getParentFile();
-                    if (!parentDir.exists()) {
-                        if (!parentDir.mkdirs()) {
-                            log.error("Failed to create directory: {}", parentDir.getAbsolutePath());
-                            throw new IOException("Không thể tạo thư mục: " + parentDir.getAbsolutePath());
-                        }
-                    }
-                    if (!parentDir.canWrite()) {
-                        log.error("No write permission for directory: {}", parentDir.getAbsolutePath());
-                        throw new IOException("Không có quyền ghi vào thư mục: " + parentDir.getAbsolutePath());
-                    }
                     file.transferTo(dest);
                     log.info("File saved successfully: {}", filePath);
                 } catch (IOException e) {
-                    log.error("File upload failed for file {}: {}", file.getOriginalFilename(), e.getMessage());
+                    log.error("File upload failed for file {}: {}", file.getOriginalFilename(), e.getMessage(), e);
                     throw new AppException(ErrorStatus.FILE_UPLOAD_FAILED, "Lỗi khi lưu tệp: " + e.getMessage());
                 }
 
@@ -153,7 +164,7 @@ public class DocumentService {
                 document.setUploaderId(userId);
                 document.setSize(file.getSize());
                 document.setType(fileExtension);
-                document.setFilePath(filePath);
+                document.setFilePath(filePath.toString());
                 document.setUploadDate(LocalDateTime.now());
                 Document savedDocument = documentRepository.save(document);
                 log.info("Document saved: id={}, name={}", savedDocument.getId(), savedDocument.getName());
@@ -181,6 +192,70 @@ public class DocumentService {
         } catch (Exception e) {
             log.error("Unexpected error while uploading documents for projectId {}: {}", projectId, e.getMessage(), e);
             throw new AppException(ErrorStatus.INTERNAL_SERVER_ERROR, "Lỗi máy chủ khi tải lên tài liệu: " + e.getMessage());
+        }
+    }
+
+    @Transactional
+    public void deleteDocument(Integer documentId, String userId) {
+        log.info("Deleting document with documentId: {} by userId: {}", documentId, userId);
+
+        if (documentId == null || documentId <= 0) {
+            log.error("Invalid documentId: {}", documentId);
+            throw new AppException(ErrorStatus.BAD_REQUEST, "ID tài liệu không hợp lệ: " + documentId);
+        }
+
+        if (userId == null || userId.trim().isEmpty()) {
+            log.error("Invalid userId: {}", userId);
+            throw new AppException(ErrorStatus.BAD_REQUEST, "ID người dùng không hợp lệ");
+        }
+
+        try {
+            // Tìm tài liệu
+            Document document = documentRepository.findById(documentId)
+                    .orElseThrow(() -> {
+                        log.error("Document not found for documentId: {}", documentId);
+                        return new AppException(ErrorStatus.DOCUMENT_NOT_FOUND, "Không tìm thấy tài liệu với ID: " + documentId);
+                    });
+
+            // Kiểm tra người dùng là thành viên dự án
+            User requester = userRepository.findById(userId)
+                    .orElseThrow(() -> {
+                        log.error("User not found for userId: {}", userId);
+                        return new AppException(ErrorStatus.USER_NOTFOUND, "Không tìm thấy người dùng với ID: " + userId);
+                    });
+            if (!memberRepository.existsByEmailAndProjectId(requester.getEmail(), String.valueOf(document.getProjectId()))) {
+                log.error("User {} is not a member of project {}", userId, document.getProjectId());
+                throw new AppException(ErrorStatus.UNAUTHORIZED, "Bạn không phải thành viên của dự án này");
+            }
+
+            // Xóa tệp trên hệ thống tệp
+            File file = new File(document.getFilePath());
+            if (file.exists() && file.isFile()) {
+                try {
+                    if (!file.delete()) {
+                        log.warn("Failed to delete file from filesystem: {}", document.getFilePath());
+                    } else {
+                        log.info("File deleted from filesystem: {}", document.getFilePath());
+                    }
+                } catch (SecurityException e) {
+                    log.error("Security error while deleting file {}: {}", document.getFilePath(), e.getMessage(), e);
+                    throw new AppException(ErrorStatus.FILE_DELETION_FAILED, "Lỗi bảo mật khi xóa tệp: " + e.getMessage());
+                }
+            } else {
+                log.warn("File does not exist or is not a file: {}", document.getFilePath());
+            }
+
+            // Xóa các bình luận và phân công liên quan
+            documentCommentRepository.deleteByDocumentId(documentId);
+            documentAssignmentRepository.deleteByDocumentId(documentId);
+
+            // Xóa tài liệu khỏi cơ sở dữ liệu
+            documentRepository.delete(document);
+            log.info("Document deleted successfully: documentId={}", documentId);
+
+        } catch (Exception e) {
+            log.error("Unexpected error while deleting documentId {}: {}", documentId, e.getMessage(), e);
+            throw new AppException(ErrorStatus.INTERNAL_SERVER_ERROR, "Lỗi máy chủ khi xóa tài liệu: " + e.getMessage());
         }
     }
 

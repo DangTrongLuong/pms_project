@@ -30,6 +30,8 @@ public enum ErrorStatus {
      NOTIFICATION_NOT_FOUND(400, "Notification not found"),
     NOTIFICATION_CREATION_FAILED(400, "Create failed"),
     FILE_NOT_FOUND(400,"File not found"),
+    FILE_DELETION_FAILED(400, "File deletion failed"),
+    BAD_REQUEST(400, "BAD_REQUEST"),
     INVALID_ROLE(400, "Vai trò không hợp lệ!");
 
 

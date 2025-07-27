@@ -1470,6 +1470,72 @@
   background-color: #e2e8f0;
 }
 
+.delete-document-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.delete-document-modal-container {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.delete-document-modal-container h3 {
+  margin: 0 0 10px;
+  font-size: 1.5em;
+  color: #333;
+}
+
+.delete-document-modal-container p {
+  margin: 0 0 20px;
+  color: #555;
+}
+
+.delete-document-modal-actions {
+  display: flex;
+  justify-content: space-around;
+}
+
+.delete-document-cancel-btn,
+.delete-document-confirm-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1em;
+}
+
+.delete-document-cancel-btn {
+  background: #ccc;
+  color: #333;
+}
+
+.delete-document-cancel-btn:hover {
+  background: #bbb;
+}
+
+.delete-document-confirm-btn {
+  background: #ff4d4f;
+  color: white;
+}
+
+.delete-document-confirm-btn:hover {
+  background: #e63946;
+}
+
 /* .btn-primary {
   background-color: #667eea;
   color: white;
