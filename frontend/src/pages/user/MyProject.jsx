@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useContext } from "react";
 import { SidebarProvider, useSidebar } from "../../context/SidebarContext";
 import "../../styles/user/dashboard.css";
 import "../../styles/user/my_project.css";
@@ -8,6 +8,7 @@ import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
+import { NotificationContext } from "../../context/NotificationContext";
 
 // Utility functions
 const formatDate = (dateString) => {
@@ -28,11 +29,11 @@ const getInitials = (name = "") => {
 
 const mapStatusToFrontend = (backendStatus) => {
   const statusMap = {
-    IN_PROGRESS: "Active",
-    COMPLETED: "Completed",
+    IN_PROGRESS: "ACTIVE",
+    COMPLETED: "COMPLETED",
     PLANNING: "Planning",
   };
-  return statusMap[backendStatus] || "Planning";
+  return statusMap[backendStatus] || "ACTIVE";
 };
 
 const mapTypeToFrontend = (backendType) => {
@@ -114,8 +115,8 @@ const Dropdown = ({ label, options, selected, onSelect, className = "" }) => {
 const StatsBar = ({ projects }) => {
   const stats = {
     total: projects.length,
-    active: projects.filter((p) => p.status === "Active").length,
-    completed: projects.filter((p) => p.status === "Completed").length,
+    active: projects.filter((p) => p.status === "ACTIVE").length,
+    completed: projects.filter((p) => p.status === "COMPLETED").length,
   };
 
   return (
@@ -136,6 +137,139 @@ const StatsBar = ({ projects }) => {
   );
 };
 
+// EditProjectModal Component
+const EditProjectModal = ({ project, onClose, onUpdate }) => {
+  const today = new Date().toISOString().split("T")[0];
+  const [formData, setFormData] = useState({
+    project_name: project?.project_name || "",
+    description: project?.description || "",
+    start_date: project?.start_date
+      ? new Date(project.start_date).toISOString().split("T")[0]
+      : "",
+    end_date: project?.end_date
+      ? new Date(project.end_date).toISOString().split("T")[0]
+      : "",
+  });
+  const [errors, setErrors] = useState({
+    project_name: "",
+    start_date: "",
+    end_date: "",
+  });
+
+  const validateForm = (data) => {
+    const newErrors = {
+      project_name: "",
+      start_date: "",
+      end_date: "",
+    };
+    let isValid = true;
+
+    if (!data.project_name.trim()) {
+      newErrors.project_name = "Project name is required.";
+      isValid = false;
+    }
+
+    if (data.start_date && new Date(data.start_date) < new Date(today)) {
+      newErrors.start_date = "Start date cannot be in the past.";
+      isValid = false;
+    }
+
+    if (data.end_date && data.start_date && data.end_date < data.start_date) {
+      newErrors.end_date = "End date cannot be before start date.";
+      isValid = false;
+    }
+
+    if (data.end_date && new Date(data.end_date) < new Date(today)) {
+      newErrors.end_date = "End date cannot be in the past.";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    const updatedFormData = { ...formData, [name]: value };
+    setFormData(updatedFormData);
+    validateForm(updatedFormData);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (validateForm(formData)) {
+      onUpdate(project.id, formData);
+    }
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-container">
+        <div className="modal-header">
+          <h2>Edit Project</h2>
+          <button className="modal-close-btn" onClick={onClose}>
+            <i className="fas fa-times"></i>
+          </button>
+        </div>
+        <div className="modal-body">
+          <div className="form-group-edit-project">
+            <label htmlFor="project_name">Project Name</label>
+            <input
+              type="text"
+              id="project_name"
+              name="project_name"
+              value={formData.project_name}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="form-group-edit-project">
+            <label htmlFor="description">Description</label>
+            <textarea
+              id="description"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="start-end-edit-project">
+            <div className="form-group-edit-project">
+              <label htmlFor="start_date">Start Date</label>
+              <input
+                type="date"
+                id="start_date"
+                name="start_date"
+                value={formData.start_date}
+                onChange={handleChange}
+                min={today}
+              />
+            </div>
+            <div className="form-group-edit-project">
+              <label htmlFor="end_date">End Date</label>
+              <input
+                type="date"
+                id="end_date"
+                name="end_date"
+                value={formData.end_date}
+                onChange={handleChange}
+                min={formData.start_date || today}
+              />
+            </div>
+          </div>
+        </div>
+        <div className="modal-footer">
+          <button className="btn btn-cancel" onClick={onClose}>
+            Cancel
+          </button>
+          <button className="btn btn-primary" onClick={handleSubmit}>
+            Update
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ProjectCard Component
 const ProjectCard = ({
   project,
@@ -143,6 +277,7 @@ const ProjectCard = ({
   onActionClick,
   canManageMembers,
   currentUserEmail,
+  onEditClick,
   onDeleteClick,
   currentUser,
 }) => {
@@ -157,14 +292,36 @@ const ProjectCard = ({
     return `rgb(${r}, ${g}, ${b})`;
   };
 
+  const getActiveColor = (status) => {
+    switch (status) {
+      case "ACTIVE":
+        return "project-active";
+      case "COMPLETED":
+        return "project-completed";
+      default:
+        return "status-default";
+    }
+  };
+
   return (
     <div className="project-card" onClick={() => onViewDetails(project.id)}>
       <div className="name-button-change">
-        <div className="project-card-title">
-          <h3>{project.project_name || "Unnamed Project"}</h3>
+        <div className="project-card-type-badge">
+          <div className="project-card-title">
+            <h3>{project.project_name || "Unnamed Project"}</h3>
+          </div>
+          <div className="project-type-badge">
+            ({mapTypeToFrontend(project.project_type)})
+          </div>
         </div>
-        <div className="project-type-badge">
-          ({mapTypeToFrontend(project.project_type)})
+        <div className="project-card-status">
+          <div
+            className={`project-card-status-content ${getActiveColor(
+              project.status
+            )}`}
+          >
+            {project.status}
+          </div>
         </div>
       </div>
 
@@ -224,15 +381,27 @@ const ProjectCard = ({
         </div>
       </div>
       {currentUser === leadName && (
-        <div className="btn-delete-card">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDeleteClick(project.id);
-            }}
-          >
-            Delete Project
-          </button>
+        <div className="btn-edit-delete-project">
+          <div className="btn-edit-card-project">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onEditClick(project);
+              }}
+            >
+              Edit Project
+            </button>
+          </div>
+          <div className="btn-delete-card">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDeleteClick(project.id);
+              }}
+            >
+              Delete Project
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -249,6 +418,7 @@ const ProjectsList = ({
   handleActionClick,
   canManageMembers,
   currentUserEmail,
+  onEditClick,
   onDeleteClick,
   currentUser,
 }) => {
@@ -267,13 +437,6 @@ const ProjectsList = ({
         <i className="fas fa-folder-open" />
         <h3>No projects found</h3>
         <p>Try adjusting your search or filter criteria.</p>
-        <button
-          className="btn btn-primary"
-          onClick={() => navigate("/create-project")}
-        >
-          <i className="fas fa-plus" />
-          Create New Project
-        </button>
       </div>
     );
   }
@@ -288,6 +451,7 @@ const ProjectsList = ({
           onActionClick={handleActionClick}
           canManageMembers={canManageMembers(project.id)}
           currentUserEmail={currentUserEmail}
+          onEditClick={onEditClick}
           onDeleteClick={onDeleteClick}
           currentUser={currentUser}
         />
@@ -313,11 +477,13 @@ const MyProjects = () => {
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [transferConfirm, setTransferConfirm] = useState(null);
   const [deleteProjectConfirm, setDeleteProjectConfirm] = useState(null);
+  const [editProject, setEditProject] = useState(null);
   const [members, setMembers] = useState({});
   const [loading, setLoading] = useState(true);
   const actionRef = useRef(null);
   const currentUserEmail = localStorage.getItem("userEmail");
   const currentUser = localStorage.getItem("userName");
+  const { triggerSuccess } = useContext(NotificationContext);
 
   useEffect(() => {
     window.progressCallback = (navigateCallback) => {
@@ -379,7 +545,7 @@ const MyProjects = () => {
         if (response.ok) {
           const mappedProjects = data.map((project) => ({
             ...project,
-            status: mapStatusToFrontend(project.status || "PLANNING"),
+            status: mapStatusToFrontend(project.status || "ACTIVE"),
             project_type: project.project_type || "kanban",
             progress: project.progress || 0,
           }));
@@ -533,7 +699,7 @@ const MyProjects = () => {
       if (fetchResponse.ok) {
         const mappedProjects = data.map((project) => ({
           ...project,
-          status: mapStatusToFrontend(project.status || "PLANNING"),
+          status: mapStatusToFrontend(project.status || "ACTIVE"),
           project_type: project.project_type || "kanban",
           progress: project.progress || 0,
         }));
@@ -611,7 +777,7 @@ const MyProjects = () => {
       if (fetchResponse.ok) {
         const mappedProjects = data.map((project) => ({
           ...project,
-          status: mapStatusToFrontend(project.status || "PLANNING"),
+          status: mapStatusToFrontend(project.status || "ACTIVE"),
           project_type: project.project_type || "kanban",
           progress: project.progress || 0,
         }));
@@ -656,7 +822,7 @@ const MyProjects = () => {
       const accessToken = localStorage.getItem("accessToken");
 
       const response = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/projects/${projectId}`,
+        `${process.env.REACT_APP_API_URL}/api/projects/delete/${projectId}`,
         {
           method: "DELETE",
           headers: {
@@ -664,6 +830,7 @@ const MyProjects = () => {
             Authorization: `Bearer ${accessToken}`,
             userId: userId,
           },
+          credentials: "include",
         }
       );
 
@@ -672,7 +839,6 @@ const MyProjects = () => {
         throw new Error(data.message || "Failed to delete project");
       }
 
-      // Refresh project list
       const fetchResponse = await fetch(
         `${process.env.REACT_APP_API_URL}/api/projects/my-projects`,
         {
@@ -689,7 +855,7 @@ const MyProjects = () => {
       if (fetchResponse.ok) {
         const mappedProjects = data.map((project) => ({
           ...project,
-          status: mapStatusToFrontend(project.status || "PLANNING"),
+          status: mapStatusToFrontend(project.status || "ACTIVE"),
           project_type: project.project_type || "kanban",
           progress: project.progress || 0,
         }));
@@ -702,9 +868,61 @@ const MyProjects = () => {
       }
 
       setDeleteProjectConfirm(null);
+      triggerSuccess("The project has been successfully deleted.");
     } catch (err) {
       setError(err.message || "Error deleting project");
       console.error("Delete project error:", err);
+    }
+  };
+
+  const handleEditClick = (project) => {
+    setEditProject(project);
+  };
+
+  const handleUpdateProject = async (projectId, formData) => {
+    try {
+      const userId = localStorage.getItem("userId");
+      const accessToken = localStorage.getItem("accessToken");
+
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/api/projects/${projectId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+            userId: userId,
+          },
+          body: JSON.stringify(formData),
+        }
+      );
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || "Failed to update project");
+      }
+
+      const updatedProject = await response.json();
+      const mappedProject = {
+        ...updatedProject,
+        status: mapStatusToFrontend(updatedProject.status || "ACTIVE"),
+        project_type: updatedProject.project_type || "kanban",
+        progress: updatedProject.progress || 0,
+      };
+
+      const updatedProjects = projects.map((p) =>
+        p.id === projectId ? mappedProject : p
+      );
+      setProjects(updatedProjects);
+      setFilteredProjects(updatedProjects);
+      setProjectsSidebar(updatedProjects);
+      localStorage.setItem("projects", JSON.stringify(updatedProjects));
+
+      setEditProject(null);
+      triggerSuccess("The project has been successfully updated.");
+    } catch (err) {
+      setError(err.message || "Error updating project");
+      console.error("Update project error:", err);
     }
   };
 
@@ -735,10 +953,8 @@ const MyProjects = () => {
 
   const statusOptions = [
     { value: "all", label: "All Statuses", icon: "fas fa-list" },
-    { value: "Active", label: "Active", icon: "fas fa-play-circle" },
-    { value: "Completed", label: "Completed", icon: "fas fa-check-circle" },
-    { value: "On Hold", label: "On Hold", icon: "fas fa-pause-circle" },
-    { value: "Planning", label: "Planning", icon: "fas fa-clock" },
+    { value: "ACTIVE", label: "Active", icon: "fas fa-play-circle" },
+    { value: "COMPLETED", label: "Completed", icon: "fas fa-check-circle" },
   ];
 
   const sortOptions = [
@@ -835,6 +1051,7 @@ const MyProjects = () => {
                 handleActionClick={handleActionClick}
                 canManageMembers={canManageMembers}
                 currentUserEmail={currentUserEmail}
+                onEditClick={handleEditClick}
                 onDeleteClick={handleDeleteClick}
                 currentUser={currentUser}
               />
@@ -958,6 +1175,14 @@ const MyProjects = () => {
                   </div>
                 </div>
               </div>
+            )}
+
+            {editProject && (
+              <EditProjectModal
+                project={editProject}
+                onClose={() => setEditProject(null)}
+                onUpdate={handleUpdateProject}
+              />
             )}
           </div>
         </div>

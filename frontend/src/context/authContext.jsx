@@ -110,14 +110,36 @@ export const register = async (name, email, password) => {
       }
     );
 
+    // Kiểm tra redirect
+    if (response.status === 302 || response.redirected) {
+      console.warn(
+        "Registration endpoint redirected to:",
+        response.url || response.headers.get("Location")
+      );
+      throw new Error("Unexpected redirect during registration");
+    }
+
+    // Kiểm tra response có phải JSON không
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      throw new Error("Server returned non-JSON response");
+    }
+
     const data = await response.json();
-    if (response.ok && data.result) {
+
+    if (response.ok && data.success && data.result) {
       return data.result;
     } else {
-      throw new Error(data.message || "Registration failed");
+      throw new Error(data.message || data.error || "Registration failed");
     }
   } catch (error) {
     console.error("Registration error:", error);
+    // Nếu lỗi network hoặc CORS, đưa ra thông báo rõ ràng hơn
+    if (error.message.includes("Failed to fetch")) {
+      throw new Error(
+        "Network error: Unable to connect to server. Please check if the server is running."
+      );
+    }
     throw error;
   }
 };

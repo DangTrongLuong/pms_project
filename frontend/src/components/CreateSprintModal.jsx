@@ -3,23 +3,30 @@ import { X } from "lucide-react";
 import "../styles/user/create-sprint-modal.css";
 import { NotificationContext } from "../context/NotificationContext";
 
-const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
+const CreateSprintModal = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  selectedProject,
+  projectStartDate,
+  projectEndDate,
+}) => {
   const [sprintFormData, setSprintFormData] = useState({
     name: "",
     startDate: "",
     endDate: "",
     sprintGoal: "",
-    duration: "", // Lưu giá trị duration (số tuần hoặc "Custom")
+    duration: "",
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [errorModal, setErrorModal] = useState({ isOpen: false, message: "" });
   const hasSubmitted = useRef(false);
   const { triggerSuccess } = useContext(NotificationContext);
 
-  // Lấy ngày hiện tại (07:11 PM +07, 20/07/2025)
   const getCurrentDate = () => {
     const now = new Date();
-    now.setHours(19, 11, 0, 0); // 07:11 PM +07
-    return now.toISOString().slice(0, 10); // Định dạng YYYY-MM-DD
+    now.setHours(19, 11, 0, 0);
+    return now.toISOString().slice(0, 10);
   };
 
   useEffect(() => {
@@ -30,7 +37,6 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
     }));
   }, []);
 
-  // Tính endDate dựa trên startDate và số tuần
   const calculateEndDate = (weeks) => {
     const start = new Date(sprintFormData.startDate);
     const end = new Date(start);
@@ -42,7 +48,7 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
     const value = e.target.value;
     setSprintFormData((prev) => {
       if (value === "Custom") {
-        return { ...prev, duration: value, endDate: "" }; // Kích hoạt chỉnh sửa thủ công
+        return { ...prev, duration: value, endDate: "" };
       } else if (value) {
         const weeks = parseInt(value);
         return { ...prev, duration: value, endDate: calculateEndDate(weeks) };
@@ -59,13 +65,50 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
     }
     hasSubmitted.current = true;
     setIsLoading(true);
-    console.log("Gửi request tạo sprint:", sprintFormData);
     try {
       const userId = localStorage.getItem("userId");
       const userName = localStorage.getItem("userName") || "Anonymous";
       const accessToken = localStorage.getItem("accessToken");
       if (!userId || !accessToken || !selectedProject?.id) {
-        throw new Error("Vui lòng đăng nhập và chọn dự án hợp lệ");
+        setErrorModal({
+          isOpen: true,
+          message: "Vui lòng đăng nhập và chọn dự án hợp lệ",
+        });
+        return;
+      }
+
+      const sprintStart = new Date(sprintFormData.startDate);
+      const sprintEnd = new Date(sprintFormData.endDate);
+      const projStart = new Date(projectStartDate);
+      const projEnd = new Date(projectEndDate);
+
+      if (
+        isNaN(sprintStart.getTime()) ||
+        isNaN(sprintEnd.getTime()) ||
+        isNaN(projStart.getTime()) ||
+        isNaN(projEnd.getTime())
+      ) {
+        setErrorModal({
+          isOpen: true,
+          message: "Invalid date. Please check again.",
+        });
+        return;
+      }
+
+      if (sprintStart > sprintEnd) {
+        setErrorModal({
+          isOpen: true,
+          message: "The end date must be after the start date.",
+        });
+        return;
+      }
+
+      if (sprintStart < projStart || sprintEnd > projEnd) {
+        setErrorModal({
+          isOpen: true,
+          message: "Sprint time should not exceed project time!",
+        });
+        return;
       }
 
       const sprintData = {
@@ -73,7 +116,7 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
         startDate: sprintFormData.startDate,
         endDate: sprintFormData.endDate,
         sprintGoal: sprintFormData.sprintGoal,
-        duration: sprintFormData.duration, // Gửi duration dưới dạng chuỗi
+        duration: sprintFormData.duration,
       };
 
       const response = await fetch(
@@ -84,7 +127,7 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${accessToken}`,
             userId: userId,
-            userName: encodeURIComponent(userName), // Mã hóa userName
+            userName: encodeURIComponent(userName),
           },
           body: JSON.stringify(sprintData),
         }
@@ -93,12 +136,24 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
       console.log("Phản hồi từ server:", response.status);
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.message || `Tạo sprint thất bại: ${response.status}`
-        );
+        setErrorModal({
+          isOpen: true,
+          message:
+            errorData.message || `Tạo sprint thất bại: ${response.status}`,
+        });
+        return;
       }
 
-      const newSprint = await response.json();
+      let newSprint;
+      try {
+        newSprint = await response.json();
+      } catch (jsonError) {
+        console.error("Lỗi parse JSON:", jsonError);
+        triggerSuccess("Sprint đã được tạo, nhưng không thể parse response.");
+        onSubmit({});
+        return;
+      }
+
       console.log("Sprint mới được tạo:", newSprint);
       onSubmit(newSprint);
       setSprintFormData({
@@ -109,17 +164,48 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
         duration: "",
       });
       onClose();
+      triggerSuccess(`You have successfully added the sprint.`);
     } catch (err) {
       console.error("Lỗi khi tạo sprint:", err.message);
       if (err.message.includes("401") || err.message.includes("403")) {
         window.location.href = "/login";
       }
-      alert(err.message || "Không thể tạo sprint. Vui lòng thử lại.");
+      setErrorModal({
+        isOpen: true,
+        message: err.message || "Không thể tạo sprint. Vui lòng thử lại.",
+      });
     } finally {
       setIsLoading(false);
-      triggerSuccess(`You have successfully added the sprint.`);
       hasSubmitted.current = false;
     }
+  };
+
+  const ErrorModal = ({ isOpen, message, onClose }) => {
+    if (!isOpen) return null;
+    return (
+      <div className="error-modal-overlay">
+        <div className="error-modal">
+          <div className="error-modal-header">
+            <h3 className="error-modal-title">Error</h3>
+            <button
+              type="button"
+              onClick={onClose}
+              className="error-modal-close"
+            >
+              <X size={20} />
+            </button>
+          </div>
+          <div className="error-modal-content">
+            <p>{message}</p>
+          </div>
+          <div className="error-modal-actions">
+            <button type="button" onClick={onClose} className="error-modal-btn">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   if (!isOpen) return null;
@@ -190,8 +276,8 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
                   })
                 }
                 className="create-sprint-form-input"
-                min={getCurrentDate()} // Giới hạn ngày trong quá khứ
-                disabled={sprintFormData.duration !== "Custom"} // Vô hiệu hóa khi không chọn Custom
+                min={getCurrentDate()}
+                disabled={sprintFormData.duration !== "Custom"}
               />
             </div>
             <div className="create-sprint-form-group">
@@ -209,8 +295,8 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
                   })
                 }
                 className="create-sprint-form-input"
-                min={sprintFormData.startDate || getCurrentDate()} // Giới hạn ngày nhỏ hơn startDate
-                disabled={sprintFormData.duration !== "Custom"} // Vô hiệu hóa khi không chọn Custom
+                min={sprintFormData.startDate || getCurrentDate()}
+                disabled={sprintFormData.duration !== "Custom"}
               />
             </div>
           </div>
@@ -247,9 +333,81 @@ const CreateSprintModal = ({ isOpen, onClose, onSubmit, selectedProject }) => {
             </button>
           </div>
         </form>
+        <ErrorModal
+          isOpen={errorModal.isOpen}
+          message={errorModal.message}
+          onClose={() => setErrorModal({ isOpen: false, message: "" })}
+        />
       </div>
     </div>
   );
 };
+
+const styles = `
+  .error-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+  }
+  .error-modal {
+    background: #fff;
+    border-radius: 8px;
+    width: 400px;
+    max-width: 90%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+  }
+  .error-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .error-modal-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #d32f2f;
+  }
+  .error-modal-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #172b4d;
+  }
+  .error-modal-content {
+    padding: 16px;
+    font-size: 14px;
+    color: #172b4d;
+  }
+  .error-modal-actions {
+    padding: 16px;
+    display: flex;
+    justify-content: flex-end;
+  }
+  .error-modal-btn {
+    background: #d32f2f;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .error-modal-btn:hover {
+    background: #b71c1c;
+  }
+`;
+
+const styleSheet = new CSSStyleSheet();
+styleSheet.replaceSync(styles);
+document.adoptedStyleSheets = [...document.adoptedStyleSheets, styleSheet];
 
 export default CreateSprintModal;

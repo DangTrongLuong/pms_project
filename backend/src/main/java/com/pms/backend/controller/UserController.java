@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.pms.backend.dto.request.ApiResponsive;
 import com.pms.backend.dto.request.EmailCheckRequest;
 import com.pms.backend.dto.request.UserCreationRequest;
 import com.pms.backend.dto.request.UserUpdateRequest;
@@ -40,10 +39,12 @@ import com.pms.backend.service.UserService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequestMapping("/api/auth")
 public class UserController {
@@ -51,11 +52,34 @@ public class UserController {
     final UserRepository userRepository;
     final MembersService membersService;
     @PostMapping("/register")
-    ApiResponsive<User> createUser(@RequestBody UserCreationRequest request) {
-        ApiResponsive<User> apiResponsive = new ApiResponsive<>();
-        apiResponsive.setResult(userService.createRequest(request));
-        return apiResponsive;
+public ResponseEntity<?> createUser(@RequestBody UserCreationRequest request) {
+    try {
+        log.info("Processing registration for email: {}", request.getEmail());
+        User user = userService.createRequest(request);
+        log.info("User created successfully: {}", user.getId());
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("result", user); // Thay đổi từ "user" thành "result"
+        response.put("message", "Registration successful");
+        
+        return ResponseEntity.ok(response);
+    } catch (AppException e) {
+        log.error("Registration failed: {}", e.getMessage());
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("success", false);
+        errorResponse.put("error", e.getMessage());
+        errorResponse.put("message", e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    } catch (Exception e) {
+        log.error("Unexpected error during registration: {}", e.getMessage());
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("success", false);
+        errorResponse.put("error", "Unexpected error occurred");
+        errorResponse.put("message", "Unexpected error occurred");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
+}
 
     @PostMapping("/check-email")
     ResponseEntity<?> checkEmail(@RequestBody EmailCheckRequest request) {

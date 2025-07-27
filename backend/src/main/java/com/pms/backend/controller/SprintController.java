@@ -247,8 +247,9 @@ public class SprintController {
             @RequestParam @NotNull(message = "Project ID cannot be null") Integer projectId) {
         try {
             log.info("Cập nhật assignee cho taskId: {}, userId: {}, projectId: {}", taskId, userId, projectId);
-            Task task = sprintService.updateTaskAssignee(taskId, request.get("assigneeEmail"), userId, projectId);
-            return ResponseEntity.ok(task);
+            String assigneeEmail = request.get("assigneeEmail");
+            TaskDTO taskDTO = sprintService.updateTaskAssignee(taskId, assigneeEmail, userId, projectId);
+            return ResponseEntity.ok(taskDTO);
         } catch (AppException e) {
             log.error("Lỗi khi cập nhật assignee: {}", e.getCustomMessage());
             return ResponseEntity.status(e.getErrorStatus().getStatus()).body(

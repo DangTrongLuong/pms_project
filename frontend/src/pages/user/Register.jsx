@@ -133,7 +133,7 @@ function Register() {
       general: "",
       name: "",
       email: "",
-      password: 10,
+      password: "",
       confirmPassword: "",
     });
 

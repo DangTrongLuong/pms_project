@@ -7,10 +7,41 @@
   height: 100%;
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 .project-header-name {
   display: flex;
   margin-bottom: 5px;
+  width: 100%;
+}
+.project-header-tittle-bg {
+  display: flex;
+  width: 50% !important;
+}
+.project-completed-leader {
+  width: 50%;
+  display: flex;
+  justify-content: end;
+  align-items: center;
+  margin-right: 25px;
+}
+
+.project-completed-leader .btn-complete-project-leader {
+  border: none;
+  outline: none;
+  width: auto;
+  height: auto;
+  padding: 6px 8px;
+  background-color: #00a71f;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+.project-completed-leader .btn-complete-project-leader:hover {
+  box-shadow: 1px 1px 3px rgb(3, 233, 45, 0.7),
+    -1px -1px 3px rgb(2, 233, 44, 0.7);
+  background-color: rgba(3, 190, 37);
 }
 .project-header-bg {
   width: 30px;
@@ -31,6 +62,7 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 0; /* Loại bỏ khoảng cách với tabs */
+  width: 100%;
 }
 
 .project-title {
@@ -129,7 +161,74 @@
 .tab-content {
   padding: 0 20px 20px; /* Loại bỏ padding-top để sát tabs */
 }
+/* Thêm vào file project_task.css hoặc tạo mới nếu chưa có */
+.modal-overlay-completed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
 
+.confirm-modal-completed {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  width: 400px;
+  max-width: 90%;
+}
+
+.confirm-modal-completed h3 {
+  font-size: 1.4rem;
+  margin-bottom: 10px;
+  color: rgb(0, 0, 0, 0.8);
+}
+
+.confirm-modal-completed p {
+  font-size: 0.9rem;
+  color: #4a5568;
+  margin-bottom: 20px;
+}
+
+.modal-actions-completed {
+  display: flex;
+  justify-content: space-around;
+}
+
+.btn-cancel-completed,
+.btn-confirm-completed {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+.btn-cancel-completed {
+  background-color: #eff1f5;
+  color: #f83636;
+}
+
+.btn-cancel-completed:hover {
+  background-color: #cbd5e0;
+}
+
+.btn-confirm-completed {
+  background-color: #00a23b;
+  color: white;
+}
+
+.btn-confirm-completed:hover {
+  background-color: #00ae31;
+}
 /* Responsive design */
 @media (max-width: 768px) {
   .project-header {

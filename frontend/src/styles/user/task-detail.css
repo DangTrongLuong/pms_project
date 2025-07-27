@@ -71,8 +71,10 @@
 
 .modal-tabs {
   display: flex;
+  flex-direction: column;
+
   border-bottom: 1px solid #dfe1e6;
-  padding: 0 24px;
+  padding: 0 24px 10px 24px;
   background: #fff;
 }
 
@@ -96,13 +98,25 @@
   border-bottom: 2px solid #0052cc;
 }
 
-.modal-content {
+.modal-content-details {
   padding: 24px;
+  display: flex;
+  gap: 10px;
+  width: 100%;
 }
-
+.documents-comments-section {
+  width: 60%;
+  margin-right: 20px;
+}
+.task-details {
+  width: 38%;
+}
+.task-details h3 {
+  margin: 0 0 10px 0;
+}
 .task-details .detail-item {
   display: flex;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
   align-items: flex-start;
 }
 
@@ -173,7 +187,7 @@
   margin-top: 24px;
 }
 
-.documents-header,
+.documents-header-details,
 .comments-header {
   display: flex;
   align-items: center;
@@ -183,6 +197,17 @@
   color: #172b4d;
   margin-bottom: 16px;
 }
+.file-text-documents {
+  display: flex;
+  gap: 10px;
+  width: 50%;
+}
+.btn-upload-input {
+  width: 50%;
+  display: flex;
+  justify-content: end;
+  align-items: center;
+}
 
 .documents-list,
 .comments-list {
@@ -190,15 +215,15 @@
   overflow-y: auto;
 }
 
-.document-item {
+.document-item-details {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-around;
   align-items: center;
   padding: 12px 0;
   border-bottom: 1px solid #dfe1e6;
 }
 
-.document-comments {
+.document-comments-details {
   margin-bottom: 24px;
 }
 
@@ -248,6 +273,7 @@
 .file-actions {
   display: flex;
   gap: 8px;
+  margin-right: 10px;
 }
 
 .file-action-btn {
@@ -377,8 +403,8 @@
   cursor: not-allowed;
 }
 
-.btn-upload {
-  background: #0052cc;
+.btn-upload-file-details {
+  background: #055fe6;
   color: #fff;
   padding: 6px 12px;
   border-radius: 3px;
@@ -391,8 +417,8 @@
   border: none;
 }
 
-.btn-upload:hover {
-  background: #0747a6;
+.btn-upload-file-details:hover {
+  background: #0558d4;
 }
 
 .file-input {
@@ -402,7 +428,7 @@
 .no-results {
   font-size: 14px;
   color: #6b778c;
-  margin: 16px 0;
+  margin: 5px 0 -15px 0 !important;
 }
 
 .modal-container {

@@ -83,7 +83,7 @@ public class ProjectController {
         return ResponseEntity.ok(projectResponse);
     }
 
-    @DeleteMapping("/{projectId}")
+    @DeleteMapping("/delete/{projectId}")
     public ResponseEntity<String> deleteProject(
             @PathVariable("projectId") int projectId,
             @RequestHeader("userId") String userId) {
@@ -103,6 +103,15 @@ public class ProjectController {
             dailyCount.put(date.toString(), projectService.countProjectsByDate(date));
         }
         return ResponseEntity.ok(dailyCount);
+    }
+    @GetMapping("/count/active")
+    public ResponseEntity<Integer> countActiveProjects() {
+        return ResponseEntity.ok(projectService.countProjectsByStatus("ACTIVE"));
+    }
+
+    @GetMapping("/count/completed")
+    public ResponseEntity<Integer> countCompletedProjects() {
+        return ResponseEntity.ok(projectService.countProjectsByStatus("COMPLETED"));
     }
 }
 

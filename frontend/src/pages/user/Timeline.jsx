@@ -148,7 +148,7 @@ const Timeline = () => {
               <th className="timeline-col-start">Start Date</th>
               <th className="timeline-col-end">End Date</th>
               <th className="timeline-col-duration">Duration</th>
-              <th className="timeline-col-progress">Timeline</th>
+
               <th className="timeline-col-status">Status</th>
             </tr>
           </thead>
@@ -196,12 +196,7 @@ const Timeline = () => {
                   <Clock />
                   <span>{getTaskDuration(task.startDate, task.endDate)}</span>
                 </td>
-                <td className="timeline-timeline">
-                  <Clock />
-                  <span style={{ color: "red" }}>
-                    {getDaysToEndDate(task.endDate)}
-                  </span>
-                </td>
+
                 <td className="timeline-bar-container">
                   <div
                     className={`timeline-bar status-${task.status.toLowerCase()}`}
@@ -244,7 +239,7 @@ const Timeline = () => {
                 </div>
               ))
             ) : (
-              <div className="error-message">Không có sprint nào</div>
+              <div className="error-message">There are no sprints.</div>
             )}
           </div>
         </div>

@@ -15,6 +15,9 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtDecoders;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.pms.backend.config.TokenFilter;
 
@@ -35,18 +38,20 @@ public class SecurityConfig {
                 .authorizeHttpRequests(requests -> requests
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/uploads/**").permitAll()
-                .requestMatchers(
+                .requestMatchers("/api/auth/register", 
+                        "/api/auth/check-email", 
+                        "/api/auth/login",
                         "/api/auth/**",
                         "/oauth2/**",
                         "/login/oauth2/code/**",
                         "/",
                         "/api/projects/**",
                         "/api/members/**",
-                        "/api/sprints/**",// Thêm /api/sprints vào danh sách cho phép
-                        "/api/documents/**", // Thêm endpoint cho tài liệu,
+                        "/api/sprints/**",
+                        "/api/documents/**", 
                         "/api/notifications/**"
                 ).permitAll()
-                .requestMatchers("/api/comments/**").authenticated() // Bình luận yêu cầu xác thực
+                .requestMatchers("/api/comments/**").authenticated() 
                 .anyRequest().authenticated())
                 .oauth2Login(oauth2 -> oauth2
                 .loginPage("/api/auth/login/google")
@@ -63,6 +68,7 @@ public class SecurityConfig {
                 // .logoutSuccessUrl("https://quanliduan-pms.site/login")
                 .invalidateHttpSession(true)
                 .clearAuthentication(true)
+               
                 .deleteCookies("JSESSIONID")
                 .permitAll());
 
@@ -77,5 +83,28 @@ public class SecurityConfig {
     @Bean
     public JwtDecoder jwtDecoder() {
         return JwtDecoders.fromIssuerLocation("https://accounts.google.com");
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.addAllowedOrigin("http://localhost:3000");
+        configuration.addAllowedMethod("GET");
+        configuration.addAllowedMethod("POST");
+        configuration.addAllowedMethod("PUT");
+        configuration.addAllowedMethod("DELETE");
+        configuration.addAllowedMethod("OPTIONS");
+        configuration.addAllowedHeader("*");
+        configuration.setAllowCredentials(true);
+        configuration.addExposedHeader("Access-Control-Allow-Origin");
+        configuration.addExposedHeader("Access-Control-Allow-Methods");
+        configuration.addExposedHeader("Access-Control-Allow-Headers");
+        configuration.addExposedHeader("Location");
+        configuration.addExposedHeader("Content-Type");
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }

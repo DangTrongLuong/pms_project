@@ -137,6 +137,9 @@ public class SprintService {
         task.setProject(project);
         task.setStartDate(request.getStartDate());
         task.setEndDate(request.getEndDate());
+        // Gán task_number dựa trên số thứ tự lớn nhất trong project
+        Integer maxTaskNumber = taskRepository.findMaxTaskNumberByProjectId(request.getProjectId());
+        task.setTaskNumber(maxTaskNumber + 1);
         sprint.setWorkItems(sprint.getWorkItems() != null ? sprint.getWorkItems() + 1 : 1);
         sprintRepository.save(sprint);
         Task savedTask = taskRepository.save(task);
@@ -165,6 +168,9 @@ public class SprintService {
         task.setProject(project);
         task.setStartDate(request.getStartDate());
         task.setEndDate(request.getEndDate());
+        // Gán task_number dựa trên số thứ tự lớn nhất trong project
+        Integer maxTaskNumber = taskRepository.findMaxTaskNumberByProjectId(projectId);
+        task.setTaskNumber(maxTaskNumber + 1);
         Task savedTask = taskRepository.save(task);
         log.info("Task được tạo trong backlog: {}", savedTask);
         return savedTask;
@@ -213,19 +219,62 @@ public class SprintService {
         return updatedTask;
     }
 
-    public Task updateTaskAssignee(Integer taskId, String assigneeEmail, String userId, Integer projectId) {
-        log.info("Cập nhật assignee cho taskId: {} thành {} bởi userId: {} trong projectId: {}", taskId, assigneeEmail, userId, projectId);
-        Task task = taskRepository.findByIdAndProject_Id(taskId, projectId)
-                .orElseThrow(() -> new AppException(ErrorStatus.TASK_NOT_FOUND));
-        User assignee = null;
-        if (assigneeEmail != null && !assigneeEmail.isEmpty()) {
-            assignee = userRepository.findByEmail(assigneeEmail)
-                    .orElseThrow(() -> new AppException(ErrorStatus.USER_NOTFOUND));
+    public TaskDTO updateTaskAssignee(Integer taskId, String assigneeEmail, String userId, Integer projectId) {
+        log.info("Cập nhật assignee cho taskId: {}, assigneeEmail: {}, userId: {}, projectId: {}", 
+                taskId, assigneeEmail, userId, projectId);
+        try {
+            // Kiểm tra taskId và projectId
+            Task task = taskRepository.findByIdAndProject_Id(taskId, projectId)
+                    .orElseThrow(() -> {
+                        log.error("Task không tồn tại hoặc không thuộc project: taskId={}, projectId={}", taskId, projectId);
+                        return new AppException(ErrorStatus.TASK_NOT_FOUND, 
+                                "Task không tồn tại hoặc không thuộc project: taskId=" + taskId + ", projectId=" + projectId);
+                    });
+
+            // Kiểm tra assigneeEmail
+            User assignee = null;
+            if (assigneeEmail != null && !assigneeEmail.isEmpty()) {
+                assignee = userRepository.findByEmail(assigneeEmail)
+                        .orElseThrow(() -> {
+                            log.error("Không tìm thấy người dùng với email: {}", assigneeEmail);
+                            return new AppException(ErrorStatus.USER_NOTFOUND, 
+                                    "Không tìm thấy người dùng với email: " + assigneeEmail);
+                        });
+            } else {
+                log.info("Gán assignee thành null (không gán) cho taskId: {}", taskId);
+            }
+
+            task.setAssignee(assignee);
+            Task updatedTask = taskRepository.save(task);
+            log.info("Task đã cập nhật assignee thành công: taskId={}, assigneeEmail={}", 
+                    taskId, assignee != null ? assignee.getEmail() : "null");
+
+            // Chuyển đổi Task thành TaskDTO để đảm bảo định dạng phản hồi
+            TaskDTO taskDTO = new TaskDTO();
+            taskDTO.setId(updatedTask.getId());
+            taskDTO.setTitle(updatedTask.getTitle());
+            taskDTO.setDescription(updatedTask.getDescription());
+            taskDTO.setPriority(updatedTask.getPriority());
+            taskDTO.setAssigneeId(assignee != null ? assignee.getId() : null);
+            taskDTO.setAssigneeEmail(assignee != null ? assignee.getEmail() : null);
+            taskDTO.setAssigneeName(assignee != null ? assignee.getName() : null);
+            taskDTO.setAssigneeAvatarUrl(assignee != null ? assignee.getAvatar_url() : null);
+            taskDTO.setStartDate(updatedTask.getStartDate());
+            taskDTO.setEndDate(updatedTask.getEndDate());
+            taskDTO.setStatus(updatedTask.getStatus());
+            taskDTO.setCreatedAt(updatedTask.getCreatedAt());
+            taskDTO.setSprintId(updatedTask.getSprint() != null ? updatedTask.getSprint().getId().intValue() : null);
+            taskDTO.setProjectId(updatedTask.getProject() != null ? updatedTask.getProject().getId() : null);
+
+            return taskDTO;
+        } catch (AppException e) {
+            log.error("Lỗi AppException khi cập nhật assignee: {}", e.getCustomMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Lỗi không xác định khi cập nhật assignee cho taskId {}: {}", taskId, e.getMessage(), e);
+            throw new AppException(ErrorStatus.INTERNAL_SERVER_ERROR, 
+                    "Lỗi máy chủ khi cập nhật assignee: " + e.getMessage());
         }
-        task.setAssignee(assignee);
-        Task updatedTask = taskRepository.save(task);
-        log.info("Task đã cập nhật assignee: {}", updatedTask);
-        return updatedTask;
     }
 
     public Task updateTaskSprint(Integer taskId, Integer sprintId, String userId) {
@@ -286,6 +335,7 @@ public class SprintService {
                     .map(task -> {
                         TaskDTO dto = new TaskDTO();
                         dto.setId(task.getId());
+                        dto.setTaskNumber(task.getTaskNumber());
                         dto.setTitle(task.getTitle());
                         dto.setDescription(task.getDescription());
                         dto.setPriority(task.getPriority());
@@ -324,6 +374,7 @@ public class SprintService {
                     .map(task -> {
                         TaskDTO dto = new TaskDTO();
                         dto.setId(task.getId());
+                        dto.setTaskNumber(task.getTaskNumber());
                         dto.setTitle(task.getTitle());
                         dto.setDescription(task.getDescription());
                         dto.setPriority(task.getPriority());

@@ -197,7 +197,9 @@
   color: var(--btn-secondary-hover-color);
   transform: translateY(-1px);
 }
-
+.create-sprint-error {
+  padding: 0 20px;
+}
 /* Responsive Design */
 @media (max-width: 768px) {
   .create-sprint-modal {

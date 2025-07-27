@@ -28,4 +28,5 @@ public class ProjectResponse {
     LocalDate created_at;
     LocalDate start_date; // Thêm trường mới
     LocalDate end_date;
+    String status;
 }

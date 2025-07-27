@@ -8,6 +8,7 @@ export function SidebarProvider({ children }) {
     JSON.parse(localStorage.getItem("projects") || "[]")
   );
   const [isInitialized, setIsInitialized] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("all");
 
   useEffect(() => {
     const handleResize = () => {
@@ -44,7 +45,14 @@ export function SidebarProvider({ children }) {
 
   return (
     <SidebarContext.Provider
-      value={{ isSidebarOpen, toggleSidebar, projects, setProjectsSidebar }}
+      value={{
+        isSidebarOpen,
+        toggleSidebar,
+        projects,
+        setProjectsSidebar,
+        statusFilter,
+        setStatusFilter,
+      }}
     >
       {children}
     </SidebarContext.Provider>

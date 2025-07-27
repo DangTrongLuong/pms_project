@@ -1,5 +1,22 @@
 package com.pms.backend.controller;
 
+import java.util.List;
+
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.pms.backend.dto.request.DocumentAssignmentRequest;
 import com.pms.backend.dto.request.DocumentCommentRequest;
 import com.pms.backend.dto.request.DocumentCreationRequest;
@@ -7,15 +24,10 @@ import com.pms.backend.dto.response.DocumentAssignmentResponse;
 import com.pms.backend.dto.response.DocumentCommentResponse;
 import com.pms.backend.dto.response.DocumentResponse;
 import com.pms.backend.service.DocumentService;
+
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -75,5 +87,15 @@ public class DocumentController {
             @RequestHeader("userId") String userId) {
         List<DocumentResponse> users = documentService.searchUsers(query, userId);
         return ResponseEntity.ok(users);
+    }
+    @GetMapping("/{documentId}/download")
+    public ResponseEntity<Resource> downloadDocument(
+            @PathVariable Integer documentId,
+            @RequestHeader("userId") String userId) {
+        Resource file = documentService.getDocumentFile(documentId, userId);
+        return ResponseEntity.ok()
+                .header("Content-Disposition", "attachment; filename=\"" + file.getFilename() + "\"")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(file);
     }
 }

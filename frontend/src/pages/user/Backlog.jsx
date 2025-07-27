@@ -22,9 +22,8 @@ import { useSidebar } from "../../context/SidebarContext";
 import CreateTaskModal from "../../components/CreateTaskModal";
 import CreateSprintModal from "../../components/CreateSprintModal";
 import "../../styles/user/backlog.css";
-import TaskDetailModal from "../../components/TaskDetailModal"; // Điều chỉnh đường dẫn nếu cần
+import TaskDetailModal from "../../components/TaskDetailModal";
 import { NotificationContext } from "../../context/NotificationContext";
-
 const Backlog = () => {
   const { id } = useParams();
   const { projects } = useSidebar();
@@ -37,10 +36,25 @@ const Backlog = () => {
   const [taskMenuOpen, setTaskMenuOpen] = useState(null);
   const { triggerSuccess } = useContext(NotificationContext);
   const userName = localStorage.getItem("userName");
+  const [activeTab, setActiveTab] = useState("documents");
   const [members, setMembers] = useState([]);
   const [error, setError] = useState("");
+  const [errorModal, setErrorModal] = useState({ isOpen: false, message: "" }); // State cho modal lỗi
   const accessToken = localStorage.getItem("accessToken");
-  const [isLeader, setIsLeader] = useState(false); // State để kiểm tra vai trò LEADER
+  const [isLeader, setIsLeader] = useState(false);
+  const [projectStartDate, setProjectStartDate] = useState(null);
+  const [projectEndDate, setProjectEndDate] = useState(null);
+
+  useEffect(() => {
+    if (projects.length > 0) {
+      const project = projects.find((p) => p.id === parseInt(id));
+      setSelectedProject(project || null);
+      if (project) {
+        setProjectStartDate(project.start_date);
+        setProjectEndDate(project.end_date);
+      }
+    }
+  }, [projects, id]);
 
   const fetchMembers = async () => {
     if (!selectedProject) return;
@@ -74,7 +88,6 @@ const Backlog = () => {
       console.log("data: ", data);
       setError("");
 
-      // Kiểm tra vai trò LEADER dựa trên userName
       const currentMember = data.find((member) => member.name === userName);
       if (currentMember && currentMember.role === "LEADER") {
         setIsLeader(true);
@@ -118,13 +131,6 @@ const Backlog = () => {
   const [selectedTasks, setSelectedTasks] = useState(new Set());
   const [suggestedMembers, setSuggestedMembers] = useState([]);
   const [editingTask, setEditingTask] = useState(null);
-
-  useEffect(() => {
-    if (projects.length > 0) {
-      const project = projects.find((p) => p.id === parseInt(id));
-      setSelectedProject(project || null);
-    }
-  }, [projects, id]);
 
   const fetchSprintsAndTasks = useCallback(async () => {
     if (!selectedProject) return;
@@ -221,7 +227,6 @@ const Backlog = () => {
       }
 
       setTasks(allTasks);
-      console.log("Tasks fetched:", allTasks);
 
       const membersResponse = await fetch(
         `${process.env.REACT_APP_API_URL}/api/members/project/${selectedProject.id}`,
@@ -242,7 +247,10 @@ const Backlog = () => {
       }
     } catch (err) {
       console.error(err.message || "Đã có lỗi xảy ra khi lấy dữ liệu");
-      alert(err.message || "Không thể tải dữ liệu. Vui lòng thử lại.");
+      setErrorModal({
+        isOpen: true,
+        message: err.message || "Không thể tải dữ liệu. Vui lòng thử lại.",
+      });
     }
   }, [selectedProject]);
 
@@ -256,9 +264,11 @@ const Backlog = () => {
       await fetchSprintsAndTasks();
     } catch (err) {
       console.error("Lỗi khi làm mới danh sách sprint:", err);
-      alert(
-        err.message || "Không thể làm mới danh sách sprint. Vui lòng thử lại."
-      );
+      setErrorModal({
+        isOpen: true,
+        message:
+          err.message || "Unable to refresh sprint list. Please try again.",
+      });
     }
   };
 
@@ -320,7 +330,10 @@ const Backlog = () => {
       setShowTaskForm(null);
     } catch (err) {
       console.error("Lỗi khi tạo task:", err);
-      alert(err.message || "Không thể tạo task. Vui lòng thử lại.");
+      setErrorModal({
+        isOpen: true,
+        message: err.message || "Không thể tạo task. Vui lòng thử lại.",
+      });
     }
   };
 
@@ -379,7 +392,10 @@ const Backlog = () => {
       setShowTaskForm(null);
     } catch (err) {
       console.error("Lỗi khi cập nhật task:", err);
-      alert(err.message || "Không thể cập nhật task. Vui lòng thử lại.");
+      setErrorModal({
+        isOpen: true,
+        message: err.message || "Không thể cập nhật task. Vui lòng thử lại.",
+      });
     }
   };
 
@@ -412,10 +428,12 @@ const Backlog = () => {
       await fetchSprintsAndTasks();
     } catch (err) {
       console.error("Lỗi khi bắt đầu sprint:", err);
-      alert(
-        err.message ||
-          "Không thể bắt đầu sprint. Vui lòng hoàn thành sprint đang chạy hoặc thử lại."
-      );
+      setErrorModal({
+        isOpen: true,
+        message:
+          err.message ||
+          "Unable to start sprint. Please complete the running sprint or try again.",
+      });
     }
   };
 
@@ -448,7 +466,10 @@ const Backlog = () => {
       await fetchSprintsAndTasks();
     } catch (err) {
       console.error("Lỗi khi hoàn thành sprint:", err);
-      alert(err.message || "Không thể hoàn thành sprint. Vui lòng thử lại.");
+      setErrorModal({
+        isOpen: true,
+        message: err.message || "Unable to complete sprint. Please try again.",
+      });
     }
   };
 
@@ -487,7 +508,11 @@ const Backlog = () => {
       setEditSprintDates({ isOpen: false, sprint: null });
     } catch (err) {
       console.error("Lỗi khi cập nhật ngày sprint:", err);
-      alert(err.message || "Không thể cập nhật ngày sprint. Vui lòng thử lại.");
+      setErrorModal({
+        isOpen: true,
+        message:
+          err.message || "Unable to update sprint date. Please try again.",
+      });
     }
   };
 
@@ -528,7 +553,10 @@ const Backlog = () => {
       setDeleteSprintModal({ isOpen: false, sprint: null });
     } catch (err) {
       console.error("Lỗi khi xóa sprint:", err);
-      alert(err.message || "Không thể xóa sprint. Vui lòng thử lại.");
+      setErrorModal({
+        isOpen: true,
+        message: err.message || "Unable to delete sprint. Please try again.",
+      });
     }
   };
 
@@ -569,7 +597,10 @@ const Backlog = () => {
       });
     } catch (err) {
       console.error("Lỗi khi xóa task:", err);
-      alert(err.message || "Không thể xóa task. Vui lòng thử lại.");
+      setErrorModal({
+        isOpen: true,
+        message: err.message || "Unable to delete task. Please try again.",
+      });
     }
   };
 
@@ -625,7 +656,10 @@ const Backlog = () => {
       await fetchSprintsAndTasks();
     } catch (err) {
       console.error("Lỗi khi cập nhật trạng thái:", err);
-      alert(err.message || "Không thể cập nhật trạng thái. Vui lòng thử lại.");
+      setErrorModal({
+        isOpen: true,
+        message: err.message || "Unable to update status. Please try again.",
+      });
     }
   };
 
@@ -650,22 +684,39 @@ const Backlog = () => {
             Authorization: `Bearer ${accessToken}`,
             userId: userId,
           },
+          credentials: "include",
           body: JSON.stringify({ assigneeEmail }),
         }
       );
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.message || `Cập nhật assignee thất bại: ${response.status}`
-        );
+        const errorMessage =
+          errorData.message || `Cập nhật assignee thất bại: ${response.status}`;
+        console.error("Error response from server:", errorData);
+        throw new Error(errorMessage);
       }
+
+      const updatedTask = await response.json();
 
       await fetchSprintsAndTasks();
       setAssigneeModal({ isOpen: false, taskId: null, suggestedMembers: [] });
+      triggerSuccess("Assignee updated successfully.");
     } catch (err) {
       console.error("Lỗi khi cập nhật assignee:", err);
-      alert(err.message || "Không thể cập nhật assignee. Vui lòng thử lại.");
+      if (err.message.includes("401") || err.message.includes("403")) {
+        setErrorModal({
+          isOpen: true,
+          message: "Your session has expired. Please log in again.",
+        });
+        setTimeout(() => (window.location.href = "/login"), 2000);
+      } else {
+        setErrorModal({
+          isOpen: true,
+          message:
+            err.message || "Failed to update assignee. Please try again.",
+        });
+      }
     }
   };
 
@@ -704,9 +755,13 @@ const Backlog = () => {
 
       const randomMember = members[Math.floor(Math.random() * members.length)];
       await handleUpdateTaskAssignee(taskId, randomMember.email);
+      triggerSuccess("Task auto-assigned successfully.");
     } catch (err) {
       console.error("Lỗi khi tự động gán:", err);
-      alert(err.message || "Không thể tự động gán. Vui lòng thử lại.");
+      setErrorModal({
+        isOpen: true,
+        message: err.message || "Không thể tự động gán. Vui lòng thử lại.",
+      });
     }
   };
 
@@ -742,9 +797,12 @@ const Backlog = () => {
       setAssigneeModal({ isOpen: true, taskId, suggestedMembers: members });
     } catch (err) {
       console.error("Lỗi khi lấy danh sách thành viên:", err);
-      alert(
-        err.message || "Không thể lấy danh sách thành viên. Vui lòng thử lại."
-      );
+      setErrorModal({
+        isOpen: true,
+        message:
+          err.message ||
+          "Không thể lấy danh sách thành viên. Vui lòng thử lại.",
+      });
     }
   };
 
@@ -782,7 +840,11 @@ const Backlog = () => {
       setAssigneeModal({ isOpen: true, taskId, suggestedMembers: users });
     } catch (err) {
       console.error("Lỗi khi tìm kiếm người dùng:", err);
-      alert(err.message || "Không thể tìm kiếm người dùng. Vui lòng thử lại.");
+      setErrorModal({
+        isOpen: true,
+        message:
+          err.message || "Không thể tìm kiếm người dùng. Vui lòng thử lại.",
+      });
     }
   };
 
@@ -844,7 +906,10 @@ const Backlog = () => {
       await fetchSprintsAndTasks();
     } catch (err) {
       console.error("Lỗi khi di chuyển task:", err);
-      alert(err.message || "Không thể di chuyển task. Vui lòng thử lại.");
+      setErrorModal({
+        isOpen: true,
+        message: err.message || "Không thể di chuyển task. Vui lòng thử lại.",
+      });
     }
   };
 
@@ -910,6 +975,48 @@ const Backlog = () => {
   const canStartSprint = (sprintId) => {
     return !sprints.some((s) => s.status === "ACTIVE" && s.id !== sprintId);
   };
+  const canCreateSprint = () => {
+    return !sprints.some((s) => s.status === "ACTIVE");
+  };
+
+  const handleCreateSprintClick = () => {
+    if (!canCreateSprint()) {
+      setErrorModal({
+        isOpen: true,
+        message: "Please complete Sprint before creating new one.",
+      });
+      return;
+    }
+    setShowSprintForm(true);
+  };
+
+  const ErrorModal = ({ isOpen, message, onClose }) => {
+    if (!isOpen) return null;
+    return (
+      <div className="error-modal-overlay">
+        <div className="error-modal">
+          <div className="error-modal-header">
+            <h3 className="error-modal-title">Error</h3>
+            <button
+              type="button"
+              onClick={onClose}
+              className="error-modal-close"
+            >
+              <X size={20} />
+            </button>
+          </div>
+          <div className="error-modal-content">
+            <p>{message}</p>
+          </div>
+          <div className="error-modal-actions">
+            <button type="button" onClick={onClose} className="error-modal-btn">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const AssigneeModal = ({
     isOpen,
@@ -972,9 +1079,11 @@ const Backlog = () => {
         setFilteredMembers(users || []);
       } catch (err) {
         console.error("Lỗi khi tìm kiếm người dùng:", err);
-        alert(
-          err.message || "Không thể tìm kiếm người dùng. Vui lòng thử lại."
-        );
+        setErrorModal({
+          isOpen: true,
+          message:
+            err.message || "Không thể tìm kiếm người dùng. Vui lòng thử lại.",
+        });
       }
     };
 
@@ -1216,7 +1325,7 @@ const Backlog = () => {
               className="task-checkbox"
             />
             <div className="task-id" style={{ color: "#0052cc" }}>
-              {selectedProject.shortName}Task {task.id}
+              {selectedProject.shortName}Task {task.taskNumber}
             </div>
             <div className="task-title">{task.title}</div>
           </div>
@@ -1335,7 +1444,12 @@ const Backlog = () => {
             <div className="btn-create-sprint-1">
               <button
                 className="btn-create-sprint"
-                onClick={() => setShowSprintForm(true)}
+                onClick={handleCreateSprintClick}
+                title={
+                  canCreateSprint()
+                    ? ""
+                    : "Please complete Sprint before creating new one."
+                }
               >
                 <Plus />
                 Create Sprint
@@ -1378,7 +1492,7 @@ const Backlog = () => {
                       </div>
                       {isLeader && (
                         <div className="sprint-active">
-                          {sprint.status !== "ACTIVE" && (
+                          {sprint.status === "PLANNED" && (
                             <button
                               className={`btn-start-sprint ${
                                 canStartSprint(sprint.id)
@@ -1401,6 +1515,11 @@ const Backlog = () => {
                               onClick={() => handleCompleteSprint(sprint.id)}
                             >
                               Complete Sprint
+                            </button>
+                          )}
+                          {sprint.status === "COMPLETED" && (
+                            <button className="btn-complete-sprint">
+                              Completed
                             </button>
                           )}
                           <div className="sprint-menu-container">
@@ -1484,7 +1603,7 @@ const Backlog = () => {
                 )}
                 <button
                   className="btn-create-task-in-backlog"
-                  onClick={() => setShowTaskForm(sprints.id)}
+                  onClick={() => setShowTaskForm(null)}
                 >
                   <Plus />
                   Create new task
@@ -1525,6 +1644,7 @@ const Backlog = () => {
             }}
             onUpdateTask={handleUpdateTask}
             selectedProject={selectedProject}
+            setParentActiveTab={setActiveTab}
           />
         )}
         <CreateSprintModal
@@ -1532,6 +1652,8 @@ const Backlog = () => {
           onClose={() => setShowSprintForm(false)}
           onSubmit={handleAddSprint}
           selectedProject={selectedProject}
+          projectStartDate={projectStartDate}
+          projectEndDate={projectEndDate}
         />
         <DeleteSprintModal
           isOpen={deleteSprintModal.isOpen}
@@ -1570,9 +1692,81 @@ const Backlog = () => {
           onClose={() => setEditSprintDates({ isOpen: false, sprint: null })}
           onConfirm={handleEditSprintDates}
         />
+        <ErrorModal
+          isOpen={errorModal.isOpen}
+          message={errorModal.message}
+          onClose={() => setErrorModal({ isOpen: false, message: "" })}
+        />
       </div>
     </DragDropContext>
   );
 };
+
+const styles = `
+  .error-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+  }
+  .error-modal {
+    background: #fff;
+    border-radius: 8px;
+    width: 400px;
+    max-width: 90%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+  }
+  .error-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .error-modal-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #d32f2f;
+  }
+  .error-modal-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #172b4d;
+  }
+  .error-modal-content {
+    padding: 16px;
+    font-size: 14px;
+    color: #172b4d;
+  }
+  .error-modal-actions {
+    padding: 16px;
+    display: flex;
+    justify-content: flex-end;
+  }
+  .error-modal-btn {
+    background: #d32f2f;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .error-modal-btn:hover {
+    background: #b71c1c;
+  }
+`;
+
+const styleSheet = new CSSStyleSheet();
+styleSheet.replaceSync(styles);
+document.adoptedStyleSheets = [...document.adoptedStyleSheets, styleSheet];
 
 export default Backlog;

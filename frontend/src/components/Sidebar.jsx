@@ -151,34 +151,35 @@ const Sidebar = () => {
         </div>
       </div>
       <div className="sidebar-display-project">
-        {projects.map((project) => (
-          <div
-            className={`sidebar-project-list ${
-              focusedItem ===
-                (id &&
-                  `/project-task/${id}/backlog` ===
-                    `/project-task/${project.id}/backlog`) ||
-              (id &&
-                `/project-task/${id}/progress` ===
-                  `/project-task/${project.id}/progress`)
-                ? "focused"
-                : ""
-            }`}
-            key={project.id}
-            onClick={() => handleItemList(project.id)}
-          >
+        {projects
+          .filter((project) => project.status === "ACTIVE")
+          .map((project) => (
             <div
-              className="sidebar-project-item"
-              style={{ backgroundColor: project.color, borderRadius: "50px" }}
-              // onClick={() => handleItemClick(`/project/${project.id}`)}
+              className={`sidebar-project-list ${
+                focusedItem ===
+                  (id &&
+                    `/project-task/${id}/backlog` ===
+                      `/project-task/${project.id}/backlog`) ||
+                (id &&
+                  `/project-task/${id}/progress` ===
+                    `/project-task/${project.id}/progress`)
+                  ? "focused"
+                  : ""
+              }`}
+              key={project.id}
+              onClick={() => handleItemList(project.id)}
             >
-              <h3 id="name-summary">{project.short_name}</h3>
+              <div
+                className="sidebar-project-item"
+                style={{ backgroundColor: project.color, borderRadius: "50px" }}
+              >
+                <h3 id="name-summary">{project.short_name}</h3>
+              </div>
+              <div className="sidebar-project-name">
+                <p id="project-name">{project.project_name}</p>
+              </div>
             </div>
-            <div className="sidebar-project-name">
-              <p id="project-name">{project.project_name}</p>
-            </div>
-          </div>
-        ))}
+          ))}
       </div>
     </div>
   );

@@ -89,3 +89,5 @@ management:
 
 frontend:
   url: ${FRONTEND_URL}
+file:
+  upload-dir: D:/PMS/uploads/documents/

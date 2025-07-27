@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -45,6 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class DocumentService {
 
+    
     DocumentRepository documentRepository;
     DocumentCommentRepository documentCommentRepository;
     DocumentAssignmentRepository documentAssignmentRepository;
@@ -53,104 +56,132 @@ public class DocumentService {
     UserRepository userRepository;
     MemberRepository memberRepository;
     DocumentMapper documentMapper;
+    
 
     public List<DocumentResponse> uploadDocuments(Integer projectId, DocumentCreationRequest request, MultipartFile[] files, String userId) {
-        log.info("Uploading documents for projectId: {} by userId: {}", projectId, userId);
+        log.info("Uploading documents for projectId: {}, userId: {}, taskId: {}", projectId, userId, request.getTaskId());
 
-        // Verify project exists
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new AppException(ErrorStatus.PROJECT_NOT_FOUND));
+        try {
+            // Verify project exists
+            Project project = projectRepository.findById(projectId)
+                    .orElseThrow(() -> {
+                        log.error("Project not found for projectId: {}", projectId);
+                        return new AppException(ErrorStatus.PROJECT_NOT_FOUND, "Không tìm thấy dự án với ID: " + projectId);
+                    });
 
-        // Verify uploader is a project member
-        User uploader = userRepository.findById(userId)
-                .orElseThrow(() -> new AppException(ErrorStatus.USER_NOTFOUND));
-        if (!memberRepository.existsByEmailAndProjectId(uploader.getEmail(), String.valueOf(projectId))) {
-            throw new AppException(ErrorStatus.UNAUTHORIZED);
-        }
-
-        // Verify task if provided
-        Task task = null;
-        if (request.getTaskId() != null) {
-            task = taskRepository.findById(request.getTaskId())
-                    .orElseThrow(() -> new AppException(ErrorStatus.TASK_NOT_FOUND));
-            if (task.getProject().getId() != projectId) {
-                throw new AppException(ErrorStatus.TASK_NOT_FOUND);
-            }
-        }
-
-        List<DocumentResponse> responses = new ArrayList<>();
-        String[] allowedTypes = {"pdf", "doc", "docx", "jpg", "jpeg", "png", "gif", "xd", "css", "js"};
-
-        // Define a stable upload directory with documents subfolder
-        String uploadDir = "D:/pms_project/backend/uploads/documents";
-
-        for (MultipartFile file : files) {
-            // Validate file
-            if (file == null || file.isEmpty()) {
-                throw new AppException(ErrorStatus.INVALID_FILE, "Tệp rỗng hoặc không hợp lệ");
+            // Verify uploader is a project member
+            User uploader = userRepository.findById(userId)
+                    .orElseThrow(() -> {
+                        log.error("User not found for userId: {}", userId);
+                        return new AppException(ErrorStatus.USER_NOTFOUND, "Không tìm thấy người dùng với ID: " + userId);
+                    });
+            if (!memberRepository.existsByEmailAndProjectId(uploader.getEmail(), String.valueOf(projectId))) {
+                log.error("User {} is not a member of project {}", uploader.getEmail(), projectId);
+                throw new AppException(ErrorStatus.UNAUTHORIZED, "Người dùng không phải thành viên của dự án: " + projectId);
             }
 
-            String fileExtension = getFileExtension(file.getOriginalFilename()).toLowerCase();
-            boolean isValidType = false;
-            for (String type : allowedTypes) {
-                if (fileExtension.equals(type)) {
-                    isValidType = true;
-                    break;
+            // Verify task if provided
+            Task task = null;
+            if (request.getTaskId() != null) {
+                log.info("Verifying taskId: {}", request.getTaskId());
+                task = taskRepository.findById(request.getTaskId())
+                        .orElseThrow(() -> {
+                            log.error("Task not found for taskId: {}", request.getTaskId());
+                            return new AppException(ErrorStatus.TASK_NOT_FOUND, "Không tìm thấy task với ID: " + request.getTaskId());
+                        });
+                if (task.getProject().getId() != projectId) {
+                    log.error("Task {} does not belong to project {}", request.getTaskId(), projectId);
+                    throw new AppException(ErrorStatus.TASK_NOT_FOUND, "Task không thuộc dự án: " + projectId);
                 }
-            }
-            if (!isValidType) {
-                throw new AppException(ErrorStatus.INVALID_FILE_TYPE, "Định dạng tệp không được hỗ trợ: " + fileExtension);
+            } else {
+                log.info("No taskId provided, uploading document without task association");
             }
 
-            // Save file to disk
-            String fileName = System.currentTimeMillis() + "-" + file.getOriginalFilename();
-            String filePath = uploadDir + fileName;
-            try {
-                File dest = new File(filePath);
-                File parentDir = dest.getParentFile();
-                if (!parentDir.exists()) {
-                    if (!parentDir.mkdirs()) {
-                        throw new IOException("Không thể tạo thư mục: " + parentDir.getAbsolutePath());
+            List<DocumentResponse> responses = new ArrayList<>();
+            String[] allowedTypes = {"pdf", "doc", "docx", "jpg", "jpeg", "png", "gif", "xd", "css", "js"};
+             String uploadDir = "E:/PMS/backend/uploads/documents/"; // Đảm bảo dấu / ở cuối
+             //Path uploadPath = Paths.get("uploads/documents/" );
+            for (MultipartFile file : files) {
+                // Validate file
+                if (file == null || file.isEmpty()) {
+                    log.error("Empty or invalid file received");
+                    throw new AppException(ErrorStatus.INVALID_FILE, "Tệp rỗng hoặc không hợp lệ");
+                }
+
+                String fileExtension = getFileExtension(file.getOriginalFilename()).toLowerCase();
+                boolean isValidType = false;
+                for (String type : allowedTypes) {
+                    if (fileExtension.equals(type)) {
+                        isValidType = true;
+                        break;
                     }
                 }
-                if (!parentDir.canWrite()) {
-                    throw new IOException("Không có quyền ghi vào thư mục: " + parentDir.getAbsolutePath());
+                if (!isValidType) {
+                    log.error("Unsupported file type: {}", fileExtension);
+                    throw new AppException(ErrorStatus.INVALID_FILE_TYPE, "Định dạng tệp không được hỗ trợ: " + fileExtension);
                 }
-                file.transferTo(dest);
-            } catch (IOException e) {
-                log.error("File upload failed for file {}: {}", file.getOriginalFilename(), e.getMessage());
-                throw new AppException(ErrorStatus.FILE_UPLOAD_FAILED, "Lỗi khi lưu tệp: " + e.getMessage());
+
+                // Save file to disk
+                String fileName = System.currentTimeMillis() + "-" + file.getOriginalFilename();
+                String filePath = uploadDir + fileName;
+                log.info("Saving file to: {}", filePath);
+                try {
+                    File dest = new File(filePath);
+                    File parentDir = dest.getParentFile();
+                    if (!parentDir.exists()) {
+                        if (!parentDir.mkdirs()) {
+                            log.error("Failed to create directory: {}", parentDir.getAbsolutePath());
+                            throw new IOException("Không thể tạo thư mục: " + parentDir.getAbsolutePath());
+                        }
+                    }
+                    if (!parentDir.canWrite()) {
+                        log.error("No write permission for directory: {}", parentDir.getAbsolutePath());
+                        throw new IOException("Không có quyền ghi vào thư mục: " + parentDir.getAbsolutePath());
+                    }
+                    file.transferTo(dest);
+                    log.info("File saved successfully: {}", filePath);
+                } catch (IOException e) {
+                    log.error("File upload failed for file {}: {}", file.getOriginalFilename(), e.getMessage());
+                    throw new AppException(ErrorStatus.FILE_UPLOAD_FAILED, "Lỗi khi lưu tệp: " + e.getMessage());
+                }
+
+                // Save document
+                Document document = new Document();
+                document.setProjectId(projectId);
+                document.setTaskId(request.getTaskId());
+                document.setName(file.getOriginalFilename());
+                document.setUploaderId(userId);
+                document.setSize(file.getSize());
+                document.setType(fileExtension);
+                document.setFilePath(filePath);
+                document.setUploadDate(LocalDateTime.now());
+                Document savedDocument = documentRepository.save(document);
+                log.info("Document saved: id={}, name={}", savedDocument.getId(), savedDocument.getName());
+
+                // Assign uploader as Owner
+                DocumentAssignment assignment = new DocumentAssignment();
+                assignment.setDocumentId(savedDocument.getId());
+                assignment.setUserId(userId);
+                assignment.setRole("Owner");
+                assignment.setAssignedDate(LocalDateTime.now());
+                DocumentAssignment savedAssignment = documentAssignmentRepository.save(assignment);
+                log.info("Assigned uploader as Owner: documentId={}, userId={}", savedDocument.getId(), userId);
+
+                // Prepare response
+                List<DocumentCommentResponse> comments = List.of();
+                List<DocumentAssignmentResponse> assignments = List.of(
+                        documentMapper.toDocumentAssignmentResponse(savedAssignment, uploader)
+                );
+
+                responses.add(documentMapper.toDocumentResponse(savedDocument, uploader, task, comments, assignments));
             }
 
-            // Save document
-            Document document = new Document();
-            document.setProjectId(projectId);
-            document.setTaskId(request.getTaskId());
-            document.setName(file.getOriginalFilename());
-            document.setUploaderId(userId);
-            document.setSize(file.getSize());
-            document.setType(fileExtension);
-            document.setFilePath(filePath);
-            document.setUploadDate(LocalDateTime.now());
-            Document savedDocument = documentRepository.save(document);
-
-            // Assign uploader as Owner
-            DocumentAssignment assignment = new DocumentAssignment();
-            assignment.setDocumentId(savedDocument.getId());
-            assignment.setUserId(userId);
-            assignment.setRole("Owner");
-            documentAssignmentRepository.save(assignment);
-
-            // Prepare response
-            List<DocumentCommentResponse> comments = List.of();
-            List<DocumentAssignmentResponse> assignments = List.of(
-                    documentMapper.toDocumentAssignmentResponse(assignment, uploader)
-            );
-
-            responses.add(documentMapper.toDocumentResponse(savedDocument, uploader, task, comments, assignments));
+            log.info("Uploaded {} documents successfully for projectId: {}", responses.size(), projectId);
+            return responses;
+        } catch (Exception e) {
+            log.error("Unexpected error while uploading documents for projectId {}: {}", projectId, e.getMessage(), e);
+            throw new AppException(ErrorStatus.INTERNAL_SERVER_ERROR, "Lỗi máy chủ khi tải lên tài liệu: " + e.getMessage());
         }
-
-        return responses;
     }
 
     public List<DocumentResponse> getDocumentsByProject(Integer projectId, String userId) {
@@ -289,6 +320,27 @@ public class DocumentService {
             response.setUploaderAvatar(user.getAvatar_url());
             return response;
         }).collect(Collectors.toList());
+    }
+
+    public Resource getDocumentFile(Integer documentId, String userId) {
+        log.info("Fetching file for documentId: {} by userId: {}", documentId, userId);
+
+        Document document = documentRepository.findById(documentId)
+                .orElseThrow(() -> new AppException(ErrorStatus.DOCUMENT_NOT_FOUND));
+
+        User requester = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorStatus.USER_NOTFOUND));
+        if (!memberRepository.existsByEmailAndProjectId(requester.getEmail(), String.valueOf(document.getProjectId()))) {
+            throw new AppException(ErrorStatus.UNAUTHORIZED);
+        }
+
+        File file = new File(document.getFilePath());
+        if (!file.exists() || !file.isFile()) {
+            log.error("File not found or is not a file: {}", document.getFilePath());
+            throw new AppException(ErrorStatus.FILE_NOT_FOUND, "Tệp không tồn tại: " + document.getFilePath());
+        }
+
+        return new FileSystemResource(file);
     }
 
     private String getFileExtension(String fileName) {

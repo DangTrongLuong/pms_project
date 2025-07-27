@@ -1,4 +1,3 @@
-// TaskDetailModal.jsx
 import React, { useState, useEffect, useRef } from "react";
 import {
   X,
@@ -14,19 +13,29 @@ import {
 import "../styles/user/task-detail.css";
 import { useSidebar } from "../context/SidebarContext";
 
-const TaskDetailModal = ({ task, onClose, onUpdateTask, selectedProject }) => {
-  const [comment, setComment] = useState("");
-  const [taskSelectionModal, setTaskSelectionModal] = useState({
-    isOpen: false,
-    files: null,
+const TaskDetailModal = ({
+  task,
+  onClose,
+  onUpdateTask,
+  selectedProject,
+  setParentActiveTab,
+}) => {
+  console.log("TaskDetailModal props:", {
+    task: !!task,
+    onClose: typeof onClose,
+    onUpdateTask: typeof onUpdateTask,
+    selectedProject: !!selectedProject,
+    setParentActiveTab: typeof setParentActiveTab,
   });
+  const [comment, setComment] = useState("");
   const [documents, setDocuments] = useState([]);
   const [tasks, setTasks] = useState([]);
-  const [activeTab, setActiveTab] = useState("details"); // Thêm trạng thái tab
+  const [activeTab, setActiveTab] = useState("details");
   const modalRef = useRef(null);
   const { projects } = useSidebar();
   const accessToken = localStorage.getItem("accessToken");
   const userId = localStorage.getItem("userId");
+  const avatar_url = localStorage.getItem("avatarUrl");
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -242,65 +251,56 @@ const TaskDetailModal = ({ task, onClose, onUpdateTask, selectedProject }) => {
     }
   };
 
-  const handleFileUpload = async (files, taskId) => {
-    if (!files || !taskId || files.length === 0) {
-      alert("Vui lòng chọn task và ít nhất một file trước khi tải lên.");
-      return;
-    }
-    try {
-      if (!userId || !accessToken) {
-        alert("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
-        window.location.href = "/login";
-        return;
-      }
-      const formData = new FormData();
-      for (let file of files) {
-        formData.append("files", file);
-      }
-      formData.append(
-        "request",
-        new Blob([JSON.stringify({ taskId })], { type: "application/json" })
+  const handleSwitchToDocumentsTab = () => {
+    console.log("Switching to documents tab");
+    if (typeof setParentActiveTab === "function") {
+      setParentActiveTab("documents");
+    } else {
+      console.error(
+        "setParentActiveTab is not a function:",
+        setParentActiveTab
       );
+    }
+  };
+  const handleDownload = async (documentId, fileName) => {
+    try {
+      const userId = localStorage.getItem("userId");
+      const accessToken = localStorage.getItem("accessToken");
+      if (!userId || !accessToken) {
+        throw new Error("Vui lòng đăng nhập lại để tiếp tục");
+      }
+
       const response = await fetch(
-        `http://localhost:8080/api/documents/${selectedProject.id}/upload`,
+        `${process.env.REACT_APP_API_URL}/api/documents/${documentId}/download`,
         {
-          method: "POST",
+          method: "GET",
           headers: {
             Authorization: `Bearer ${accessToken}`,
             userId: userId,
           },
-          body: formData,
         }
       );
-      if (response.status === 401 || response.status === 403) {
-        alert("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
-        window.location.href = "/login";
-        return;
-      }
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
-          errorData.message || `Tải lên thất bại: ${response.status}`
+          errorData.message || `Tải xuống thất bại: ${response.status}`
         );
       }
-      const newDocuments = await response.json();
-      setDocuments([
-        ...documents,
-        ...newDocuments.filter((doc) => doc.taskId === task.id),
-      ]);
-      setTaskSelectionModal({ isOpen: false, files: null });
-    } catch (err) {
-      console.error("Upload error:", err);
-      alert(
-        err.message ||
-          "Không thể tải lên tài liệu. Vui lòng kiểm tra định dạng tệp và thử lại."
-      );
-    }
-  };
 
-  const handleOpenTaskModal = (files) => {
-    setTaskSelectionModal({ isOpen: true, files: files || null });
-    fetchTasks();
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Download error:", err);
+      alert(err.message || "Không thể tải xuống tài liệu. Vui lòng thử lại.");
+    }
   };
 
   const formatFileSize = (bytes) => {
@@ -361,103 +361,10 @@ const TaskDetailModal = ({ task, onClose, onUpdateTask, selectedProject }) => {
       case "Bug":
         return "text-red-600 bg-red-50";
       case "Task":
-        return "text-blue-600 bg-blue-50";
+        return "text-blue-600 bg-green-50";
       default:
         return "text-gray-600 bg-gray-100";
     }
-  };
-
-  const TaskSelectionModal = ({ isOpen, files, onClose }) => {
-    const [searchQuery, setSearchQuery] = useState("");
-    const [selectedTask, setSelectedTask] = useState(null);
-    const [selectedFiles, setSelectedFiles] = useState(files);
-
-    const filteredTasks = tasks.filter((t) =>
-      t.title.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
-    const handleUpload = () => {
-      if (!selectedTask) {
-        alert("Vui lòng chọn một task trước.");
-        return;
-      }
-      if (!selectedFiles || selectedFiles.length === 0) {
-        alert("Vui lòng chọn ít nhất một file.");
-        return;
-      }
-      handleFileUpload(selectedFiles, selectedTask.id);
-    };
-
-    if (!isOpen) return null;
-
-    return (
-      <div className="modal-overlay">
-        <div className="modal-container">
-          <div className="modal-header">
-            <h2>Chọn task để tải tài liệu</h2>
-            <button className="modal-close-btn" onClick={onClose}>
-              <X size={16} />
-            </button>
-          </div>
-          <div className="modal-body">
-            <input
-              type="text"
-              placeholder="Tìm kiếm task..."
-              className="task-search-input"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <div className="task-dropdown">
-              <select
-                value={selectedTask ? selectedTask.id : ""}
-                onChange={(e) => {
-                  const task = tasks.find(
-                    (t) => t.id === parseInt(e.target.value)
-                  );
-                  setSelectedTask(task);
-                }}
-                className="task-select"
-              >
-                <option value="">Chọn task</option>
-                {filteredTasks.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.title} ({t.status})
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="file-picker">
-              <label className="btn btn-upload">
-                Chọn file
-                <input
-                  type="file"
-                  multiple
-                  className="file-input"
-                  onChange={(e) => setSelectedFiles(e.target.files)}
-                />
-              </label>
-              {selectedFiles && (
-                <p className="file-count">Đã chọn {selectedFiles.length} tệp</p>
-              )}
-            </div>
-          </div>
-          <div className="modal-footer">
-            <button className="btn btn-cancel" onClick={onClose}>
-              Hủy
-            </button>
-            <button
-              className="btn btn-primary"
-              onClick={handleUpload}
-              disabled={
-                !selectedTask || !selectedFiles || selectedFiles.length === 0
-              }
-            >
-              Tải lên
-            </button>
-          </div>
-        </div>
-      </div>
-    );
   };
 
   if (!task) return null;
@@ -472,10 +379,10 @@ const TaskDetailModal = ({ task, onClose, onUpdateTask, selectedProject }) => {
         <div className="modal-header">
           <div className="modal-title-section">
             <h3 className="modal-title">
-              {selectedProject.shortName}Task {task.id} {task.title}
+              {selectedProject.shortName}Task {task.taskNumber} {task.title}
             </h3>
             <p className="modal-subtitle">
-              <User size={12} /> {task.assigneeName || "Unknown"} &bull;{" "}
+              <User size={12} /> {task.assigneeName || "Unknown"} •{" "}
               <Calendar size={12} /> {new Date(task.createdAt).toLocaleString()}
             </p>
           </div>
@@ -485,105 +392,39 @@ const TaskDetailModal = ({ task, onClose, onUpdateTask, selectedProject }) => {
         </div>
 
         <div className="modal-tabs">
-          <button
-            className={`tab-btn ${activeTab === "details" ? "active" : ""}`}
-            onClick={() => setActiveTab("details")}
-          >
-            Details
-          </button>
-          <button
-            className={`tab-btn ${activeTab === "documents" ? "active" : ""}`}
-            onClick={() => setActiveTab("documents")}
-          >
-            Documents ({documents.length})
-          </button>
-          <button
-            className={`tab-btn ${activeTab === "comments" ? "active" : ""}`}
-            onClick={() => setActiveTab("comments")}
-          >
-            Comments
-          </button>
+          <p style={{ fontSize: "17px", fontWeight: "600" }}>Description</p>
+          <p>{task.description || "No description available"}</p>
         </div>
 
-        <div className="modal-content">
-          {activeTab === "details" && (
-            <div className="task-details">
-              <div className="detail-item">
-                <span className="detail-label">Type:</span>
-                <span className={`detail-value ${getTypeColor(task.type)}`}>
-                  {task.type || "Task"}
-                </span>
-              </div>
-              <div className="detail-item">
-                <span className="detail-label">Status:</span>
-                <span className="detail-value">{task.status}</span>
-              </div>
-              <div className="detail-item">
-                <span className="detail-label">Priority:</span>
-                <span
-                  className={`detail-value ${getPriorityColor(task.priority)}`}
-                >
-                  {task.priority}
-                </span>
-              </div>
-              <div className="detail-item">
-                <span className="detail-label">Implementer:</span>
-                <span className="detail-value">
-                  {task.assigneeName || "Chưa gán"}
-                </span>
-              </div>
-              <div className="detail-item">
-                <span className="detail-label">Start date:</span>
-                <span className="detail-value">
-                  {task.startDate
-                    ? new Date(task.startDate).toLocaleDateString()
-                    : "Chưa đặt"}
-                </span>
-              </div>
-              <div className="detail-item">
-                <span className="detail-label">End date:</span>
-                <span className="detail-value">
-                  {task.endDate
-                    ? new Date(task.endDate).toLocaleDateString()
-                    : "Chưa đặt"}
-                </span>
-              </div>
-              <div className="detail-item">
-                <span className="detail-label">Describe:</span>
-                <span className="detail-value description">
-                  {task.description || "No description available"}
-                </span>
-              </div>
-            </div>
-          )}
-
-          {activeTab === "documents" && (
+        <div className="modal-content-details">
+          <div className="documents-comments-section">
             <div className="documents-section">
-              <div className="documents-header">
-                <FileText size={16} />
-                <span>Document ({documents.length})</span>
-                <label className="btn btn-upload">
-                  <Upload size={16} />
-                  Upload
-                  <input
-                    type="file"
-                    multiple
-                    className="file-input"
-                    onChange={(e) => handleOpenTaskModal(e.target.files)}
-                  />
-                </label>
+              <div className="documents-header-details">
+                <div className="file-text-documents">
+                  <FileText size={16} />
+                  <span>Document ({documents.length})</span>
+                </div>
+                {/* <div className="btn-upload-input">
+                  <button
+                    className="btn btn-upload-file-details"
+                    onClick={handleSwitchToDocumentsTab}
+                  >
+                    <Upload size={16} />
+                    Upload Now
+                  </button>
+                </div> */}
               </div>
               {documents.length > 0 ? (
                 <div className="documents-list">
                   {documents.map((doc) => (
-                    <div key={doc.id} className="document-item">
+                    <div key={doc.id} className="document-item-details">
                       <div className="file-info">
                         <div className="file-icon">{getFileIcon(doc.type)}</div>
                         <div className="file-details">
                           <p className="file-name">{doc.name}</p>
                           <div className="file-meta">
                             <span className="file-uploader">
-                              <User size={12} /> {doc.uploaderId}
+                              <User size={12} /> {doc.uploaderName}
                             </span>
                             <span className="file-date">
                               <Calendar size={12} />{" "}
@@ -601,6 +442,7 @@ const TaskDetailModal = ({ task, onClose, onUpdateTask, selectedProject }) => {
                           download
                           className="file-action-btn"
                           title="Tải xuống"
+                          onClick={() => handleDownload(doc.id, doc.name)}
                         >
                           <Download size={16} />
                         </a>
@@ -616,20 +458,21 @@ const TaskDetailModal = ({ task, onClose, onUpdateTask, selectedProject }) => {
                   ))}
                 </div>
               ) : (
-                <p className="no-results">No documents yet</p>
+                <div>
+                  <p className="no-results">No documents yet.</p>
+                  <p className="no-results">
+                    Please go to Document to add documents.
+                  </p>
+                </div>
               )}
             </div>
-          )}
 
-          {activeTab === "comments" && (
             <div className="comments-section">
               {documents.map((doc) => (
-                <div key={doc.id} className="document-comments">
+                <div key={doc.id} className="document-comments-details">
                   <div className="comments-header">
-                    <FileText size={16} />
-                    <span>
-                      {doc.name} ({doc.comments?.length || 0})
-                    </span>
+                    <MessageSquare size={16} />
+                    <span>Comments ({doc.comments?.length || 0})</span>
                   </div>
                   {doc.comments && doc.comments.length > 0 ? (
                     <div className="comments-list">
@@ -645,6 +488,7 @@ const TaskDetailModal = ({ task, onClose, onUpdateTask, selectedProject }) => {
                             )}
                           </div>
                           <div className="comment-content">
+                            <p className="comment-text">{comment.text}</p>
                             <div className="comment-header">
                               <span className="comment-author">
                                 {comment.user}
@@ -653,7 +497,6 @@ const TaskDetailModal = ({ task, onClose, onUpdateTask, selectedProject }) => {
                                 {new Date(comment.timestamp).toLocaleString()}
                               </span>
                             </div>
-                            <p className="comment-text">{comment.text}</p>
                           </div>
                         </div>
                       ))}
@@ -663,12 +506,14 @@ const TaskDetailModal = ({ task, onClose, onUpdateTask, selectedProject }) => {
                   )}
                   <div className="comment-form">
                     <div className="comment-input-container">
-                      <div className="current-user-avatar">U</div>
+                      <div className="current-user-avatar">
+                        <img src={avatar_url}></img>
+                      </div>
                       <input
                         type="text"
                         value={comment}
                         onChange={(e) => setComment(e.target.value)}
-                        placeholder="Viết bình luận..."
+                        placeholder="Comments..."
                         className="comment-input"
                         onKeyPress={(e) => {
                           if (e.key === "Enter" && comment.trim()) {
@@ -694,15 +539,59 @@ const TaskDetailModal = ({ task, onClose, onUpdateTask, selectedProject }) => {
                 </div>
               ))}
             </div>
-          )}
+          </div>
+
+          <div className="task-details">
+            <h3>Details</h3>
+            <div className="detail-item">
+              <span className="detail-label">Type:</span>
+              <span className={`detail-value ${getTypeColor(task.type)}`}>
+                {task.type || "Task"}
+              </span>
+            </div>
+            <div className="detail-item">
+              <span className="detail-label">Status:</span>
+              <span className="detail-value">{task.status}</span>
+            </div>
+            <div className="detail-item">
+              <span className="detail-label">Priority:</span>
+              <span
+                className={`detail-value ${getPriorityColor(task.priority)}`}
+              >
+                {task.priority}
+              </span>
+            </div>
+            <div className="detail-item">
+              <span className="detail-label">Implementer:</span>
+              <span className="detail-value">
+                {task.assigneeName || "Not assigned yet"}
+              </span>
+            </div>
+            <div className="detail-item">
+              <span className="detail-label">Start date:</span>
+              <span className="detail-value">
+                {task.startDate
+                  ? new Date(task.startDate).toLocaleDateString()
+                  : "Chưa đặt"}
+              </span>
+            </div>
+            <div className="detail-item">
+              <span className="detail-label">End date:</span>
+              <span className="detail-value">
+                {task.endDate
+                  ? new Date(task.endDate).toLocaleDateString()
+                  : "Chưa đặt"}
+              </span>
+            </div>
+            <div className="detail-item">
+              <span className="detail-label">Describe:</span>
+              <span className="detail-value description">
+                {task.description || "No description available"}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
-
-      <TaskSelectionModal
-        isOpen={taskSelectionModal.isOpen}
-        files={taskSelectionModal.files}
-        onClose={() => setTaskSelectionModal({ isOpen: false, files: null })}
-      />
     </div>
   );
 };

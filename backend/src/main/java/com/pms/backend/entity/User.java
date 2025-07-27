@@ -55,7 +55,4 @@ public class User {
 
     int project_id;
 
-    public String getAvatarUrl() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
 }
