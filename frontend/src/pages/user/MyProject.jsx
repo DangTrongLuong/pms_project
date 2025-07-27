@@ -164,24 +164,44 @@ const EditProjectModal = ({ project, onClose, onUpdate }) => {
     };
     let isValid = true;
 
-    if (!data.project_name.trim()) {
-      newErrors.project_name = "Project name is required.";
-      isValid = false;
+    // Only validate project_name if it's provided and changed
+    if (data.project_name && data.project_name !== project.project_name) {
+      if (!data.project_name.trim()) {
+        newErrors.project_name = "Project name is required.";
+        isValid = false;
+      }
     }
 
-    if (data.start_date && new Date(data.start_date) < new Date(today)) {
-      newErrors.start_date = "Start date cannot be in the past.";
-      isValid = false;
+    // Only validate start_date if it's provided and changed
+    if (
+      data.start_date &&
+      data.start_date !==
+        (project.start_date
+          ? new Date(project.start_date).toISOString().split("T")[0]
+          : "")
+    ) {
+      if (new Date(data.start_date) < new Date(today)) {
+        newErrors.start_date = "Start date cannot be in the past.";
+        isValid = false;
+      }
     }
 
-    if (data.end_date && data.start_date && data.end_date < data.start_date) {
-      newErrors.end_date = "End date cannot be before start date.";
-      isValid = false;
-    }
-
-    if (data.end_date && new Date(data.end_date) < new Date(today)) {
-      newErrors.end_date = "End date cannot be in the past.";
-      isValid = false;
+    // Only validate end_date if it's provided and changed
+    if (
+      data.end_date &&
+      data.end_date !==
+        (project.end_date
+          ? new Date(project.end_date).toISOString().split("T")[0]
+          : "")
+    ) {
+      if (data.start_date && data.end_date < data.start_date) {
+        newErrors.end_date = "End date cannot be before start date.";
+        isValid = false;
+      }
+      if (new Date(data.end_date) < new Date(today)) {
+        newErrors.end_date = "End date cannot be in the past.";
+        isValid = false;
+      }
     }
 
     setErrors(newErrors);
@@ -197,8 +217,51 @@ const EditProjectModal = ({ project, onClose, onUpdate }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    // Check if at least one field has changed
+    const hasChanges =
+      formData.project_name !== project.project_name ||
+      formData.description !== (project.description || "") ||
+      formData.start_date !==
+        (project.start_date
+          ? new Date(project.start_date).toISOString().split("T")[0]
+          : "") ||
+      formData.end_date !==
+        (project.end_date
+          ? new Date(project.end_date).toISOString().split("T")[0]
+          : "");
+
+    if (!hasChanges) {
+      setErrors({ ...errors, project_name: "No changes detected." });
+      return;
+    }
+
     if (validateForm(formData)) {
-      onUpdate(project.id, formData);
+      // Only include changed fields in the update payload
+      const updatePayload = {};
+      if (formData.project_name !== project.project_name) {
+        updatePayload.project_name = formData.project_name;
+      }
+      if (formData.description !== (project.description || "")) {
+        updatePayload.description = formData.description;
+      }
+      if (
+        formData.start_date !==
+        (project.start_date
+          ? new Date(project.start_date).toISOString().split("T")[0]
+          : "")
+      ) {
+        updatePayload.start_date = formData.start_date;
+      }
+      if (
+        formData.end_date !==
+        (project.end_date
+          ? new Date(project.end_date).toISOString().split("T")[0]
+          : "")
+      ) {
+        updatePayload.end_date = formData.end_date;
+      }
+
+      onUpdate(project.id, updatePayload);
     }
   };
 
@@ -234,22 +297,28 @@ const EditProjectModal = ({ project, onClose, onUpdate }) => {
           </div>
           <div className="start-end-edit-project">
             <div className="form-group-edit-project">
-              <label htmlFor="start_date">Start Date</label>
+              <label htmlFor="start_date">
+                Start Date <span style={{ color: "red" }}>*</span>
+              </label>
               <input
                 type="date"
                 id="start_date"
                 name="start_date"
+                required
                 value={formData.start_date}
                 onChange={handleChange}
                 min={today}
               />
             </div>
             <div className="form-group-edit-project">
-              <label htmlFor="end_date">End Date</label>
+              <label htmlFor="end_date">
+                End Date <span style={{ color: "red" }}>*</span>
+              </label>
               <input
                 type="date"
                 id="end_date"
                 name="end_date"
+                required
                 value={formData.end_date}
                 onChange={handleChange}
                 min={formData.start_date || today}
