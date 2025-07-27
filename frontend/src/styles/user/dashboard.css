@@ -32,9 +32,29 @@
 .main-container.full {
   width: 100%;
 }
+.welcome-header {
+  padding: 20px 20px 20px 20px;
+  margin-bottom: 10px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.welcome-title {
+  font-size: 1.8em;
+  color: #333;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.welcome-subtitle {
+  font-size: 1em;
+  color: #666;
+  font-weight: 400;
+}
 .dashboard-overview {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
   margin: 20px 5px 25px 5px;
 }
@@ -81,7 +101,7 @@
 .overdue-task .color-block-overdue {
   width: 40px;
   height: 40px;
-  margin-left: 50px;
+  margin-left: 150px;
   border-radius: 10px;
 }
 .total-projects .color-block-projects {

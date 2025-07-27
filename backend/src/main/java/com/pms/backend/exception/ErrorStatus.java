@@ -29,7 +29,9 @@ public enum ErrorStatus {
     INVALID_COMMENT(400, "Nội dung bình luận không hợp lệ!"),
      NOTIFICATION_NOT_FOUND(400, "Notification not found"),
     NOTIFICATION_CREATION_FAILED(400, "Create failed"),
+    FILE_NOT_FOUND(400,"File not found"),
     INVALID_ROLE(400, "Vai trò không hợp lệ!");
+
 
     private final int status;
     private final String message;

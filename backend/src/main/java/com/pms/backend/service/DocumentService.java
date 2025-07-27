@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -318,6 +320,27 @@ public class DocumentService {
             response.setUploaderAvatar(user.getAvatar_url());
             return response;
         }).collect(Collectors.toList());
+    }
+
+    public Resource getDocumentFile(Integer documentId, String userId) {
+        log.info("Fetching file for documentId: {} by userId: {}", documentId, userId);
+
+        Document document = documentRepository.findById(documentId)
+                .orElseThrow(() -> new AppException(ErrorStatus.DOCUMENT_NOT_FOUND));
+
+        User requester = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorStatus.USER_NOTFOUND));
+        if (!memberRepository.existsByEmailAndProjectId(requester.getEmail(), String.valueOf(document.getProjectId()))) {
+            throw new AppException(ErrorStatus.UNAUTHORIZED);
+        }
+
+        File file = new File(document.getFilePath());
+        if (!file.exists() || !file.isFile()) {
+            log.error("File not found or is not a file: {}", document.getFilePath());
+            throw new AppException(ErrorStatus.FILE_NOT_FOUND, "Tệp không tồn tại: " + document.getFilePath());
+        }
+
+        return new FileSystemResource(file);
     }
 
     private String getFileExtension(String fileName) {

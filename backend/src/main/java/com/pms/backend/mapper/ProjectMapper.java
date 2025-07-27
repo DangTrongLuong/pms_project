@@ -25,13 +25,9 @@ public interface ProjectMapper {
     
     ProjectResponse toProjectResponse(Project project);
 
-    @Mapping(target = "project_name", source = "project_name")
-    @Mapping(target = "project_type", source = "project_type")
-    @Mapping(target = "description", source = "description")
-    @Mapping(target = "leader", source = "leader")
-    @Mapping(target = "members", source = "members")
+    @Mapping(target = "project_name", source = "project_name")  
+    @Mapping(target = "description", source = "description") 
     @Mapping(target = "start_date", source = "start_date")
     @Mapping(target = "end_date", source = "end_date")
-    @Mapping(target = "status", source = "status")
     void updateProjectFromRequest(@MappingTarget Project project, ProjectUpdateRequest request);
 }

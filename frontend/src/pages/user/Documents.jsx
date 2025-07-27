@@ -31,6 +31,7 @@ const SearchBarDocument = ({ searchQuery, onSearchChange }) => {
     </div>
   );
 };
+
 const Documents = () => {
   const { id } = useParams();
   const { projects } = useSidebar();
@@ -67,7 +68,6 @@ const Documents = () => {
       );
       setFilteredDocuments(filtered);
     } else {
-      // Khi input rỗng thì hiển thị toàn bộ danh sách
       setFilteredDocuments(documents);
     }
   }, [searchQuery, documents]);
@@ -266,11 +266,6 @@ const Documents = () => {
         })
       );
 
-      // Log FormData entries
-      for (let pair of formData.entries()) {
-        console.log("FormData entry:", pair[0], pair[1]);
-      }
-
       const response = await fetch(
         `${process.env.REACT_APP_API_URL}/api/documents/${selectedProject.id}/upload`,
         {
@@ -302,6 +297,46 @@ const Documents = () => {
         err.message ||
           "Không thể tải lên tài liệu. Vui lòng kiểm tra định dạng tệp và thử lại."
       );
+    }
+  };
+
+  const handleDownload = async (documentId, fileName) => {
+    try {
+      const userId = localStorage.getItem("userId");
+      if (!userId || !accessToken) {
+        throw new Error("Vui lòng đăng nhập lại để tiếp tục");
+      }
+
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/api/documents/${documentId}/download`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            userId: userId,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message || `Tải xuống thất bại: ${response.status}`
+        );
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Download error:", err);
+      alert(err.message || "Không thể tải xuống tài liệu. Vui lòng thử lại.");
     }
   };
 
@@ -606,8 +641,10 @@ const Documents = () => {
             <div className="document-preview">
               <div className="preview-placeholder">
                 <div className="preview-icon">{getFileIcon(document.type)}</div>
-
-                <button className="btn-download">
+                <button
+                  className="btn-download"
+                  onClick={() => handleDownload(document.id, document.name)}
+                >
                   <Download size={16} /> Download File
                 </button>
               </div>
@@ -691,7 +728,7 @@ const Documents = () => {
       <div className="modal-overlay">
         <div className="modal-container" ref={taskModalRef}>
           <div className="modal-header">
-            <h2>Chọn task để tải tài liệu</h2>
+            <h2>Select task to download document</h2>
             <button className="modal-close-btn" onClick={onClose}>
               <X />
             </button>
@@ -700,7 +737,7 @@ const Documents = () => {
           <div className="modal-body">
             <input
               type="text"
-              placeholder="Tìm kiếm task..."
+              placeholder="Search task..."
               className="task-search-input"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -713,7 +750,7 @@ const Documents = () => {
               <span>
                 {selectedTask
                   ? `${selectedTask.title} (${selectedTask.status})`
-                  : "Vui lòng chọn task"}
+                  : "Please select task"}
               </span>
               <span className="arrow">▾</span>
             </div>
@@ -740,7 +777,7 @@ const Documents = () => {
                   ))
                 ) : (
                   <li className="no-results">
-                    Không tìm thấy task trong sprint đang chạy
+                    No task found in running sprint.
                   </li>
                 )}
               </ul>
@@ -973,7 +1010,11 @@ const Documents = () => {
                     >
                       <Eye />
                     </button>
-                    <button className="file-action-btn" title="Tải xuống">
+                    <button
+                      className="file-action-btn"
+                      title="Tải xuống"
+                      onClick={() => handleDownload(document.id, document.name)}
+                    >
                       <Download />
                     </button>
                     <button className="file-action-btn file-remove" title="Xóa">

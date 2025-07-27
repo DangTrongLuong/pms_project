@@ -137,6 +137,139 @@ const StatsBar = ({ projects }) => {
   );
 };
 
+// EditProjectModal Component
+const EditProjectModal = ({ project, onClose, onUpdate }) => {
+  const today = new Date().toISOString().split("T")[0];
+  const [formData, setFormData] = useState({
+    project_name: project?.project_name || "",
+    description: project?.description || "",
+    start_date: project?.start_date
+      ? new Date(project.start_date).toISOString().split("T")[0]
+      : "",
+    end_date: project?.end_date
+      ? new Date(project.end_date).toISOString().split("T")[0]
+      : "",
+  });
+  const [errors, setErrors] = useState({
+    project_name: "",
+    start_date: "",
+    end_date: "",
+  });
+
+  const validateForm = (data) => {
+    const newErrors = {
+      project_name: "",
+      start_date: "",
+      end_date: "",
+    };
+    let isValid = true;
+
+    if (!data.project_name.trim()) {
+      newErrors.project_name = "Project name is required.";
+      isValid = false;
+    }
+
+    if (data.start_date && new Date(data.start_date) < new Date(today)) {
+      newErrors.start_date = "Start date cannot be in the past.";
+      isValid = false;
+    }
+
+    if (data.end_date && data.start_date && data.end_date < data.start_date) {
+      newErrors.end_date = "End date cannot be before start date.";
+      isValid = false;
+    }
+
+    if (data.end_date && new Date(data.end_date) < new Date(today)) {
+      newErrors.end_date = "End date cannot be in the past.";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    const updatedFormData = { ...formData, [name]: value };
+    setFormData(updatedFormData);
+    validateForm(updatedFormData);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (validateForm(formData)) {
+      onUpdate(project.id, formData);
+    }
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-container">
+        <div className="modal-header">
+          <h2>Edit Project</h2>
+          <button className="modal-close-btn" onClick={onClose}>
+            <i className="fas fa-times"></i>
+          </button>
+        </div>
+        <div className="modal-body">
+          <div className="form-group-edit-project">
+            <label htmlFor="project_name">Project Name</label>
+            <input
+              type="text"
+              id="project_name"
+              name="project_name"
+              value={formData.project_name}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="form-group-edit-project">
+            <label htmlFor="description">Description</label>
+            <textarea
+              id="description"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="start-end-edit-project">
+            <div className="form-group-edit-project">
+              <label htmlFor="start_date">Start Date</label>
+              <input
+                type="date"
+                id="start_date"
+                name="start_date"
+                value={formData.start_date}
+                onChange={handleChange}
+                min={today}
+              />
+            </div>
+            <div className="form-group-edit-project">
+              <label htmlFor="end_date">End Date</label>
+              <input
+                type="date"
+                id="end_date"
+                name="end_date"
+                value={formData.end_date}
+                onChange={handleChange}
+                min={formData.start_date || today}
+              />
+            </div>
+          </div>
+        </div>
+        <div className="modal-footer">
+          <button className="btn btn-cancel" onClick={onClose}>
+            Cancel
+          </button>
+          <button className="btn btn-primary" onClick={handleSubmit}>
+            Update
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ProjectCard Component
 const ProjectCard = ({
   project,
@@ -144,6 +277,7 @@ const ProjectCard = ({
   onActionClick,
   canManageMembers,
   currentUserEmail,
+  onEditClick,
   onDeleteClick,
   currentUser,
 }) => {
@@ -247,15 +381,27 @@ const ProjectCard = ({
         </div>
       </div>
       {currentUser === leadName && (
-        <div className="btn-delete-card">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDeleteClick(project.id);
-            }}
-          >
-            Delete Project
-          </button>
+        <div className="btn-edit-delete-project">
+          <div className="btn-edit-card-project">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onEditClick(project);
+              }}
+            >
+              Edit Project
+            </button>
+          </div>
+          <div className="btn-delete-card">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDeleteClick(project.id);
+              }}
+            >
+              Delete Project
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -272,6 +418,7 @@ const ProjectsList = ({
   handleActionClick,
   canManageMembers,
   currentUserEmail,
+  onEditClick,
   onDeleteClick,
   currentUser,
 }) => {
@@ -304,6 +451,7 @@ const ProjectsList = ({
           onActionClick={handleActionClick}
           canManageMembers={canManageMembers(project.id)}
           currentUserEmail={currentUserEmail}
+          onEditClick={onEditClick}
           onDeleteClick={onDeleteClick}
           currentUser={currentUser}
         />
@@ -318,7 +466,6 @@ const MyProjects = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [projects, setProjects] = useState([]);
-
   const [filteredProjects, setFilteredProjects] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -330,6 +477,7 @@ const MyProjects = () => {
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [transferConfirm, setTransferConfirm] = useState(null);
   const [deleteProjectConfirm, setDeleteProjectConfirm] = useState(null);
+  const [editProject, setEditProject] = useState(null);
   const [members, setMembers] = useState({});
   const [loading, setLoading] = useState(true);
   const actionRef = useRef(null);
@@ -691,7 +839,6 @@ const MyProjects = () => {
         throw new Error(data.message || "Failed to delete project");
       }
 
-      // Refresh project list
       const fetchResponse = await fetch(
         `${process.env.REACT_APP_API_URL}/api/projects/my-projects`,
         {
@@ -725,6 +872,57 @@ const MyProjects = () => {
     } catch (err) {
       setError(err.message || "Error deleting project");
       console.error("Delete project error:", err);
+    }
+  };
+
+  const handleEditClick = (project) => {
+    setEditProject(project);
+  };
+
+  const handleUpdateProject = async (projectId, formData) => {
+    try {
+      const userId = localStorage.getItem("userId");
+      const accessToken = localStorage.getItem("accessToken");
+
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/api/projects/${projectId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+            userId: userId,
+          },
+          body: JSON.stringify(formData),
+        }
+      );
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || "Failed to update project");
+      }
+
+      const updatedProject = await response.json();
+      const mappedProject = {
+        ...updatedProject,
+        status: mapStatusToFrontend(updatedProject.status || "ACTIVE"),
+        project_type: updatedProject.project_type || "kanban",
+        progress: updatedProject.progress || 0,
+      };
+
+      const updatedProjects = projects.map((p) =>
+        p.id === projectId ? mappedProject : p
+      );
+      setProjects(updatedProjects);
+      setFilteredProjects(updatedProjects);
+      setProjectsSidebar(updatedProjects);
+      localStorage.setItem("projects", JSON.stringify(updatedProjects));
+
+      setEditProject(null);
+      triggerSuccess("The project has been successfully updated.");
+    } catch (err) {
+      setError(err.message || "Error updating project");
+      console.error("Update project error:", err);
     }
   };
 
@@ -853,6 +1051,7 @@ const MyProjects = () => {
                 handleActionClick={handleActionClick}
                 canManageMembers={canManageMembers}
                 currentUserEmail={currentUserEmail}
+                onEditClick={handleEditClick}
                 onDeleteClick={handleDeleteClick}
                 currentUser={currentUser}
               />
@@ -976,6 +1175,14 @@ const MyProjects = () => {
                   </div>
                 </div>
               </div>
+            )}
+
+            {editProject && (
+              <EditProjectModal
+                project={editProject}
+                onClose={() => setEditProject(null)}
+                onUpdate={handleUpdateProject}
+              />
             )}
           </div>
         </div>

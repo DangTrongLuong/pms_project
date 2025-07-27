@@ -15,12 +15,9 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ProjectUpdateRequest {
-    String project_name;
-    String project_type;
+  String project_name;
     String description;
-    String leader;
-    String members;
     LocalDate start_date; 
     LocalDate end_date;
-    String status;
+
 }

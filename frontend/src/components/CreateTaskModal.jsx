@@ -22,6 +22,9 @@ const CreateTaskModal = ({
     projectId: selectedProject?.id || null,
     sprintId: activeSprintId || null,
   });
+  const [sprintStartDate, setSprintStartDate] = useState(null);
+  const [sprintEndDate, setSprintEndDate] = useState(null);
+  const [errorModal, setErrorModal] = useState({ isOpen: false, message: "" });
   const [isSuggesting, setIsSuggesting] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
   const [localSuggestedMembers, setLocalSuggestedMembers] =
@@ -29,10 +32,9 @@ const CreateTaskModal = ({
   const assigneeInputRef = useRef(null);
   const dropdownRef = useRef(null);
 
-  // Lấy ngày hiện tại theo định dạng ISO cho thuộc tính min
   const getCurrentDateTime = () => {
     const now = new Date();
-    return now.toISOString().slice(0, 16); // Định dạng YYYY-MM-DDThh:mm
+    return now.toISOString().slice(0, 16);
   };
 
   useEffect(() => {
@@ -74,7 +76,30 @@ const CreateTaskModal = ({
       setSelectedMember(null);
     }
     setLocalSuggestedMembers(suggestedMembers);
-  }, [editingTask, selectedProject, activeSprintId, suggestedMembers]);
+
+    if (formData.sprintId) {
+      const selectedSprint = sprints.find(
+        (s) => s.id === parseInt(formData.sprintId)
+      );
+      if (selectedSprint) {
+        setSprintStartDate(selectedSprint.startDate);
+        setSprintEndDate(selectedSprint.endDate);
+      } else {
+        setSprintStartDate(null);
+        setSprintEndDate(null);
+      }
+    } else {
+      setSprintStartDate(null);
+      setSprintEndDate(null);
+    }
+  }, [
+    editingTask,
+    selectedProject,
+    activeSprintId,
+    suggestedMembers,
+    formData.sprintId,
+    sprints,
+  ]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -91,7 +116,11 @@ const CreateTaskModal = ({
       const userId = localStorage.getItem("userId");
       const accessToken = localStorage.getItem("accessToken");
       if (!userId || !accessToken || !selectedProject?.id) {
-        throw new Error("Vui lòng đăng nhập và chọn dự án hợp lệ");
+        setErrorModal({
+          isOpen: true,
+          message: "Vui lòng đăng nhập và chọn dự án hợp lệ",
+        });
+        return;
       }
       const response = await fetch(
         `${
@@ -131,22 +160,85 @@ const CreateTaskModal = ({
     assigneeInputRef.current?.focus();
   };
 
+  const handleSprintChange = (e) => {
+    const sprintId = e.target.value === "" ? null : parseInt(e.target.value);
+    setFormData({ ...formData, sprintId });
+    if (sprintId) {
+      const selectedSprint = sprints.find((s) => s.id === sprintId);
+      if (selectedSprint) {
+        setSprintStartDate(selectedSprint.startDate);
+        setSprintEndDate(selectedSprint.endDate);
+      } else {
+        setSprintStartDate(null);
+        setSprintEndDate(null);
+      }
+    } else {
+      setSprintStartDate(null);
+      setSprintEndDate(null);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const userId = localStorage.getItem("userId");
       const accessToken = localStorage.getItem("accessToken");
       if (!userId || !accessToken || !formData.projectId) {
-        throw new Error("Vui lòng đăng nhập và chọn dự án hợp lệ");
+        setErrorModal({
+          isOpen: true,
+          message: "Vui lòng đăng nhập và chọn dự án hợp lệ",
+        });
+        return;
       }
       if (formData.sprintId) {
         const sprint = sprints.find(
           (s) => s.id === parseInt(formData.sprintId)
         );
         if (!sprint || !["PLANNED", "ACTIVE"].includes(sprint.status)) {
-          throw new Error(
-            "Sprint không hợp lệ hoặc không ở trạng thái PLANNED/ACTIVE"
-          );
+          setErrorModal({
+            isOpen: true,
+            message:
+              "Sprint không hợp lệ hoặc không ở trạng thái PLANNED/ACTIVE",
+          });
+          return;
+        }
+
+        const taskStart = new Date(formData.startDate);
+        const taskEnd = new Date(formData.endDate);
+        const sprStart = new Date(sprintStartDate);
+        const sprEnd = new Date(sprintEndDate);
+
+        if (
+          isNaN(taskStart.getTime()) ||
+          isNaN(taskEnd.getTime()) ||
+          (sprintStartDate && isNaN(sprStart.getTime())) ||
+          (sprintEndDate && isNaN(sprEnd.getTime()))
+        ) {
+          setErrorModal({
+            isOpen: true,
+            message: "Invalid date. Please check again.",
+          });
+          return;
+        }
+
+        if (taskStart > taskEnd) {
+          setErrorModal({
+            isOpen: true,
+            message: "The end date must be after the start date of the sprint.",
+          });
+          return;
+        }
+
+        if (
+          sprintStartDate &&
+          sprintEndDate &&
+          (taskStart < sprStart || taskEnd > sprEnd)
+        ) {
+          setErrorModal({
+            isOpen: true,
+            message: "Task duration must not exceed sprint duration!",
+          });
+          return;
         }
       }
 
@@ -169,7 +261,10 @@ const CreateTaskModal = ({
       onClose();
     } catch (err) {
       console.error(err.message || "Đã có lỗi xảy ra khi tạo nhiệm vụ");
-      alert(err.message || "Không thể tạo nhiệm vụ. Vui lòng thử lại.");
+      setErrorModal({
+        isOpen: true,
+        message: err.message || "Không thể tạo nhiệm vụ. Vui lòng thử lại.",
+      });
     }
   };
 
@@ -198,6 +293,34 @@ const CreateTaskModal = ({
     return colors[index];
   };
 
+  const ErrorModal = ({ isOpen, message, onClose }) => {
+    if (!isOpen) return null;
+    return (
+      <div className="error-modal-overlay">
+        <div className="error-modal">
+          <div className="error-modal-header">
+            <h3 className="error-modal-title">Error</h3>
+            <button
+              type="button"
+              onClick={onClose}
+              className="error-modal-close"
+            >
+              <X size={20} />
+            </button>
+          </div>
+          <div className="error-modal-content">
+            <p>{message}</p>
+          </div>
+          <div className="error-modal-actions">
+            <button type="button" onClick={onClose} className="error-modal-btn">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -222,15 +345,10 @@ const CreateTaskModal = ({
             </label>
             <select
               value={formData.sprintId || ""}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  sprintId:
-                    e.target.value === "" ? null : parseInt(e.target.value),
-                })
-              }
+              onChange={handleSprintChange}
               className="create-task-form-select"
             >
+              <option value="">Select a sprint</option>
               {sprints?.map((sprint) => (
                 <option key={sprint.id} value={sprint.id}>
                   {sprint.name} ({sprint.status})
@@ -278,7 +396,7 @@ const CreateTaskModal = ({
                 onChange={(e) =>
                   setFormData({ ...formData, startDate: e.target.value })
                 }
-                min={getCurrentDateTime()} // Giới hạn ngày trong quá khứ
+                min={getCurrentDateTime()}
                 className="create-task-form-input"
               />
             </div>
@@ -293,7 +411,7 @@ const CreateTaskModal = ({
                 onChange={(e) =>
                   setFormData({ ...formData, endDate: e.target.value })
                 }
-                min={getCurrentDateTime()} // Giới hạn ngày trong quá khứ
+                min={formData.startDate || getCurrentDateTime()}
                 className="create-task-form-input"
               />
             </div>
@@ -332,6 +450,11 @@ const CreateTaskModal = ({
             </button>
           </div>
         </form>
+        <ErrorModal
+          isOpen={errorModal.isOpen}
+          message={errorModal.message}
+          onClose={() => setErrorModal({ isOpen: false, message: "" })}
+        />
       </div>
     </div>
   );
@@ -405,10 +528,70 @@ const styles = `
     display: flex;
     flex-direction: column;
   }
+  .error-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+  }
+  .error-modal {
+    background: #fff;
+    border-radius: 8px;
+    width: 400px;
+    max-width: 90%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+  }
+  .error-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .error-modal-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #d32f2f;
+  }
+  .error-modal-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #172b4d;
+  }
+  .error-modal-content {
+    padding: 16px;
+    font-size: 14px;
+    color: #172b4d;
+  }
+  .error-modal-actions {
+    padding: 16px;
+    display: flex;
+    justify-content: flex-end;
+  }
+  .error-modal-btn {
+    background: #d32f2f;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .error-modal-btn:hover {
+    background: #b71c1c;
+  }
 `;
 
 const styleSheet = new CSSStyleSheet();
 styleSheet.replaceSync(styles);
-document.adoptedStyleSheets = [styleSheet];
+document.adoptedStyleSheets = [...document.adoptedStyleSheets, styleSheet];
 
 export default CreateTaskModal;

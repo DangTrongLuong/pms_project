@@ -131,6 +131,14 @@ const DashboardContent = () => {
           <Sidebar />
         </div>
         <div className={`main-container ${!isSidebarOpen ? "full" : ""}`}>
+          <div className="welcome-header">
+            <h1 className="welcome-title">Dashboard</h1>
+            <p className="welcome-subtitle">
+              This is where you can keep an overview of your team's projects,
+              members, and tasks. Start managing your work efficiently!
+            </p>
+          </div>
+
           <div className="dashboard-overview">
             <div className="overview-card">
               <div className="total-projects">
@@ -155,14 +163,6 @@ const DashboardContent = () => {
               </div>
               <p className="count">{taskCount}</p>
               <p className="des-card">Across all projects</p>
-            </div>
-            <div className="overview-card">
-              <div className="overdue-task">
-                <h2>Overdue Tasks</h2>
-                <div className="color-block-overdue"></div>
-              </div>
-              <p className="count">{overdueTasks}</p>
-              <p className="des-card">Require immediate attention</p>
             </div>
           </div>
           <div className="chart-progress">

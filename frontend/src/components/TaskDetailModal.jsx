@@ -262,6 +262,46 @@ const TaskDetailModal = ({
       );
     }
   };
+  const handleDownload = async (documentId, fileName) => {
+    try {
+      const userId = localStorage.getItem("userId");
+      const accessToken = localStorage.getItem("accessToken");
+      if (!userId || !accessToken) {
+        throw new Error("Vui lòng đăng nhập lại để tiếp tục");
+      }
+
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/api/documents/${documentId}/download`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            userId: userId,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message || `Tải xuống thất bại: ${response.status}`
+        );
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Download error:", err);
+      alert(err.message || "Không thể tải xuống tài liệu. Vui lòng thử lại.");
+    }
+  };
 
   const formatFileSize = (bytes) => {
     if (bytes === 0) return "0 Bytes";
@@ -402,6 +442,7 @@ const TaskDetailModal = ({
                           download
                           className="file-action-btn"
                           title="Tải xuống"
+                          onClick={() => handleDownload(doc.id, doc.name)}
                         >
                           <Download size={16} />
                         </a>

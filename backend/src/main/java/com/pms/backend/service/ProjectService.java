@@ -139,9 +139,7 @@ public class ProjectService {
         }
         project.setStart_date(request.getStart_date());
         project.setEnd_date(request.getEnd_date());
-        if (request.getStatus() != null) {
-            project.setStatus(request.getStatus()); // Cập nhật status nếu có
-        }
+        
 
         Project updatedProject = projectRepository.save(project);
         log.info("Project updated: {}", updatedProject);
