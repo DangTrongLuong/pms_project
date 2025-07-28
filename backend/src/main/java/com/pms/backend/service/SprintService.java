@@ -1,12 +1,14 @@
 package com.pms.backend.service;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.pms.backend.dto.TaskDTO;
 import com.pms.backend.dto.request.SprintCreationRequest;
@@ -21,6 +23,7 @@ import com.pms.backend.exception.AppException;
 import com.pms.backend.exception.ErrorStatus;
 import com.pms.backend.mapper.SprintMapper;
 import com.pms.backend.mapper.TaskMapper;
+import com.pms.backend.repository.MemberRepository;
 import com.pms.backend.repository.ProjectRepository;
 import com.pms.backend.repository.SprintRepository;
 import com.pms.backend.repository.TaskRepository;
@@ -42,6 +45,7 @@ public class SprintService {
     UserRepository userRepository;
     TaskRepository taskRepository;
     TaskMapper taskMapper;
+    MemberRepository memberRepository;
 
     public Sprint createSprint(Integer projectId, SprintCreationRequest request, String userId, String userName) {
         if (request.getName() == null || request.getName().trim().isEmpty()) {
@@ -395,6 +399,47 @@ public class SprintService {
             log.error("Lỗi không xác định khi lấy danh sách task backlog cho projectId {}: {}", projectId, e.getMessage(), e);
             throw new AppException(ErrorStatus.INTERNAL_SERVER_ERROR, "Không thể lấy danh sách task backlog: " + e.getMessage());
         }
+    }
+    @Transactional
+    public Sprint updateSprintDates(Integer sprintId, String startDateStr, String endDateStr, String userId) {
+        log.info("Cập nhật ngày sprint cho sprintId: {}, startDate: {}, endDate: {}, userId: {}", 
+                sprintId, startDateStr, endDateStr, userId);
+
+        Sprint sprint = sprintRepository.findById((long) sprintId)
+                .orElseThrow(() -> new AppException(ErrorStatus.SPRINT_NOT_FOUND, "Sprint không tồn tại"));
+
+        // Kiểm tra người dùng
+        User requester = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorStatus.USER_NOTFOUND, "Người dùng không tồn tại"));
+
+        // Kiểm tra quyền: Chỉ trưởng nhóm (LEADER) hoặc người tạo sprint được cập nhật
+        if (!sprint.getCreateById().equals(userId) && 
+            !memberRepository.existsByEmailAndProjectIdAndRole(requester.getEmail(), String.valueOf(sprint.getProject().getId()), "LEADER")) {
+            log.error("User {} is not authorized to update sprint dates for sprint {}", userId, sprintId);
+            throw new AppException(ErrorStatus.UNAUTHORIZED, "Bạn không có quyền cập nhật ngày sprint này");
+        }
+
+        // Parse ngày từ String (định dạng ISO_LOCAL_DATE: YYYY-MM-DD)
+        LocalDate startDate = startDateStr != null && !startDateStr.trim().isEmpty() 
+            ? LocalDate.parse(startDateStr, DateTimeFormatter.ISO_LOCAL_DATE) 
+            : sprint.getStartDate();
+        LocalDate endDate = endDateStr != null && !endDateStr.trim().isEmpty() 
+            ? LocalDate.parse(endDateStr, DateTimeFormatter.ISO_LOCAL_DATE) 
+            : sprint.getEndDate();
+
+        // Kiểm tra tính hợp lệ của ngày
+        if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
+            throw new AppException(ErrorStatus.INVALID_INPUT, "Ngày bắt đầu không thể sau ngày kết thúc");
+        }
+        if (startDate != null && startDate.isBefore(LocalDate.now())) {
+            throw new AppException(ErrorStatus.INVALID_INPUT, "Ngày bắt đầu không thể trước ngày hiện tại");
+        }
+
+        sprint.setStartDate(startDate);
+        sprint.setEndDate(endDate);
+        Sprint updatedSprint = sprintRepository.save(sprint);
+        log.info("Sprint dates updated successfully: {}", updatedSprint);
+        return updatedSprint;
     }
 
     public Optional<Sprint> getSprintById(Integer sprintId) {

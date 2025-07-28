@@ -492,6 +492,7 @@ const Backlog = () => {
             Authorization: `Bearer ${accessToken}`,
             userId: userId,
           },
+          credentials: "include",
           body: JSON.stringify({ startDate, endDate }),
         }
       );
@@ -506,6 +507,7 @@ const Backlog = () => {
 
       await fetchSprintsAndTasks();
       setEditSprintDates({ isOpen: false, sprint: null });
+      triggerSuccess(`You have successfully updated the Sprint.`);
     } catch (err) {
       console.error("Lỗi khi cập nhật ngày sprint:", err);
       setErrorModal({

@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { login } from "../../context/authContext";
 import logo from "../../assets/logo.png";
 import googleIcon from "../../assets/google-icon.png";
-import backgroundImage from "../../assets/du-an.webp";
+import backgroundImage from "../../assets/du-an.png";
 import { NotificationContext } from "../../context/NotificationContext";
 import "../../styles/user/login.css";
 import { useUser } from "../../context/UserContext";
