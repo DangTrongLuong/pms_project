@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.pms.backend.dto.TaskDTO;
 import com.pms.backend.dto.request.SprintCreationRequest;
+import com.pms.backend.dto.request.SprintUpdateRequest;
 import com.pms.backend.dto.request.TaskCreationRequest;
 import com.pms.backend.dto.request.TaskUpdateRequest;
 import com.pms.backend.entity.Sprint;
@@ -360,6 +361,28 @@ public class SprintController {
             );
         } catch (Exception e) {
             log.error("Lỗi không xác định khi lấy chi tiết sprint: {}", e.getMessage(), e);
+            return ResponseEntity.status(500).body(
+                Map.of("status", 500, "message", "Lỗi máy chủ nội bộ: " + e.getMessage())
+            );
+        }
+    }
+
+    @PutMapping("/{sprintId}")
+    public ResponseEntity<?> updateSprintDates(
+            @PathVariable @NotNull(message = "Sprint ID cannot be null") Integer sprintId,
+            @RequestBody SprintUpdateRequest request,
+            @RequestHeader @NotEmpty(message = "User ID cannot be empty") String userId) {
+        try {
+            log.info("Cập nhật ngày sprint cho sprintId: {}, userId: {}", sprintId, userId);
+            Sprint sprint = sprintService.updateSprintDates(sprintId, request.getStartDate(), request.getEndDate(), userId);
+            return ResponseEntity.ok(sprint);
+        } catch (AppException e) {
+            log.error("Lỗi khi cập nhật ngày sprint: {}", e.getCustomMessage());
+            return ResponseEntity.status(e.getErrorStatus().getStatus()).body(
+                Map.of("status", e.getErrorStatus().getStatus(), "message", e.getCustomMessage())
+            );
+        } catch (Exception e) {
+            log.error("Lỗi không xác định khi cập nhật ngày sprint: {}", e.getMessage(), e);
             return ResponseEntity.status(500).body(
                 Map.of("status", 500, "message", "Lỗi máy chủ nội bộ: " + e.getMessage())
             );
