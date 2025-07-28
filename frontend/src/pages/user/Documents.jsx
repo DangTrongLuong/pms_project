@@ -913,8 +913,8 @@ const Documents = () => {
     );
 
     return (
-      <div className="assignee-modal-overlay">
-        <div className="assignee-modal" ref={assigneeDropdownRef}>
+      <div className="assignee-modal-overlay-document">
+        <div className="assignee-modal-document" ref={assigneeDropdownRef}>
           <input
             type="text"
             value={searchQuery}
@@ -924,49 +924,57 @@ const Documents = () => {
                 handleSearchAssignees(e.target.value, documentId);
               }
             }}
-            placeholder="Tìm kiếm thành viên..."
-            className="search-input"
+            placeholder="Search member..."
+            className="search-input-document"
           />
           {filteredMembers.length > 0 ? (
-            <ul className="assignee-suggestion-list">
+            <ul className="assignee-suggestion-list-document">
               {filteredMembers.slice(0, 8).map((member, index) => (
-                <li key={index} className="assignee-suggestion-item">
-                  <div className="assignee-info">
-                    <span className="assignee-avatar">
-                      {member.avatar_url ? (
-                        <img src={member.avatar_url} alt={member.name} />
+                <li key={index} className="assignee-suggestion-item-document">
+                  <div className="assignee-info-document">
+                    <span className="assignee-avatar-document">
+                      {avatar_url ? (
+                        <img src={avatar_url} alt={member.name} />
                       ) : (
                         member.name?.charAt(0).toUpperCase()
                       )}
                     </span>
-                    <div>
-                      <span className="assignee-name">{member.name}</span>
-                      <span className="assignee-email">{member.email}</span>
+                    <div className="name-email-document-column">
+                      <span className="assignee-name-document">
+                        {member.name}
+                      </span>
+                      <span className="assignee-email-document">
+                        {member.email}
+                      </span>
                     </div>
                   </div>
-                  <div className="role-buttons">
-                    <button
-                      className="role-btn role-owner"
-                      onClick={() =>
-                        handleAssignUser(documentId, member.email, "Owner")
-                      }
-                    >
-                      Owner
-                    </button>
-                    <button
-                      className="role-btn role-reviewer"
-                      onClick={() =>
-                        handleAssignUser(documentId, member.email, "Reviewer")
-                      }
-                    >
-                      Reviewer
-                    </button>
+                  <div className="role-buttons-owner-reviewer">
+                    <div className="role-btn-owner">
+                      <button
+                        className="role-btn role-owner"
+                        onClick={() =>
+                          handleAssignUser(documentId, member.email, "Owner")
+                        }
+                      >
+                        Owner
+                      </button>
+                    </div>
+                    <div className="role-btn-reviewer">
+                      <button
+                        className="role-btn role-reviewer"
+                        onClick={() =>
+                          handleAssignUser(documentId, member.email, "Reviewer")
+                        }
+                      >
+                        Reviewer
+                      </button>
+                    </div>
                   </div>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="no-results">Không tìm thấy thành viên phù hợp</p>
+            <p className="no-results">No matching members found.</p>
           )}
         </div>
       </div>

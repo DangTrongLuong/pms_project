@@ -437,11 +437,13 @@
 }
 
 .role-owner {
+  width: 80px;
   background: rgba(246, 173, 85, 0.2);
   color: #d69e2e;
 }
 
 .role-reviewer {
+  width: 80px;
   background: rgba(66, 153, 225, 0.2);
   color: #3182ce;
 }
@@ -588,7 +590,7 @@
   background: rgba(66, 153, 225, 0.2);
 }
 
-.assignee-modal-overlay {
+.assignee-modal-overlay-document {
   position: fixed;
   top: 0;
   left: 0;
@@ -601,18 +603,18 @@
   z-index: 1000;
 }
 
-.assignee-modal {
+.assignee-modal-document {
   background: white;
   border-radius: 12px;
   padding: 16px;
-  max-width: 400px;
-  width: 90%;
+  max-width: 500px;
+  width: 100%;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   position: relative;
   z-index: 1001;
 }
 
-.search-input {
+.assignee-modal-document .search-input-document {
   width: 100%;
   padding: 10px;
   margin-bottom: 12px;
@@ -621,15 +623,16 @@
   font-size: 14px;
 }
 
-.assignee-suggestion-list {
+.assignee-suggestion-list-document {
   list-style: none;
   padding: 0;
   margin: 0;
-  max-height: 200px;
+  max-height: 400px;
   overflow-y: auto;
+  scrollbar-width: thin;
 }
 
-.assignee-suggestion-item {
+.assignee-suggestion-item-document {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -638,25 +641,28 @@
   cursor: pointer;
 }
 
-.assignee-suggestion-item:last-child {
+.assignee-suggestion-item-document:last-child {
   border-bottom: none;
 }
 
-.assignee-suggestion-item:hover {
+.assignee-suggestion-item-document:hover {
   background: #f5f5f5;
 }
 
-.assignee-info {
+.assignee-info-document {
   display: flex;
-  align-items: center;
+
   gap: 8px;
 }
+.name-email-document-column {
+  display: flex;
+  flex-direction: column;
+}
 
-.assignee-avatar {
+.assignee-avatar-document {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -665,20 +671,21 @@
   font-weight: 600;
 }
 
-.assignee-avatar img {
+.assignee-avatar-document img {
   width: 100%;
   height: 100%;
+  margin-top: 10px;
   border-radius: 50%;
   object-fit: cover;
 }
 
-.assignee-name {
+.assignee-name-document {
   font-size: 14px;
   font-weight: 600;
   color: #1a202c;
 }
 
-.assignee-email {
+.assignee-email-document {
   font-size: 12px;
   color: #64748b;
 }
@@ -1672,14 +1679,15 @@
     gap: 10px;
   }
 
-  .role-buttons {
-    flex-direction: column;
+  .role-buttons-owner-reviewer {
+    display: flex;
+    flex-direction: column !important;
     gap: 4px;
-    width: 100%;
+    width: 200px;
   }
 
-  .role-btn {
-    width: 100%;
+  .role-buttons-owner-reviewer .role-btn {
+    width: 200px !important;
     text-align: center;
   }
 

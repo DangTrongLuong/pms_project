@@ -595,17 +595,17 @@ const People = () => {
     }
   };
 
-  const getTasksAssigned = (memberName) => {
-    return (selectedProject?.tasks || []).filter(
-      (task) => task.assignee === memberName
-    ).length;
-  };
+  // const getTasksAssigned = (memberName) => {
+  //   return (selectedProject?.tasks || []).filter(
+  //     (task) => task.assignee === memberName
+  //   ).length;
+  // };
 
-  const getTasksCompleted = (memberName) => {
-    return (selectedProject?.tasks || []).filter(
-      (task) => task.assignee === memberName && task.status === "DONE"
-    ).length;
-  };
+  // const getTasksCompleted = (memberName) => {
+  //   return (selectedProject?.tasks || []).filter(
+  //     (task) => task.assignee === memberName && task.status === "DONE"
+  //   ).length;
+  // };
 
   return (
     <div className="people-section">
@@ -836,14 +836,14 @@ const People = () => {
               </div>
 
               <div className="person-stats">
-                <div className="person-task-stats">
+                {/* <div className="person-task-stats">
                   <p className="stat-value">
                     {getTasksAssigned(member.name)} tasks
                   </p>
                   <p className="stat-label">
                     {getTasksCompleted(member.name)} completed
                   </p>
-                </div>
+                </div> */}
 
                 <span
                   className={`person-role role-${member.role.toLowerCase()}`}

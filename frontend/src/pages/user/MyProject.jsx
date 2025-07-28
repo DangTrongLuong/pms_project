@@ -449,7 +449,7 @@ const ProjectCard = ({
           )}
         </div>
       </div>
-      {currentUser === leadName && (
+      {currentUser === leadName && project.status !== "COMPLETED" && (
         <div className="btn-edit-delete-project">
           <div className="btn-edit-card-project">
             <button
@@ -1029,26 +1029,6 @@ const MyProjects = () => {
   const sortOptions = [
     { value: "name", label: "Name (A-Z)", icon: "fas fa-sort-alpha-down" },
     { value: "name-desc", label: "Name (Z-A)", icon: "fas fa-sort-alpha-up" },
-    {
-      value: "progress",
-      label: "Progress (Low-High)",
-      icon: "fas fa-sort-numeric-down",
-    },
-    {
-      value: "progress-desc",
-      label: "Progress (High-Low)",
-      icon: "fas fa-sort-numeric-up",
-    },
-    {
-      value: "creation-date",
-      label: "Creation Date (Old-New)",
-      icon: "fas fa-calendar-alt",
-    },
-    {
-      value: "creation-date-desc",
-      label: "Creation Date (New-Old)",
-      icon: "fas fa-calendar-alt",
-    },
   ];
 
   return (
