@@ -808,46 +808,13 @@ const Backlog = () => {
     }
   };
 
-  const handleSearchAssignees = async (query, taskId) => {
-    try {
-      const userId = localStorage.getItem("userId");
-      const accessToken = localStorage.getItem("accessToken");
-      if (!userId || !accessToken) throw new Error("Vui lòng đăng nhập lại");
-
-      console.log("Searching assignees for query:", query, "taskId:", taskId);
-      const response = await fetch(
-        `${
-          process.env.REACT_APP_API_URL
-        }/api/members/search?query=${encodeURIComponent(query)}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-            userId: userId,
-          },
-          credentials: "include",
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.message ||
-            `Tìm kiếm người dùng thất bại: ${response.status}`
-        );
-      }
-
-      const users = await response.json();
-      setAssigneeModal({ isOpen: true, taskId, suggestedMembers: users });
-    } catch (err) {
-      console.error("Lỗi khi tìm kiếm người dùng:", err);
-      setErrorModal({
-        isOpen: true,
-        message:
-          err.message || "Không thể tìm kiếm người dùng. Vui lòng thử lại.",
-      });
-    }
+  const handleSearchAssignees = (query, taskId) => {
+    const filtered = suggestedMembers.filter(
+      (member) =>
+        member.name?.toLowerCase().includes(query.toLowerCase()) ||
+        member.email?.toLowerCase().includes(query.toLowerCase())
+    );
+    setAssigneeModal({ isOpen: true, taskId, suggestedMembers: filtered });
   };
 
   const onDragEnd = async (result) => {
@@ -1020,12 +987,7 @@ const Backlog = () => {
     );
   };
 
-  const AssigneeModal = ({
-    isOpen,
-    taskId,
-    suggestedMembers: initialMembers,
-    onClose,
-  }) => {
+  const AssigneeModal = ({ isOpen, taskId, suggestedMembers, onClose }) => {
     const [searchQuery, setSearchQuery] = useState("");
     const [filteredMembers, setFilteredMembers] = useState([]);
     const dropdownRef = useRef(null);
@@ -1048,45 +1010,18 @@ const Backlog = () => {
         document.removeEventListener("mousedown", handleClickOutside);
     }, [onClose]);
 
-    const handleSearchAssignees = async (query) => {
-      try {
-        const userId = localStorage.getItem("userId");
-        const accessToken = localStorage.getItem("accessToken");
-        if (!userId || !accessToken) throw new Error("Vui lòng đăng nhập lại");
-
-        const response = await fetch(
-          `${
-            process.env.REACT_APP_API_URL
-          }/api/members/search?query=${encodeURIComponent(query)}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${accessToken}`,
-              userId: userId,
-            },
-            credentials: "include",
-          }
-        );
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(
-            errorData.message ||
-              `Tìm kiếm người dùng thất bại: ${response.status}`
-          );
-        }
-
-        const users = await response.json();
-        setFilteredMembers(users || []);
-      } catch (err) {
-        console.error("Lỗi khi tìm kiếm người dùng:", err);
-        setErrorModal({
-          isOpen: true,
-          message:
-            err.message || "Không thể tìm kiếm người dùng. Vui lòng thử lại.",
-        });
+    const handleSearch = (query) => {
+      if (query.trim() === "") {
+        setFilteredMembers([]);
+        return;
       }
+      const lowerQuery = query.toLowerCase();
+      const filtered = suggestedMembers.filter(
+        (member) =>
+          member.name?.toLowerCase().includes(lowerQuery) ||
+          member.email?.toLowerCase().includes(lowerQuery)
+      );
+      setFilteredMembers(filtered);
     };
 
     const handleSelectAssignee = (email) => {
@@ -1097,11 +1032,7 @@ const Backlog = () => {
     const handleInputChange = (e) => {
       const value = e.target.value;
       setSearchQuery(value);
-      if (value.length > 0) {
-        handleSearchAssignees(value);
-      } else {
-        setFilteredMembers([]); // Reset khi không nhập
-      }
+      handleSearch(value);
     };
 
     if (!isOpen || !taskId) return null;
