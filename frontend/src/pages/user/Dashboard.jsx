@@ -56,38 +56,75 @@ const DashboardContent = () => {
 
     const fetchData = async () => {
       try {
-        const projectResponse = await axios.get(
-          `${process.env.REACT_APP_API_URL}/api/projects/count`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              userId: userId,
-            },
-          }
-        );
-        setProjectCount(projectResponse.data);
+          // Đếm số dự án người dùng tham gia
+    setProjectCount(projects.length);
 
-        const userResponse = await axios.get(
-          `${process.env.REACT_APP_API_URL}/api/auth/count`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              userId: userId,
-            },
-          }
-        );
-        setUserCount(userResponse.data);
+    // Đếm số thành viên trong các dự án
+    const memberEmails = new Set();
+    for (const project of projects) {
+      const memberResponse = await axios.get(
+        `${process.env.REACT_APP_API_URL}/api/members/project/${project.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            userId: userId,
+          },
+        }
+      );
+      if (memberResponse.status === 200) {
+        const members = memberResponse.data;
+        members.forEach((member) => memberEmails.add(member.email));
+      }
+    }
+    setUserCount(memberEmails.size);
 
-        const taskResponse = await axios.get(
-          `${process.env.REACT_APP_API_URL}/api/sprints/count`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              userId: userId,
-            },
+    // Đếm tổng số task trong các dự án
+    let totalTaskCount = 0;
+    for (const project of projects) {
+      // Lấy task trong backlog
+      const backlogResponse = await axios.get(
+        `${process.env.REACT_APP_API_URL}/api/sprints/tasks/backlog/${project.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            userId: userId,
+          },
+        }
+      );
+      if (backlogResponse.status === 200) {
+        totalTaskCount += backlogResponse.data.length;
+      }
+
+      // Lấy danh sách sprint của dự án
+      const sprintResponse = await axios.get(
+        `${process.env.REACT_APP_API_URL}/api/sprints/project/${project.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            userId: userId,
+          },
+        }
+      );
+      if (sprintResponse.status === 200) {
+        const sprints = sprintResponse.data;
+        // Lấy task trong từng sprint
+        for (const sprint of sprints) {
+          const taskResponse = await axios.get(
+            `${process.env.REACT_APP_API_URL}/api/sprints/tasks/${sprint.id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+                userId: userId,
+              },
+            }
+          );
+          if (taskResponse.status === 200) {
+            totalTaskCount += taskResponse.data.length;
           }
-        );
-        setTaskCount(taskResponse.data);
+        }
+      }
+    }
+    setTaskCount(totalTaskCount);
 
         setTotalTasks(100);
         setOverdueTasks(15);
