@@ -6,6 +6,7 @@ import React, {
   useContext,
 } from "react";
 import { Search, Plus, MoreHorizontal, User, Trash2, X } from "lucide-react";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import "../../styles/user/progress.css";
 import { useParams } from "react-router-dom";
 import { useSidebar } from "../../context/SidebarContext";
@@ -30,7 +31,6 @@ const Progress = () => {
   const [members, setMembers] = useState([]);
   const [taskMenuOpen, setTaskMenuOpen] = useState(null);
   const [statusMenuOpen, setStatusMenuOpen] = useState(null);
-
   const [deleteTaskModal, setDeleteTaskModal] = useState({
     isOpen: false,
     task: null,
@@ -670,6 +670,93 @@ const Progress = () => {
     }
   };
 
+  const onDragEnd = async (result) => {
+    const { source, destination, draggableId } = result;
+
+    // Nếu không có đích, thoát
+    if (!destination) return;
+
+    // Nếu kéo thả trong cùng một cột và cùng vị trí, thoát
+    if (
+      source.droppableId === destination.droppableId &&
+      source.index === destination.index
+    ) {
+      return;
+    }
+
+    const task = tasks.find((t) => t.id.toString() === draggableId);
+    if (!task) {
+      console.error("Không tìm thấy task với id:", draggableId);
+      alert("Không tìm thấy task. Vui lòng thử lại.");
+      return;
+    }
+
+    const newStatus = destination.droppableId === "DONE" ? "COMPLETED" : destination.droppableId;
+
+    try {
+      const userId = localStorage.getItem("userId");
+      const accessToken = localStorage.getItem("accessToken");
+      if (!userId || !accessToken) {
+        throw new Error("Vui lòng đăng nhập lại để tiếp tục");
+      }
+
+      const validStatuses = ["TODO", "IN_PROGRESS", "IN_REVIEW", "COMPLETED"];
+      if (!validStatuses.includes(newStatus)) {
+        throw new Error("Trạng thái không hợp lệ");
+      }
+
+      // Optimistic update
+      setTasks((prevTasks) =>
+        prevTasks.map((t) =>
+          t.id === task.id ? { ...t, status: destination.droppableId } : t
+        )
+      );
+
+      const taskData = {
+        status: newStatus,
+        title: task.title || "Untitled Task",
+        description: task.description || "",
+        priority: task.priority || "Medium",
+        startDate: task.startDate,
+        endDate: task.endDate,
+      };
+
+      console.log("Updating task status for taskId:", task.id, "to:", newStatus);
+
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/api/sprints/task/${task.id}/status`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+            userId: userId,
+          },
+          body: JSON.stringify(taskData),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message || `Cập nhật trạng thái thất bại: ${response.status}`
+        );
+      }
+
+      await fetchSprintsAndTasks();
+      triggerSuccess("Task status updated successfully.");
+    } catch (err) {
+      console.error("Lỗi khi cập nhật trạng thái task:", err);
+      // Rollback optimistic update
+      setTasks((prevTasks) =>
+        prevTasks.map((t) =>
+          t.id === task.id ? { ...t, status: source.droppableId } : t
+        )
+      );
+      alert(err.message || "Không thể cập nhật trạng thái task. Vui lòng thử lại.");
+    }
+  };
+
   const AssigneeModal = ({
     isOpen,
     taskId,
@@ -750,7 +837,7 @@ const Progress = () => {
       if (value.length > 0) {
         handleSearchAssignees(value);
       } else {
-        setFilteredMembers([]); // Reset khi không nhập
+        setFilteredMembers([]);
       }
     };
 
@@ -893,318 +980,344 @@ const Progress = () => {
     const columns = groupTasks();
 
     return (
-      <div className="kanban-board">
-        <div className="kanban-header">
-          <div className="search-container">
-            <Search className="search-icon" />
-            <input
-              type="text"
-              placeholder="Search board..."
-              className="search-input"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            {members.map((member, index) => (
-              <div
-                key={index}
-                className="member-avatar-progress"
-                title={member.name}
-              >
-                {member.avatarUrl ? (
-                  <img
-                    src={member.avatarUrl}
-                    alt={member.name}
-                    className="member-avatar-img-progress"
-                  />
-                ) : (
-                  <div
-                    className="assignee-initials"
-                    style={{ backgroundColor: getAvatarColor(member.name) }}
-                  >
-                    {getInitials(member.name)}
-                  </div>
-                )}
+      <DragDropContext onDragEnd={onDragEnd}>
+        <div className="kanban-board">
+          <div className="kanban-header">
+            <div className="search-container">
+              <Search className="search-icon" />
+              <input
+                type="text"
+                placeholder="Search board..."
+                className="search-input"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              {members.map((member, index) => (
+                <div
+                  key={index}
+                  className="member-avatar-progress"
+                  title={member.name}
+                >
+                  {member.avatarUrl ? (
+                    <img
+                      src={member.avatarUrl}
+                      alt={member.name}
+                      className="member-avatar-img-progress"
+                    />
+                  ) : (
+                    <div
+                      className="assignee-initials"
+                      style={{ backgroundColor: getAvatarColor(member.name) }}
+                    >
+                      {getInitials(member.name)}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="dropdown-filters">
+              <div className="grouping-dropdown">
+                <select
+                  className="filter-select"
+                  value={groupBy}
+                  onChange={(e) => setGroupBy(e.target.value)}
+                >
+                  <option value="status">Group by Status</option>
+                  <option value="assignee">Group by Assignee</option>
+                  <option value="priority">Group by Priority</option>
+                </select>
               </div>
-            ))}
-          </div>
-          <div className="dropdown-filters">
-            <div className="grouping-dropdown">
-              <select
-                className="filter-select"
-                value={groupBy}
-                onChange={(e) => setGroupBy(e.target.value)}
-              >
-                <option value="status">Group by Status</option>
-                <option value="assignee">Group by Assignee</option>
-                <option value="priority">Group by Priority</option>
-              </select>
-            </div>
-            <div className="progress-filters">
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="filter-select"
-              >
-                <option value="all">All Status</option>
-                <option value="TODO">To Do</option>
-                <option value="IN_PROGRESS">In Progress</option>
-                <option value="IN_REVIEW">In Review</option>
-                <option value="DONE">Done</option>
-              </select>
-              <select
-                value={filterPriority}
-                onChange={(e) => setFilterPriority(e.target.value)}
-                className="filter-select"
-              >
-                <option value="all">All Priority</option>
-                <option value="High">High</option>
-                <option value="Medium">Medium</option>
-                <option value="Low">Low</option>
-              </select>
+              <div className="progress-filters">
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="filter-select"
+                >
+                  <option value="all">All Status</option>
+                  <option value="TODO">To Do</option>
+                  <option value="IN_PROGRESS">In Progress</option>
+                  <option value="IN_REVIEW">In Review</option>
+                  <option value="DONE">Done</option>
+                </select>
+                <select
+                  value={filterPriority}
+                  onChange={(e) => setFilterPriority(e.target.value)}
+                  className="filter-select"
+                >
+                  <option value="all">All Priority</option>
+                  <option value="High">High</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Low">Low</option>
+                </select>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="kanban-columns">
-          {columns.map((column) => (
-            <div className="kanban-column" key={column.id}>
-              <div className="column-header">
-                <h3 className="column-title">
-                  {column.title}
-                  <span className="ml-2 text-gray-500">
-                    (
-                    {
-                      (groupBy === "status"
+          <div className="kanban-columns">
+            {columns.map((column) => (
+              <Droppable
+                droppableId={column.id}
+                key={column.id}
+                isDropDisabled={groupBy !== "status"}
+              >
+                {(provided) => (
+                  <div
+                    className="kanban-column"
+                    ref={provided.innerRef}
+                    {...provided.droppableProps}
+                  >
+                    <div className="column-header">
+                      <h3 className="column-title">
+                        {column.title}
+                        <span className="ml-2 text-gray-500">
+                          (
+                          {
+                            (groupBy === "status"
+                              ? filteredTasks.filter((t) => t.status === column.id)
+                              : column.tasks || []
+                            ).length
+                          }
+                          )
+                        </span>
+                      </h3>
+                      <button
+                        className="add-task-btn"
+                        onClick={() => setSelectedTask({ status: column.id })}
+                      >
+                        {column.title === "TO DO" && (
+                          <Plus className="w-3 h-3" style={{ marginTop: "-10px" }} />
+                        )}
+                      </button>
+                    </div>
+                    <div className="column-tasks">
+                      {(groupBy === "status"
                         ? filteredTasks.filter((t) => t.status === column.id)
                         : column.tasks || []
-                      ).length
-                    }
-                    )
-                  </span>
-                </h3>
-                <button
-                  className="add-task-btn"
-                  onClick={() => setSelectedTask({ status: column.id })}
-                >
-                  {column.title === "TO DO" && (
-                    <Plus className="w-3 h-3" style={{ marginTop: "-10px" }} />
-                  )}
-                </button>
-              </div>
-              <div className="column-tasks">
-                {(groupBy === "status"
-                  ? filteredTasks.filter((t) => t.status === column.id)
-                  : column.tasks || []
-                ).map((task) => (
-                  <div
-                    key={task.id}
-                    className={`board-task-card ${
-                      task.status === "DONE" ? "bg-green-100" : ""
-                    }`}
-                    onClick={(e) => handleTaskCardClick(e, task)}
-                  >
-                    <div className="board-task-meta">
-                      <h4
-                        className={`board-task-title ${
-                          task.status === "DONE"
-                            ? "line-through text-gray-500"
-                            : ""
-                        }`}
-                      >
-                        {task.title}
-                      </h4>
-                      <div
-                        className="task-menu-container"
-                        ref={(el) => {
-                          if (el) dropdownRefs.current[task.id] = el;
-                        }}
-                      >
-                        <button
-                          className="task-more-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            console.log(
-                              "Opening dropdown for task:",
-                              task.id,
-                              "status:",
-                              task.status
-                            );
-                            setTaskMenuOpen(
-                              taskMenuOpen === task.id ? null : task.id
-                            );
-                          }}
+                      ).map((task, index) => (
+                        <Draggable
+                          key={task.id}
+                          draggableId={task.id.toString()}
+                          index={index}
+                          isDragDisabled={groupBy !== "status"}
                         >
-                          <MoreHorizontal className="w-4 h-4" />
-                        </button>
-                        {taskMenuOpen === task.id && (
-                          <div className="task-dropdown-menu">
-                            <button
-                              className="dropdown-item"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                console.log(
-                                  "Change Status clicked for task:",
-                                  task.id
-                                );
-                                setStatusMenuOpen(
-                                  statusMenuOpen === task.id ? null : task.id
-                                );
-                              }}
+                          {(provided) => (
+                            <div
+                              className={`board-task-card ${
+                                task.status === "DONE" ? "bg-green-100" : ""
+                              }`}
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              onClick={(e) => handleTaskCardClick(e, task)}
                             >
-                              Change Status
-                            </button>
-                            <StatusChangeModal
-                              isOpen={statusMenuOpen === task.id}
-                              task={task}
-                              onClose={() => {
-                                setStatusMenuOpen(null);
-                                setTaskMenuOpen(null);
-                              }}
-                            />
-                            <button
-                              className="dropdown-item"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                console.log(
-                                  "Edit Task clicked for task:",
-                                  task.id
-                                );
-                                setSelectedTask(task);
-                                setTaskMenuOpen(null);
-                              }}
-                            >
-                              Edit Task
-                            </button>
-                            <button
-                              className="dropdown-item"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                console.log(
-                                  "Assign Member clicked for task:",
-                                  task.id
-                                );
-                                fetchProjectMembers(task.id);
-                                setTaskMenuOpen(null);
-                              }}
-                            >
-                              Assign Member
-                            </button>
-                            <button
-                              className="dropdown-item delete-item"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                console.log(
-                                  "Delete Task clicked for task:",
-                                  task.id
-                                );
-                                setDeleteTaskModal({
-                                  isOpen: true,
-                                  task,
-                                });
-                                setTaskMenuOpen(null);
-                              }}
-                            >
-                              <Trash2 size={16} />
-                              Delete Task
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <p className="board-task-desc">
-                      {task.description || "No description available"}
-                    </p>
-                    <div className="board-task-meta">
-                      <div className="task-type-priority">
-                        <span
-                          className={`task-type ${getTypeColor(task.type)}`}
-                        >
-                          {task.type || (
-                            <div className="task-name-name">
-                              {selectedProject.shortName}Task {task.taskNumber}
+                              <div className="board-task-meta">
+                                <h4
+                                  className={`board-task-title ${
+                                    task.status === "DONE"
+                                      ? "line-through text-gray-500"
+                                      : ""
+                                  }`}
+                                >
+                                  {task.title}
+                                </h4>
+                                <div
+                                  className="task-menu-container"
+                                  ref={(el) => {
+                                    if (el) dropdownRefs.current[task.id] = el;
+                                  }}
+                                >
+                                  <button
+                                    className="task-more-btn"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      console.log(
+                                        "Opening dropdown for task:",
+                                        task.id,
+                                        "status:",
+                                        task.status
+                                      );
+                                      setTaskMenuOpen(
+                                        taskMenuOpen === task.id ? null : task.id
+                                      );
+                                    }}
+                                  >
+                                    <MoreHorizontal className="w-4 h-4" />
+                                  </button>
+                                  {taskMenuOpen === task.id && (
+                                    <div className="task-dropdown-menu">
+                                      <button
+                                        className="dropdown-item"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          console.log(
+                                            "Change Status clicked for task:",
+                                            task.id
+                                          );
+                                          setStatusMenuOpen(
+                                            statusMenuOpen === task.id ? null : task.id
+                                          );
+                                        }}
+                                      >
+                                        Change Status
+                                      </button>
+                                      <StatusChangeModal
+                                        isOpen={statusMenuOpen === task.id}
+                                        task={task}
+                                        onClose={() => {
+                                          setStatusMenuOpen(null);
+                                          setTaskMenuOpen(null);
+                                        }}
+                                      />
+                                      <button
+                                        className="dropdown-item"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          console.log(
+                                            "Edit Task clicked for task:",
+                                            task.id
+                                          );
+                                          setSelectedTask(task);
+                                          setTaskMenuOpen(null);
+                                        }}
+                                      >
+                                        Edit Task
+                                      </button>
+                                      <button
+                                        className="dropdown-item"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          console.log(
+                                            "Assign Member clicked for task:",
+                                            task.id
+                                          );
+                                          fetchProjectMembers(task.id);
+                                          setTaskMenuOpen(null);
+                                        }}
+                                      >
+                                        Assign Member
+                                      </button>
+                                      <button
+                                        className="dropdown-item delete-item"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          console.log(
+                                            "Delete Task clicked for task:",
+                                            task.id
+                                          );
+                                          setDeleteTaskModal({
+                                            isOpen: true,
+                                            task,
+                                          });
+                                          setTaskMenuOpen(null);
+                                        }}
+                                      >
+                                        <Trash2 size={16} />
+                                        Delete Task
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              <p className="board-task-desc">
+                                {task.description || "No description available"}
+                              </p>
+                              <div className="board-task-meta">
+                                <div className="task-type-priority">
+                                  <span
+                                    className={`task-type ${getTypeColor(task.type)}`}
+                                  >
+                                    {task.type || (
+                                      <div className="task-name-name">
+                                        {selectedProject.shortName}Task {task.taskNumber}
+                                      </div>
+                                    )}
+                                  </span>
+                                  <span
+                                    className={`task-priority ${getPriorityColor(
+                                      task.priority
+                                    )}`}
+                                    style={{ color: "white" }}
+                                  >
+                                    {task.priority}
+                                  </span>
+                                </div>
+                                <div className="task-assignee">
+                                  {task.assigneeEmail ? (
+                                    <button
+                                      className="assignee-avatar"
+                                      title={`Người thực hiện: ${
+                                        task.assigneeName || "Unknown"
+                                      }`}
+                                      // onClick={(e) => {
+                                      //   e.stopPropagation();
+                                      //   console.log(
+                                      //     "Assignee avatar clicked for task:",
+                                      //     task.id
+                                      //   );
+                                      //   fetchProjectMembers(task.id);
+                                      // }}
+                                    >
+                                      {task.assigneeAvatarUrl ? (
+                                        <img
+                                          src={task.assigneeAvatarUrl}
+                                          alt="Assignee"
+                                          className="assignee-avatar-img"
+                                        />
+                                      ) : (
+                                        <div
+                                          className="assignee-initials"
+                                          style={{
+                                            backgroundColor: getAvatarColor(
+                                              task.assigneeName
+                                            ),
+                                            color: "#fff",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            width: "24px",
+                                            height: "24px",
+                                            borderRadius: "50%",
+                                            fontSize: "12px",
+                                            fontWeight: "bold",
+                                          }}
+                                        >
+                                          {getInitials(task.assigneeName)}
+                                        </div>
+                                      )}
+                                    </button>
+                                  ) : (
+                                    <button
+                                      className="assign-user-button"
+                                      title="Not assigned yet"
+                                      // onClick={(e) => {
+                                      //   e.stopPropagation();
+                                      //   console.log(
+                                      //     "Unassigned button clicked for task:",
+                                      //     task.id
+                                      //   );
+                                      //   fetchProjectMembers(task.id);
+                                      // }}
+                                    >
+                                      <User
+                                        className="unassigned-icon"
+                                        style={{ opacity: 0.5 }}
+                                      />
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
                             </div>
                           )}
-                        </span>
-                        <span
-                          className={`task-priority ${getPriorityColor(
-                            task.priority
-                          )}`}
-                          style={{ color: "white" }}
-                        >
-                          {task.priority}
-                        </span>
-                      </div>
-                      <div className="task-assignee">
-                        {task.assigneeEmail ? (
-                          <button
-                            className="assignee-avatar"
-                            title={`Người thực hiện: ${
-                              task.assigneeName || "Unknown"
-                            }`}
-                            // onClick={(e) => {
-                            //   e.stopPropagation();
-                            //   console.log(
-                            //     "Assignee avatar clicked for task:",
-                            //     task.id
-                            //   );
-                            //   fetchProjectMembers(task.id);
-                            // }}
-                          >
-                            {task.assigneeAvatarUrl ? (
-                              <img
-                                src={task.assigneeAvatarUrl}
-                                alt="Assignee"
-                                className="assignee-avatar-img"
-                              />
-                            ) : (
-                              <div
-                                className="assignee-initials"
-                                style={{
-                                  backgroundColor: getAvatarColor(
-                                    task.assigneeName
-                                  ),
-                                  color: "#fff",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  width: "24px",
-                                  height: "24px",
-                                  borderRadius: "50%",
-                                  fontSize: "12px",
-                                  fontWeight: "bold",
-                                }}
-                              >
-                                {getInitials(task.assigneeName)}
-                              </div>
-                            )}
-                          </button>
-                        ) : (
-                          <button
-                            className="assign-user-button"
-                            title="Not assigned yet"
-                            // onClick={(e) => {
-                            //   e.stopPropagation();
-                            //   console.log(
-                            //     "Unassigned button clicked for task:",
-                            //     task.id
-                            //   );
-                            //   fetchProjectMembers(task.id);
-                            // }}
-                          >
-                            <User
-                              className="unassigned-icon"
-                              style={{ opacity: 0.5 }}
-                            />
-                          </button>
-                        )}
-                      </div>
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
-          ))}
+                )}
+              </Droppable>
+            ))}
+          </div>
         </div>
-      </div>
+      </DragDropContext>
     );
   };
 

@@ -6,6 +6,13 @@ spring:
   web:
     resources:
       static-locations: file:uploads/
+    cors:
+      allowed-origins: 
+        - http://localhost:3000
+        - https://quanliduan-pms.site
+      allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+      allowed-headers: Authorization,userId,Content-Type,role
+      allow-credentials: true
   servlet:
     multipart:
       max-file-size: 10MB
@@ -57,10 +64,6 @@ spring:
             user-name-attribute: sub
             user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
 
-# spring:
-#   web:
-#     cors:
-#       allowed-origins: http://localhost:80
 # Logging
 logging:
   level:

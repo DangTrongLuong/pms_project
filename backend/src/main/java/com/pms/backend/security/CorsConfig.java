@@ -16,6 +16,7 @@ public class CorsConfig {
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                        .allowedOrigins("*") // cho phép mọi origin
                         .allowedOrigins("http://localhost:3000")
                         // .allowedOrigins("https://quanliduan-pms.site")
                         .allowedHeaders("*")
