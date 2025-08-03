@@ -933,8 +933,8 @@ const Documents = () => {
                 <li key={index} className="assignee-suggestion-item-document">
                   <div className="assignee-info-document">
                     <span className="assignee-avatar-document">
-                      {avatar_url ? (
-                        <img src={avatar_url} alt={member.name} />
+                      {member.avatarUrl ? (
+                        <img src={member.avatarUrl} alt={member.name} />
                       ) : (
                         member.name?.charAt(0).toUpperCase()
                       )}

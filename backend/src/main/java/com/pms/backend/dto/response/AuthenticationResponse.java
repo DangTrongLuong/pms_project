@@ -25,4 +25,5 @@ public class AuthenticationResponse {
     private String role;
     private LocalDate createdAt;
     private String backgroundUrl;
+    private String authProvider;
 }

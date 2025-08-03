@@ -47,7 +47,11 @@ public class TokenFilter extends OncePerRequestFilter {
                 || path.startsWith("/api/documents/")
                 || path.startsWith("/api/admin/auth/login")
                 || path.startsWith("/oauth2/")
-                || path.startsWith("/login/oauth2/code/")) {
+                || path.startsWith("/login/oauth2/code/")
+                || path.startsWith("/api/chat/")
+                || path.startsWith("/ws-chat/")  // Allow WebSocket endpoints
+                || path.startsWith("/ws/") 
+                || path.startsWith("/sendMessage")) {
             filterChain.doFilter(request, response);
             return;
         }

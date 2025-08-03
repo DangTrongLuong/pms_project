@@ -192,6 +192,7 @@ const AuthMiddleware = ({ children }) => {
             data.created_at || new Date().toISOString().split("T")[0]
           );
           localStorage.setItem("backgroundUrl", data.backgroundUrl || null);
+          localStorage.setItem("authProvider", data.authProvider || "GOOGLE");
 
           setUser({
             avatarUrl: data.avatarUrl || null,
@@ -215,7 +216,7 @@ const AuthMiddleware = ({ children }) => {
 
           console.log("Login success, navigating to dashboard");
           setDebugInfo("Navigating to dashboard...");
-          triggerSuccess();
+          triggerSuccess(`Welcome, you have logged in successfully`);
           setIsLoading(false);
           navigate("/dashboard", { replace: true });
         })

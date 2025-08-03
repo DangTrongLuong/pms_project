@@ -20,6 +20,7 @@ export const login = async (email, password) => {
         "tokenExpiresAt",
         Date.now() + data.result.expiresIn * 1000
       );
+      localStorage.setItem("jwtToken", data.result.accessToken);
       localStorage.setItem("userId", data.result.id);
       localStorage.setItem("userEmail", data.result.email || email);
       localStorage.setItem("userName", data.result.name || "User");
@@ -34,9 +35,12 @@ export const login = async (email, password) => {
         data.result.createdAt || new Date().toISOString().split("T")[0]
       );
       localStorage.setItem("backgroundUrl", data.result.backgroundUrl || null);
-      localStorage.setItem("authProvider", "email");
+      localStorage.setItem("authProvider", data.result.authProvider || "LOCAL");
 
-      return { ...data.result, authProvider: "email" };
+      console.log("Saved authProvider:", localStorage.getItem("authProvider")); // Log kiểm tra
+      console.log("Saved userEmail:", localStorage.getItem("userEmail"));
+
+      return { ...data.result, authProvider: "LOCAL" };
     }
 
     // Nếu đăng nhập local thất bại, thử đăng nhập admin

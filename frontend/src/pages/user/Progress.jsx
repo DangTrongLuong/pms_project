@@ -12,6 +12,7 @@ import { useSidebar } from "../../context/SidebarContext";
 import CreateTaskModal from "../../components/CreateTaskModal";
 import TaskDetailModal from "../../components/TaskDetailModal";
 import { NotificationContext } from "../../context/NotificationContext";
+import ChatMessage from "../../components/ChatMessage";
 
 const Progress = () => {
   const { id } = useParams();
@@ -112,11 +113,13 @@ const Progress = () => {
       const data = await response.json();
       if (response.ok) {
         setMembers(data);
+        return data; // Trả về dữ liệu để sử dụng trong ProjectMembersButton
       } else {
         throw new Error(data.message || "Failed to fetch members");
       }
     } catch (err) {
       console.error("Fetch members error:", err);
+      throw err; // Ném lỗi để xử lý trong ProjectMembersButton
     }
   }, [id]);
 
@@ -1262,6 +1265,7 @@ const Progress = () => {
         onClose={() => setDeleteTaskModal({ isOpen: false, task: null })}
         onConfirm={() => handleDeleteTask(deleteTaskModal.task)}
       />
+      <ChatMessage projectId={id} fetchMembers={fetchMembers} />
     </div>
   );
 };

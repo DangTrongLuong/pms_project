@@ -934,6 +934,7 @@ const Backlog = () => {
 
   const getSprintTasks = (sprintId) =>
     tasks.filter((task) => task.sprintId === sprintId);
+
   const getBacklogTasks = () => tasks.filter((task) => task.sprintId === null);
   const getTaskStatusCounts = (tasks) => ({
     todo: tasks.filter((t) => t.status === "TODO").length,

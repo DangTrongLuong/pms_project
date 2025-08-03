@@ -197,14 +197,7 @@ const Navbar = () => {
 
   const handleLogout = (e) => {
     e.stopPropagation();
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("tokenExpiresAt");
-    localStorage.removeItem("userId");
-    localStorage.removeItem("userName");
-    localStorage.removeItem("userEmail");
-    localStorage.removeItem("avatarUrl");
-    localStorage.removeItem("backgroundUrl");
+    localStorage.clear();
     window.location.href = "/login";
   };
 
