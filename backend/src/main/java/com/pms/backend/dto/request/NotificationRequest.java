@@ -14,6 +14,7 @@ public class NotificationRequest {
     Sender sender;
     Receiver receiver;
     Project project;
+    Integer notificationId; // Thêm trường notificationId
 
     @Data
     @NoArgsConstructor
@@ -42,6 +43,7 @@ public class NotificationRequest {
     @AllArgsConstructor
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class Project {
+        Integer id; // Thêm trường id
         String name;
     }
 }

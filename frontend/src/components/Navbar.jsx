@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faAnglesLeft,
@@ -15,6 +15,7 @@ import logo from "../assets/logo.png";
 import { useSidebar } from "../context/SidebarContext";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../context/UserContext";
+import { NotificationContext } from "../context/NotificationContext";
 
 const Navbar = () => {
   const { user } = useUser();
@@ -29,7 +30,8 @@ const Navbar = () => {
   const [avatarUrl, setAvatarUrl] = useState(localStorage.getItem("avatarUrl"));
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const { isSidebarOpen, toggleSidebar } = useSidebar();
+  const { isSidebarOpen, toggleSidebar, setProjectsSidebar } = useSidebar();
+  const { triggerSuccess, triggerError } = useContext(NotificationContext);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -58,7 +60,6 @@ const Navbar = () => {
     updateUserInfo();
     window.addEventListener("storage", updateUserInfo);
 
-    // Lắng nghe sự kiện cập nhật thông báo
     const handleNotificationUpdate = () => {
       fetchNotifications();
     };
@@ -102,7 +103,6 @@ const Navbar = () => {
       }
 
       const data = await response.json();
-      // Đảm bảo data là mảng trước khi xử lý
       const notificationsArray = Array.isArray(data) ? data : [];
       setNotifications(notificationsArray);
       const unread = notificationsArray.filter(
@@ -111,6 +111,7 @@ const Navbar = () => {
       setUnreadCount(unread);
     } catch (err) {
       console.error("Fetch notifications error:", err);
+      triggerError("Không thể tải thông báo. Vui lòng thử lại.");
     }
   };
 
@@ -139,15 +140,129 @@ const Navbar = () => {
         );
       }
       setUnreadCount(0);
-      fetchNotifications(); // Refresh notifications
+      fetchNotifications();
     } catch (err) {
       console.error("Mark notifications as read error:", err);
+      triggerError("Không thể đánh dấu thông báo đã đọc. Vui lòng thử lại.");
+    }
+  };
+
+  const fetchProjects = async () => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      const userId = localStorage.getItem("userId");
+
+      if (!token || !userId) {
+        throw new Error("User not authenticated");
+      }
+
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/api/projects/my-projects`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+            userId: userId,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message || `Lấy danh sách dự án thất bại: ${response.status}`
+        );
+      }
+
+      const data = await response.json();
+      setProjectsSidebar(data);
+      localStorage.setItem("projects", JSON.stringify(data));
+    } catch (err) {
+      console.error("Fetch projects error:", err);
+      triggerError(err.message || "Lấy danh sách dự án thất bại");
+    }
+  };
+
+  const handleAcceptInvitation = async (notificationId) => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      const userId = localStorage.getItem("userId");
+      const userEmail = localStorage.getItem("userEmail");
+
+      if (!token || !userId || !userEmail) {
+        throw new Error("User not authenticated");
+      }
+
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/api/members/invitation/${notificationId}/accept`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+            userId: userId,
+            userEmail: userEmail,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to accept invitation");
+      }
+
+      const memberData = await response.json();
+      triggerSuccess("Đã chấp nhận lời mời tham gia dự án.");
+
+      // Cập nhật danh sách dự án trong SidebarContext
+      await fetchProjects(); // Gọi API để lấy danh sách dự án mới
+      fetchNotifications(); // Cập nhật danh sách thông báo
+    } catch (err) {
+      console.error("Accept invitation error:", err);
+      triggerError(err.message || "Không thể chấp nhận lời mời. Vui lòng thử lại.");
+    }
+  };
+
+  const handleDeclineInvitation = async (notificationId) => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      const userId = localStorage.getItem("userId");
+      const userEmail = localStorage.getItem("userEmail");
+
+      if (!token || !userId || !userEmail) {
+        throw new Error("User not authenticated");
+      }
+
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/api/members/invitation/${notificationId}/decline`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+            userId: userId,
+            userEmail: userEmail,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to decline invitation");
+      }
+
+      triggerSuccess("Đã từ chối lời mời tham gia dự án.");
+      fetchNotifications();
+    } catch (err) {
+      console.error("Decline invitation error:", err);
+      triggerError(err.message || "Không thể từ chối lời mời. Vui lòng thử lại.");
     }
   };
 
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30000); // Poll every 30 seconds
+    const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -320,6 +435,22 @@ const Navbar = () => {
                           <p className="notification-time">
                             {new Date(notification.createdAt).toLocaleString()}
                           </p>
+                          {notification.invitationStatus === "PENDING" && (
+                            <div className="notification-actions">
+                              <button
+                                className="accept-button"
+                                onClick={() => handleAcceptInvitation(notification.id)}
+                              >
+                                Chấp nhận
+                              </button>
+                              <button
+                                className="decline-button"
+                                onClick={() => handleDeclineInvitation(notification.id)}
+                              >
+                                Từ chối
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))
@@ -362,6 +493,22 @@ const Navbar = () => {
                           <p className="notification-time">
                             {new Date(notification.createdAt).toLocaleString()}
                           </p>
+                          {notification.invitationStatus === "PENDING" && (
+                            <div className="notification-actions">
+                              <button
+                                className="accept-button"
+                                onClick={() => handleAcceptInvitation(notification.id)}
+                              >
+                                Chấp nhận
+                              </button>
+                              <button
+                                className="decline-button"
+                                onClick={() => handleDeclineInvitation(notification.id)}
+                              >
+                                Từ chối
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))
@@ -389,14 +536,14 @@ const Navbar = () => {
                   onClick={() => handleClickProfile("/my_profile")}
                 >
                   <FontAwesomeIcon icon={faUser} />
-                  Personal infomation
+                  Thông tin cá nhân
                 </li>
                 <li
                   className="profile-dropdown-list-item"
                   onClick={handleLogout}
                 >
                   <FontAwesomeIcon icon={faArrowRightFromBracket} />
-                  Log out
+                  Đăng xuất
                 </li>
               </ul>
             </div>

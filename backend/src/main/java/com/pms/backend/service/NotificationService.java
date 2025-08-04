@@ -36,7 +36,6 @@ public class NotificationService {
 
         for (NotificationRequest request : requests) {
             try {
-                // Log the full request for debugging
                 log.info("Processing notification request: {}", request);
 
                 // Validate request data
@@ -57,8 +56,9 @@ public class NotificationService {
                 }
                 if (request.getProject() == null) {
                     errorMessage.append("Project is null; ");
-                } else if (request.getProject().getName() == null) {
-                    errorMessage.append("Project name is null; ");
+                } else {
+                    if (request.getProject().getName() == null) errorMessage.append("Project name is null; ");
+                    if (request.getProject().getId() == null) errorMessage.append("Project ID is null; ");
                 }
 
                 if (errorMessage.length() > 0) {
@@ -66,8 +66,21 @@ public class NotificationService {
                     throw new AppException(ErrorStatus.NOTIFICATION_CREATION_FAILED, "Invalid notification request: " + errorMessage.toString());
                 }
 
+                // Tạo và lưu thông báo
                 Notification notification = notificationMapper.toNotification(request);
-                notificationRepository.save(notification);
+                notification.setMessage(
+                    String.format(
+                        "%s đã mời bạn tham gia dự án %s",
+                        request.getSender().getName(),
+                        request.getProject().getName()
+                    )
+                );
+                notification.setStatus(NotificationStatus.UNREAD.name());
+                notification.setCreated_At(java.time.LocalDateTime.now());
+                notification.setInvitationStatus("PENDING");
+                notification.setProjectId(request.getProject().getId());
+                Notification savedNotification = notificationRepository.save(notification);
+                request.setNotificationId(savedNotification.getId());
                 log.info("Notification created for recipient: {}", request.getReceiver().getEmail());
             } catch (Exception e) {
                 log.error("Failed to create notification for recipient: {}", 
@@ -96,5 +109,17 @@ public class NotificationService {
         notification.setStatus(NotificationStatus.READ.name());
         notificationRepository.save(notification);
         log.info("Notification marked as read: {}", notificationId);
+    }
+
+    public void updateInvitationStatus(int notificationId, String status) {
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new AppException(ErrorStatus.NOTIFICATION_NOT_FOUND));
+        if (!List.of("PENDING", "ACCEPTED", "DECLINED").contains(status)) {
+            throw new AppException(ErrorStatus.INVALID_INPUT, "Invalid invitation status");
+        }
+        notification.setInvitationStatus(status);
+        notification.setStatus(NotificationStatus.READ.name());
+        notificationRepository.save(notification);
+        log.info("Notification {} invitation status updated to: {}", notificationId, status);
     }
 }

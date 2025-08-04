@@ -8,8 +8,10 @@ import org.springframework.stereotype.Service;
 
 import com.pms.backend.dto.request.MemberCreationRequest;
 import com.pms.backend.dto.request.MemberUpdateRequest;
+import com.pms.backend.dto.request.NotificationRequest;
 import com.pms.backend.dto.response.MembersResponse;
 import com.pms.backend.entity.Members;
+import com.pms.backend.entity.Project;
 import com.pms.backend.entity.User;
 import com.pms.backend.exception.AppException;
 import com.pms.backend.exception.ErrorStatus;
@@ -17,6 +19,10 @@ import com.pms.backend.mapper.MembersMapper;
 import com.pms.backend.repository.MemberRepository;
 import com.pms.backend.repository.ProjectRepository;
 import com.pms.backend.repository.UserRepository;
+import com.pms.backend.repository.NotificationRepository;
+import com.pms.backend.entity.Notification;
+import com.pms.backend.service.NotificationService;
+import com.pms.backend.enums.NotificationStatus;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +37,8 @@ public class MembersService {
     MemberRepository memberRepository;
     UserRepository userRepository;
     ProjectRepository projectRepository;
+    NotificationRepository notificationRepository;
+    NotificationService notificationService;
     MembersMapper membersMapper;
 
     public void updateMemberAvatar(String email, String newAvatarUrl) {
@@ -44,35 +52,62 @@ public class MembersService {
         }
     }
 
-    public MembersResponse addMember(int projectId, MemberCreationRequest request, String userId) {
-        log.info("Adding member to projectId: {} by userId: {}", projectId, userId);
+    public void addMember(int projectId, MemberCreationRequest request, String userId) {
+        log.info("Sending invitation to projectId: {} by userId: {}", projectId, userId);
 
-        var project = projectRepository.findById(projectId)
+        // Kiểm tra dự án tồn tại
+        Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new AppException(ErrorStatus.PROJECT_NOT_FOUND));
 
+        // Kiểm tra quyền: Chỉ trưởng nhóm hoặc người tạo dự án được mời
+        User inviter = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorStatus.USER_NOTFOUND));
+        if (!project.getCreated_by_id().equals(userId) && 
+            !memberRepository.findByEmailAndProjectId(inviter.getEmail(), String.valueOf(projectId))
+                .map(m -> m.getRole().equals("LEADER"))
+                .orElse(false)) {
+            throw new AppException(ErrorStatus.UNAUTHORIZED, "Only project leader or creator can invite members");
+        }
+
+        // Kiểm tra người được mời
         User invitedUser = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new AppException(ErrorStatus.USER_NOTFOUND));
-
         if (memberRepository.existsByEmailAndProjectId(request.getEmail(), String.valueOf(projectId))) {
             throw new AppException(ErrorStatus.MEMBER_ALREADY_EXISTS);
         }
 
-        User inviter = userRepository.findById(userId)
-                .orElseThrow(() -> new AppException(ErrorStatus.USER_NOTFOUND));
+        // Kiểm tra null để tránh NullPointerException
+        if (inviter.getName() == null || inviter.getEmail() == null || 
+            invitedUser.getId() == null || invitedUser.getName() == null || 
+            invitedUser.getEmail() == null || project.getProject_name() == null) {
+            log.error("Null values detected: inviter={}, invitedUser={}, project={}", 
+                      inviter, invitedUser, project);
+            throw new AppException(ErrorStatus.INVALID_INPUT, 
+                                  "Required fields (inviter name, email, invited user id, name, email, or project name) cannot be null");
+        }
 
-        Members member = membersMapper.toMember(request);
-        member.setName(invitedUser.getName());
-        member.setEmail(invitedUser.getEmail());
-        member.setAvatarUrl(invitedUser.getAvatar_url());
-        member.setProjectId(String.valueOf(projectId));
-        member.setInvitedByName(inviter.getName());
-        member.setInvitedAt(LocalDate.now().toString());
-        member.setRole("USER");
+        // Tạo thông báo PENDING
+        NotificationRequest notificationRequest = new NotificationRequest();
+        notificationRequest.setSender(new NotificationRequest.Sender(
+            inviter.getId(),
+            inviter.getName(),
+            inviter.getEmail(),
+            inviter.getAvatar_url() != null ? inviter.getAvatar_url() : ""
+        ));
+        notificationRequest.setReceiver(new NotificationRequest.Receiver(
+            invitedUser.getId(),
+            invitedUser.getName(),
+            invitedUser.getEmail(),
+            invitedUser.getAvatar_url() != null ? invitedUser.getAvatar_url() : ""
+        ));
+        notificationRequest.setProject(new NotificationRequest.Project(
+            projectId,
+            project.getProject_name()
+        ));
 
-        Members savedMember = memberRepository.save(member);
-        log.info("Member added: {}", savedMember);
-
-        return membersMapper.toMemberResponse(savedMember);
+        log.info("NotificationRequest created: {}", notificationRequest);
+        notificationService.createNotifications(List.of(notificationRequest));
+        log.info("Invitation sent to: {} for projectId: {}", request.getEmail(), projectId);
     }
 
     public List<MembersResponse> getMembersByProject(int projectId, String userId) {
@@ -137,7 +172,8 @@ public class MembersService {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorStatus.USER_NOTFOUND));
-        if (!project.getCreated_by_id().equals(userId) && !memberRepository.findByEmailAndProjectId(user.getEmail(), String.valueOf(projectId))
+        if (!project.getCreated_by_id().equals(userId) && 
+            !memberRepository.findByEmailAndProjectId(user.getEmail(), String.valueOf(projectId))
                 .map(m -> m.getRole().equals("LEADER"))
                 .orElse(false)) {
             throw new AppException(ErrorStatus.UNAUTHORIZED);
@@ -196,5 +232,68 @@ public class MembersService {
 
         memberRepository.save(member);
         log.info("Creator added as leader for projectId: {}", projectId);
+    }
+
+    public MembersResponse acceptInvitation(int notificationId, String userId, String userEmail) {
+        log.info("Accepting invitation for notificationId: {} by userId: {}", notificationId, userId);
+
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new AppException(ErrorStatus.NOTIFICATION_NOT_FOUND));
+
+        if (!notification.getRecipient_email().equals(userEmail)) {
+            throw new AppException(ErrorStatus.UNAUTHORIZED, "You are not authorized to accept this invitation");
+        }
+
+        if (!notification.getInvitationStatus().equals("PENDING")) {
+            throw new AppException(ErrorStatus.INVALID_INPUT, "Invitation is not in PENDING status");
+        }
+
+        int projectId = notification.getProjectId();
+        projectRepository.findById(projectId)
+                .orElseThrow(() -> new AppException(ErrorStatus.PROJECT_NOT_FOUND));
+
+        if (memberRepository.existsByEmailAndProjectId(userEmail, String.valueOf(projectId))) {
+            throw new AppException(ErrorStatus.MEMBER_ALREADY_EXISTS);
+        }
+
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new AppException(ErrorStatus.USER_NOTFOUND));
+
+        Members member = new Members();
+        member.setName(user.getName());
+        member.setEmail(user.getEmail());
+        member.setAvatarUrl(user.getAvatar_url());
+        member.setProjectId(String.valueOf(projectId));
+        member.setInvitedByName(notification.getUser_name());
+        member.setInvitedAt(LocalDate.now().toString());
+        member.setRole("USER");
+
+        Members savedMember = memberRepository.save(member);
+        notification.setInvitationStatus("ACCEPTED");
+        notification.setStatus(NotificationStatus.READ.name());
+        notificationRepository.save(notification);
+
+        log.info("Invitation accepted for user: {} in project: {}", userEmail, projectId);
+        return membersMapper.toMemberResponse(savedMember);
+    }
+
+    public void declineInvitation(int notificationId, String userId, String userEmail) {
+        log.info("Declining invitation for notificationId: {} by userId: {}", notificationId, userId);
+
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new AppException(ErrorStatus.NOTIFICATION_NOT_FOUND));
+
+        if (!notification.getRecipient_email().equals(userEmail)) {
+            throw new AppException(ErrorStatus.UNAUTHORIZED, "You are not authorized to decline this invitation");
+        }
+
+        if (!notification.getInvitationStatus().equals("PENDING")) {
+            throw new AppException(ErrorStatus.INVALID_INPUT, "Invitation is not in PENDING status");
+        }
+
+        notification.setInvitationStatus("DECLINED");
+        notification.setStatus(NotificationStatus.READ.name());
+        notificationRepository.save(notification);
+        log.info("Invitation declined for user: {}", userEmail);
     }
 }

@@ -24,8 +24,12 @@ public interface NotificationMapper {
     @Mapping(target = "recipient_avatarUrl", source = "receiver.avatar")
     @Mapping(target = "type", constant = "ADD_MEMBER")
     @Mapping(target = "status", constant = "UNREAD")
+    @Mapping(target = "projectId", source = "project.id")
+    @Mapping(target = "invitationStatus", constant = "PENDING")
     Notification toNotification(NotificationRequest request);
 
     @Mapping(target = "createdAt", source = "created_At")
+    @Mapping(target = "projectId", source = "projectId")
+    @Mapping(target = "invitationStatus", source = "invitationStatus")
     NotificationResponse toNotificationResponse(Notification notification);
 }

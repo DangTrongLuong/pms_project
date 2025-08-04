@@ -26,4 +26,6 @@ public class NotificationResponse {
     String recipientAvatarUrl;
     String type;
     String status;
+    Integer projectId;
+    String invitationStatus;
 }

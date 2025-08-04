@@ -137,7 +137,39 @@
   border-radius: 50%;
   border: 1px solid rgb(17, 17, 17, 0.3);
 }
+.notification-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
 
+.accept-button {
+  background-color: #28a745;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.accept-button:hover {
+  background-color: #218838;
+}
+
+.decline-button {
+  background-color: #dc3545;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.decline-button:hover {
+  background-color: #c82333;
+}
 .notification-item {
   display: flex;
   background-color: #f7f7f7;

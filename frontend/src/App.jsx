@@ -1,13 +1,12 @@
 /* eslint-disable react/jsx-pascal-case */
-import React from "react";
+import React, { useContext, useEffect } from "react";
 import "./styles/App.css";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useParams, useNavigate } from "react-router-dom";
 import Login from "./pages/user/Login";
 import Dashboard from "./pages/user/Dashboard";
 import Register from "./pages/user/Register";
 import AuthMiddleware from "./middlewares/authGoogleMiddleware";
 import Task from "./pages/user/Task";
-
 import MyProject from "./pages/user/MyProject";
 import Create_Project from "./pages/user/Create-Project";
 import HomePage from "./pages/user/HomePage";
@@ -22,7 +21,6 @@ import Documents from "./pages/user/Documents";
 import People from "./pages/user/People";
 import AdminUsers from "./pages/admin/AdminUser";
 import AdminProject from "./pages/admin/AdminProject";
-// import Aboutus from "./pages/user/AboutUs";
 import {
   NotificationProvider,
   NotificationContext,
@@ -32,7 +30,55 @@ import ProjectTask from "./components/Project_Task";
 import CustomCursor from "./components/CustomCursor";
 import TaskDetails from "./pages/user/TaskDetail";
 
-// import CustomCursor from "./components/CustomCursor";
+// Component xử lý lời mời
+const InvitationHandler = ({ action }) => {
+  const { notificationId } = useParams();
+  const navigate = useNavigate();
+  const { triggerSuccess, triggerError } = useContext(NotificationContext);
+
+  useEffect(() => {
+    const handleInvitation = async () => {
+      try {
+        const token = localStorage.getItem("accessToken");
+        const userId = localStorage.getItem("userId");
+        const userEmail = localStorage.getItem("userEmail");
+
+        if (!token || !userId || !userEmail) {
+          throw new Error("Vui lòng đăng nhập để thực hiện hành động này");
+        }
+
+        const response = await fetch(
+          `${process.env.REACT_APP_API_URL}/api/members/invitation/${notificationId}/${action}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+              userId: userId,
+              userEmail: userEmail,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || `Không thể ${action === "accept" ? "chấp nhận" : "từ chối"} lời mời`);
+        }
+
+        triggerSuccess(`Đã ${action === "accept" ? "chấp nhận" : "từ chối"} lời mời tham gia dự án.`);
+        navigate("/dashboard"); // Chuyển hướng về dashboard
+      } catch (err) {
+        console.error(`${action} invitation error:`, err);
+        triggerError(err.message || `Không thể ${action === "accept" ? "chấp nhận" : "từ chối"} lời mời. Vui lòng thử lại.`);
+        navigate("/dashboard"); // Chuyển hướng ngay cả khi có lỗi
+      }
+    };
+
+    handleInvitation();
+  }, [notificationId, action, navigate, triggerError, triggerSuccess]);
+
+  return <div>Đang xử lý lời mời...</div>;
+};
 
 function App() {
   return (
@@ -78,7 +124,6 @@ function App() {
                   </AuthMiddleware>
                 }
               />
-
               <Route
                 path="/myProject"
                 element={
@@ -132,6 +177,23 @@ function App() {
                 element={
                   <AuthMiddleware>
                     <AdminProject />
+                  </AuthMiddleware>
+                }
+              />
+              {/* Invitation routes */}
+              <Route
+                path="/invitation/:notificationId/accept"
+                element={
+                  <AuthMiddleware>
+                    <InvitationHandler action="accept" />
+                  </AuthMiddleware>
+                }
+              />
+              <Route
+                path="/invitation/:notificationId/decline"
+                element={
+                  <AuthMiddleware>
+                    <InvitationHandler action="decline" />
                   </AuthMiddleware>
                 }
               />

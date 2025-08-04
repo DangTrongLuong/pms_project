@@ -139,9 +139,7 @@ const People = () => {
     }
     try {
       const response = await fetch(
-        `${
-          process.env.REACT_APP_API_URL
-        }/api/members/search?query=${encodeURIComponent(query)}`,
+        `${process.env.REACT_APP_API_URL}/api/members/search?query=${encodeURIComponent(query)}`,
         {
           method: "GET",
           headers: {
@@ -177,7 +175,7 @@ const People = () => {
 
   const handleAddMember = async () => {
     if (!isLeader) {
-      triggerError("Only the group leader can add members");
+      triggerError("Only the group leader can invite members");
       return;
     }
 
@@ -192,8 +190,8 @@ const People = () => {
         throw new Error("Vui lòng đăng nhập lại để tiếp tục");
       }
 
-      const addedMembers = [];
       for (const email of newMemberEmails) {
+        // Gọi API để tạo thông báo PENDING
         let response = await fetch(
           `${process.env.REACT_APP_API_URL}/api/members/project/${selectedProject.id}`,
           {
@@ -226,203 +224,66 @@ const People = () => {
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           triggerError(
-            `Thêm ${email} thất bại: ${errorData.message || response.status}`
+            `Gửi lời mời đến ${email} thất bại: ${errorData.message || response.status}`
           );
           continue;
         }
 
-        const addedMember = await response.json();
-        addedMembers.push(addedMember);
-        triggerSuccess(`Add member successfully`);
-      }
-
-      // Create webhook requests for n8n with default values
-      const webhookRequests = addedMembers.map((addedMember) => ({
-        sender: {
-          id: userId,
-          name: currentUserName || "Unknown User",
-          email: currentUserEmail,
-          avatarUrl:
-            currentUserAvatarUrl ||
-            `${process.env.REACT_APP_API_URL}/uploads/avatars/default-avatar.png`,
-        },
-        receiver: {
-          id: addedMember.id,
-          name: addedMember.name || "Unknown Member",
-          email: addedMember.email,
-          avatarUrl:
-            addedMember.avatarUrl ||
-            `${process.env.REACT_APP_API_URL}/uploads/avatars/default-avatar.png`,
-        },
-        project: {
-          projectName:
-            selectedProject.name ||
-            selectedProject.project_name ||
-            "Unknown Project",
-        },
-      }));
-
-      // Log webhookRequests for debugging
-      // console.log("webhookRequests:", JSON.stringify(webhookRequests, null, 2));
-
-      // Send requests to n8n webhook and collect responses
-      const n8nResponses = [];
-      for (const request of webhookRequests) {
-        const response = await fetch(
-          "https://n8n.quanliduan-pms.site/webhook/send_email",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
+        // Gọi webhook n8n để gửi email
+        try {
+          const notificationRequest = {
+            sender: {
+              id: userId,
+              name: currentUserName,
+              email: currentUserEmail,
+              avatar: currentUserAvatarUrl || "",
             },
-            body: JSON.stringify(request),
-          }
-        );
+            receiver: {
+              id: "", // ID sẽ được backend điền sau khi lưu thông báo
+              name: "", // Tên sẽ được backend điền
+              email: email,
+              avatar: "",
+            },
+            project: {
+              id: selectedProject.id,
+              name: selectedProject.name,
+            },
+          };
 
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          console.error(
-            "Webhook error for",
-            request.receiver.email,
-            ":",
-            response.status,
-            errorData
+          const n8nResponse = await fetch(
+            "https://n8n.quanliduan-pms.site/webhook/send-email-test",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(notificationRequest),
+            }
           );
-          triggerError(
-            `Failed to send notification to n8n for ${
-              request.receiver.email
-            }: ${errorData.message || response.statusText}`
-          );
+
+          if (!n8nResponse.ok) {
+            console.error("Failed to call n8n webhook for email:", email);
+            triggerError(`Gửi email lời mời đến ${email} thất bại`);
+            continue;
+          }
+
+          triggerSuccess(`Đã gửi lời mời đến ${email}`);
+        } catch (n8nError) {
+          console.error("n8n webhook error:", n8nError);
+          triggerError(`Gửi email lời mời đến ${email} thất bại`);
           continue;
         }
-
-        const n8nResponse = await response.json();
-        n8nResponses.push(
-          ...(Array.isArray(n8nResponse) ? n8nResponse : [n8nResponse])
-        );
       }
 
-      // Log n8nResponses for debugging
-      console.log("n8nResponses:", JSON.stringify(n8nResponses, null, 2));
-
-      // Validate n8nResponses, allowing null avatars but requiring project.name
-      const validResponses = n8nResponses.filter((resp) => {
-        const isValid =
-          resp.sender &&
-          resp.sender.id &&
-          resp.sender.name &&
-          resp.sender.email &&
-          resp.receiver &&
-          resp.receiver.id &&
-          resp.receiver.name &&
-          resp.receiver.email &&
-          resp.project &&
-          resp.project.name;
-        if (!isValid) {
-          const errors = [];
-          if (!resp.sender) errors.push("Sender is missing");
-          else {
-            if (!resp.sender.id) errors.push("Sender ID is missing");
-            if (!resp.sender.name) errors.push("Sender name is missing");
-            if (!resp.sender.email) errors.push("Sender email is missing");
-          }
-          if (!resp.receiver) errors.push("Receiver is missing");
-          else {
-            if (!resp.receiver.id) errors.push("Receiver ID is missing");
-            if (!resp.receiver.name) errors.push("Receiver name is missing");
-            if (!resp.receiver.email) errors.push("Receiver email is missing");
-          }
-          if (!resp.project || !resp.project.name)
-            errors.push("Project name is missing");
-          console.warn("Invalid n8n response:", resp, "Errors:", errors);
-          triggerError(
-            `Invalid response data from n8n for recipient: ${
-              resp.receiver?.email || "unknown"
-            }. Errors: ${errors.join("; ")}`
-          );
-        }
-        return isValid;
-      });
-
-      if (validResponses.length === 0) {
-        throw new Error("No valid n8n responses to save to database");
-      }
-
-      // Send validated responses to backend
-      const backendResponse = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/notifications/webhook/send_email`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-            userId: userId,
-          },
-          body: JSON.stringify(validResponses),
-        }
-      );
-
-      if (!backendResponse.ok) {
-        const errorData = await backendResponse.json().catch(() => ({}));
-        console.error(
-          "Backend save notification error:",
-          backendResponse.status,
-          errorData
-        );
-        triggerError(
-          `Failed to save notifications to database: ${
-            errorData.message || backendResponse.statusText
-          }`
-        );
-        return;
-      }
-
-      // Fetch updated notifications
-      const fetchResponse = await fetch(
-        `${
-          process.env.REACT_APP_API_URL
-        }/api/notifications/recipient/${encodeURIComponent(currentUserEmail)}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-            userId: userId,
-          },
-        }
-      );
-
-      if (fetchResponse.ok) {
-        const updatedNotifications = await fetchResponse.json();
-        window.dispatchEvent(new Event("notificationUpdate"));
-        triggerSuccess("Notifications saved and updated successfully");
-      } else {
-        const errorData = await fetchResponse.json().catch(() => ({}));
-        console.error(
-          "Fetch notifications error:",
-          fetchResponse.status,
-          errorData
-        );
-        triggerError(
-          `Failed to fetch updated notifications: ${
-            errorData.message || fetchResponse.statusText
-          }`
-        );
-      }
-
-      setSelectedProject({
-        ...selectedProject,
-        team: [...(selectedProject.team || []), ...addedMembers],
-      });
+      await fetchPeople();
       setNewMemberEmails([]);
       setEmailInput("");
       setNewMemberRole("USER");
       setShowAddMember(false);
       setEmailSuggestions([]);
     } catch (err) {
-      console.error("Add members error:", err);
-      triggerError(err.message || "Add member failed");
+      console.error("Invite members error:", err);
+      triggerError(err.message || "Gửi lời mời thất bại");
     }
   };
 
@@ -439,9 +300,7 @@ const People = () => {
       }
 
       let response = await fetch(
-        `${
-          process.env.REACT_APP_API_URL
-        }/api/members/project/${projectId}/email/${encodeURIComponent(email)}`,
+        `${process.env.REACT_APP_API_URL}/api/members/project/${projectId}/email/${encodeURIComponent(email)}`,
         {
           method: "DELETE",
           headers: {
@@ -455,11 +314,7 @@ const People = () => {
       if (response.status === 401) {
         token = await refreshToken();
         response = await fetch(
-          `${
-            process.env.REACT_APP_API_URL
-          }/api/members/project/${projectId}/email/${encodeURIComponent(
-            email
-          )}`,
+          `${process.env.REACT_APP_API_URL}/api/members/project/${projectId}/email/${encodeURIComponent(email)}`,
           {
             method: "DELETE",
             headers: {
@@ -595,18 +450,6 @@ const People = () => {
     }
   };
 
-  // const getTasksAssigned = (memberName) => {
-  //   return (selectedProject?.tasks || []).filter(
-  //     (task) => task.assignee === memberName
-  //   ).length;
-  // };
-
-  // const getTasksCompleted = (memberName) => {
-  //   return (selectedProject?.tasks || []).filter(
-  //     (task) => task.assignee === memberName && task.status === "DONE"
-  //   ).length;
-  // };
-
   return (
     <div className="people-section">
       <div className="people-container">
@@ -618,13 +461,13 @@ const People = () => {
               className="add-member-btn"
             >
               <UserPlus />
-              <span>Add Member</span>
+              <span>Invite Member</span>
             </button>
           )}
         </div>
         {showAddMember && isLeader && (
           <div className="add-people-form">
-            <h3>Add Team Member</h3>
+            <h3>Invite Team Member</h3>
             <div className="form-row">
               <div className="form-group">
                 <label className="form-label">Email Address</label>
@@ -632,7 +475,7 @@ const People = () => {
                   type="text"
                   value={emailInput}
                   onChange={handleEmailInputChange}
-                  placeholder="Enter a email"
+                  placeholder="Enter an email"
                   className="form-input"
                   autoComplete="off"
                 />
@@ -759,9 +602,8 @@ const People = () => {
                     >
                       <option value="USER">Member</option>
                     </select>
-
                     <button onClick={handleAddMember} className="btn-primary">
-                      Add
+                      Invite
                     </button>
                     <button
                       onClick={() => setShowAddMember(false)}
@@ -783,7 +625,7 @@ const People = () => {
             style={{
               position: "absolute",
               top: actionMenu.top,
-              left: actionMenu.right,
+              left: actionMenu.left,
               background: "white",
               border: "1px solid #ccc",
               boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
@@ -836,15 +678,6 @@ const People = () => {
               </div>
 
               <div className="person-stats">
-                {/* <div className="person-task-stats">
-                  <p className="stat-value">
-                    {getTasksAssigned(member.name)} tasks
-                  </p>
-                  <p className="stat-label">
-                    {getTasksCompleted(member.name)} completed
-                  </p>
-                </div> */}
-
                 <span
                   className={`person-role role-${member.role.toLowerCase()}`}
                 >

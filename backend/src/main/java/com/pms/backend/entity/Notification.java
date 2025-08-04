@@ -37,6 +37,8 @@ public class Notification {
     String type;
     String status;
     String recipient_avatarUrl;
-
-
+    @Column(name = "project_id")
+    Integer projectId; // Thêm trường projectId
+    @Column(name = "invitation_status")
+    String invitationStatus; // Thêm trường invitationStatus (PENDING, ACCEPTED, DECLINED)
 }

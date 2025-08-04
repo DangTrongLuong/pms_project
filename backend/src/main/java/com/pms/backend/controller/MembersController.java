@@ -18,6 +18,8 @@ import com.pms.backend.dto.request.MemberCreationRequest;
 import com.pms.backend.dto.request.MemberUpdateRequest;
 import com.pms.backend.dto.response.MembersResponse;
 import com.pms.backend.service.MembersService;
+import com.pms.backend.exception.AppException;
+import com.pms.backend.exception.ErrorStatus;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -31,12 +33,12 @@ public class MembersController {
     MembersService membersService;
 
     @PostMapping("/project/{projectId}")
-    public ResponseEntity<MembersResponse> addMember(
+    public ResponseEntity<Void> addMember(
             @PathVariable int projectId,
             @RequestBody MemberCreationRequest request,
             @RequestHeader("userId") String userId) {
-        MembersResponse response = membersService.addMember(projectId, request, userId);
-        return ResponseEntity.ok(response);
+        membersService.addMember(projectId, request, userId);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/project/{projectId}")
@@ -71,6 +73,7 @@ public class MembersController {
         List<MembersResponse> users = membersService.searchUsers(query, userId);
         return ResponseEntity.ok(users);
     }
+
     @DeleteMapping("/project/{projectId}/email/{email}")
     public ResponseEntity<Void> deleteMemberByEmail(
             @PathVariable int projectId,
@@ -86,6 +89,24 @@ public class MembersController {
             @RequestBody MemberCreationRequest request,
             @RequestHeader("userId") String userId) {
         membersService.transferLeader(projectId, request.getEmail(), userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/invitation/{notificationId}/accept")
+    public ResponseEntity<MembersResponse> acceptInvitation(
+            @PathVariable int notificationId,
+            @RequestHeader("userId") String userId,
+            @RequestHeader("userEmail") String userEmail) {
+        MembersResponse response = membersService.acceptInvitation(notificationId, userId, userEmail);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/invitation/{notificationId}/decline")
+    public ResponseEntity<Void> declineInvitation(
+            @PathVariable int notificationId,
+            @RequestHeader("userId") String userId,
+            @RequestHeader("userEmail") String userEmail) {
+        membersService.declineInvitation(notificationId, userId, userEmail);
         return ResponseEntity.ok().build();
     }
 }
