@@ -5,6 +5,7 @@ import {
   faMessage,
   faTimes,
   faPaperPlane,
+  faBars,
 } from "@fortawesome/free-solid-svg-icons";
 import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
@@ -20,6 +21,7 @@ const ChatMessage = ({ projectId, fetchMembers }) => {
   const messagesEndRef = useRef(null);
   const stompClient = useRef(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   String.prototype.hashCode = function () {
     let hash = 0;
@@ -38,6 +40,7 @@ const ChatMessage = ({ projectId, fetchMembers }) => {
         setIsOpen(false);
         setSelectedMember(null);
         setSearchQuery("");
+        setIsMobileMenuOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -74,6 +77,10 @@ const ChatMessage = ({ projectId, fetchMembers }) => {
     );
     setMembers(filteredMembers || []);
     setIsOpen(true);
+  };
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
   const refreshAccessToken = async () => {
@@ -425,7 +432,17 @@ const ChatMessage = ({ projectId, fetchMembers }) => {
       </button>
       {isOpen && (
         <div className="members-dropdown-chat">
-          <div className="members-chat-message-send">
+          {/* Hamburger button chỉ hiển thị trên mobile */}
+          <button className="hamburger-button" onClick={toggleMobileMenu}>
+            <FontAwesomeIcon icon={faBars} />
+          </button>
+
+          {/* Member list slide-in on mobile */}
+          <div
+            className={`members-chat-message-send ${
+              isMobileMenuOpen ? "open" : ""
+            }`}
+          >
             <div className="members-dropdown-header-chat">
               <h3 className="members-dropdown-title-chat">Chat</h3>
             </div>
@@ -451,7 +468,10 @@ const ChatMessage = ({ projectId, fetchMembers }) => {
                           ? "selected"
                           : ""
                       }`}
-                      onClick={() => setSelectedMember(member)}
+                      onClick={() => {
+                        setSelectedMember(member);
+                        setIsMobileMenuOpen(false); // Đóng menu sau khi chọn
+                      }}
                     >
                       <div className="member-avatar-chat">
                         {member.avatarUrl ? (
@@ -482,6 +502,12 @@ const ChatMessage = ({ projectId, fetchMembers }) => {
               </ul>
             </div>
           </div>
+
+          {/* Overlay để đóng menu khi click ngoài trên mobile */}
+          {isMobileMenuOpen && (
+            <div className="mobile-overlay" onClick={toggleMobileMenu}></div>
+          )}
+
           <div className="members-chat-message-chat">
             {selectedMember ? (
               <>
