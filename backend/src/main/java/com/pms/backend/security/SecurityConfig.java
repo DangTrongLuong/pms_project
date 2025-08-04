@@ -42,6 +42,7 @@ public class SecurityConfig {
                         "/api/auth/check-email", 
                         "/api/auth/login",
                         "/api/auth/**",
+                        "/api/auth/exchange-token",
                         "/oauth2/**",
                         "/login/oauth2/code/**",
                         "/",
@@ -49,7 +50,13 @@ public class SecurityConfig {
                         "/api/members/**",
                         "/api/sprints/**",
                         "/api/documents/**", 
-                        "/api/notifications/**"
+                        "/api/notifications/**",
+                        "/api/chat/**",
+                        "/ws-chat/**",
+                        "/ws-chat/info/**",
+                        "/ws-chat/websocket",
+                        "/ws/**",
+                        "/sendMessage"
                 ).permitAll()
                 .requestMatchers("/api/comments/**").authenticated() 
                 .anyRequest().authenticated())
@@ -60,6 +67,7 @@ public class SecurityConfig {
                 .redirectionEndpoint(redirection -> redirection
                 .baseUri("/login/oauth2/code/*"))
                 .defaultSuccessUrl("/api/auth/loginSuccess", true)
+                //.successHandler(customSuccessHandler)
                 .failureUrl("/api/auth/login/google?error=true"))
                 .oauth2Client(Customizer.withDefaults())
                 .logout(logout -> logout
@@ -80,10 +88,10 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
-    public JwtDecoder jwtDecoder() {
-        return JwtDecoders.fromIssuerLocation("https://accounts.google.com");
-    }
+    @Bean(name = "googleJwtDecoder")
+    public JwtDecoder googleJwtDecoder() {
+    return JwtDecoders.fromIssuerLocation("https://accounts.google.com");
+}
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {

@@ -46,7 +46,7 @@ public class AuthenticationService {
         }
         // Tạo JWT
         String accessToken = Jwts.builder()
-                .setSubject(user.getEmail())
+                .setSubject(user.getEmail().toLowerCase())
                 .claim("userId", user.getId())
                 .claim("role", user.getRole().name())
                 .setIssuedAt(new Date())
@@ -60,11 +60,12 @@ public class AuthenticationService {
                 .expiresIn(EXPIRATION_TIME / 1000)
                 .id(user.getId())
                 .name(user.getName() != null ? user.getName() : "User") // Thêm tên
-                .email(user.getEmail()) // Thêm email
+                .email(user.getEmail().toLowerCase()) // Thêm email
                 .avatarUrl(user.getAvatar_url() != null ? user.getAvatar_url() : "")// seconds
                 .role(user.getRole().name())
                 .backgroundUrl(user.getBackground_url() != null ? user.getBackground_url() : "")
                 .createdAt(user.getCreatedAt())
+                .authProvider("LOCAL")
                 .build();
     }
 }

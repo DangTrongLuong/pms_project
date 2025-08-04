@@ -32,6 +32,8 @@ public enum ErrorStatus {
     FILE_NOT_FOUND(400,"File not found"),
     FILE_DELETION_FAILED(400, "File deletion failed"),
     BAD_REQUEST(400, "BAD_REQUEST"),
+    CHAT_MESSAGE_FAILED(400, "Gửi tin nhắn thất bại!"),
+CHAT_HISTORY_NOT_FOUND(404, "Lịch sử chat không tìm thấy!"),
     INVALID_ROLE(400, "Vai trò không hợp lệ!");
 
 

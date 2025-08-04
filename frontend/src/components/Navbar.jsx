@@ -312,14 +312,7 @@ const Navbar = () => {
 
   const handleLogout = (e) => {
     e.stopPropagation();
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("tokenExpiresAt");
-    localStorage.removeItem("userId");
-    localStorage.removeItem("userName");
-    localStorage.removeItem("userEmail");
-    localStorage.removeItem("avatarUrl");
-    localStorage.removeItem("backgroundUrl");
+    localStorage.clear();
     window.location.href = "/login";
   };
 
@@ -423,7 +416,7 @@ const Navbar = () => {
               <div className="notification-dropdown">
                 <div className="notification-list">
                   {notifications.length === 0 ? (
-                    <p className="no-notifications">Không có thông báo</p>
+                    <p className="no-notifications">No notifications</p>
                   ) : (
                     notifications.map((notification) => (
                       <div key={notification.id} className="notification-item">
@@ -478,7 +471,7 @@ const Navbar = () => {
                 <div className="notification-list">
                   {notifications.length === 0 ? (
                     <div className="no-notifications">
-                      <p>Không có thông báo</p>
+                      <p>No notifications</p>
                     </div>
                   ) : (
                     notifications.map((notification) => (
