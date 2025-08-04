@@ -434,13 +434,13 @@ const Navbar = () => {
                                 className="accept-button"
                                 onClick={() => handleAcceptInvitation(notification.id)}
                               >
-                                Chấp nhận
+                                Accept
                               </button>
                               <button
                                 className="decline-button"
                                 onClick={() => handleDeclineInvitation(notification.id)}
                               >
-                                Từ chối
+                                Decline
                               </button>
                             </div>
                           )}
@@ -492,13 +492,13 @@ const Navbar = () => {
                                 className="accept-button"
                                 onClick={() => handleAcceptInvitation(notification.id)}
                               >
-                                Chấp nhận
+                                Accept
                               </button>
                               <button
                                 className="decline-button"
                                 onClick={() => handleDeclineInvitation(notification.id)}
                               >
-                                Từ chối
+                                Decline
                               </button>
                             </div>
                           )}
