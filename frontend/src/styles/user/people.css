@@ -113,10 +113,12 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.action-menu {
+.action-menu-people {
   position: absolute;
   top: 0;
-  right: 100px;
+  margin-right: 40px;
+  width: auto !important;
+  margin-left: -60px;
   background: white;
   border: 1px solid #ccc;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);

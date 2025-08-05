@@ -171,7 +171,8 @@ const Navbar = () => {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
-          errorData.message || `Lấy danh sách dự án thất bại: ${response.status}`
+          errorData.message ||
+            `Lấy danh sách dự án thất bại: ${response.status}`
         );
       }
 
@@ -213,14 +214,16 @@ const Navbar = () => {
       }
 
       const memberData = await response.json();
-      triggerSuccess("Đã chấp nhận lời mời tham gia dự án.");
+      triggerSuccess("Accepted invitation to join the project.");
 
       // Cập nhật danh sách dự án trong SidebarContext
       await fetchProjects(); // Gọi API để lấy danh sách dự án mới
       fetchNotifications(); // Cập nhật danh sách thông báo
     } catch (err) {
       console.error("Accept invitation error:", err);
-      triggerError(err.message || "Không thể chấp nhận lời mời. Vui lòng thử lại.");
+      triggerError(
+        err.message || "Không thể chấp nhận lời mời. Vui lòng thử lại."
+      );
     }
   };
 
@@ -252,11 +255,13 @@ const Navbar = () => {
         throw new Error(errorData.message || "Failed to decline invitation");
       }
 
-      triggerSuccess("Đã từ chối lời mời tham gia dự án.");
+      triggerSuccess("Refused invitation to join the project.");
       fetchNotifications();
     } catch (err) {
       console.error("Decline invitation error:", err);
-      triggerError(err.message || "Không thể từ chối lời mời. Vui lòng thử lại.");
+      triggerError(
+        err.message || "Không thể từ chối lời mời. Vui lòng thử lại."
+      );
     }
   };
 
@@ -432,13 +437,17 @@ const Navbar = () => {
                             <div className="notification-actions">
                               <button
                                 className="accept-button"
-                                onClick={() => handleAcceptInvitation(notification.id)}
+                                onClick={() =>
+                                  handleAcceptInvitation(notification.id)
+                                }
                               >
                                 Accept
                               </button>
                               <button
                                 className="decline-button"
-                                onClick={() => handleDeclineInvitation(notification.id)}
+                                onClick={() =>
+                                  handleDeclineInvitation(notification.id)
+                                }
                               >
                                 Decline
                               </button>
@@ -490,13 +499,17 @@ const Navbar = () => {
                             <div className="notification-actions">
                               <button
                                 className="accept-button"
-                                onClick={() => handleAcceptInvitation(notification.id)}
+                                onClick={() =>
+                                  handleAcceptInvitation(notification.id)
+                                }
                               >
                                 Accept
                               </button>
                               <button
                                 className="decline-button"
-                                onClick={() => handleDeclineInvitation(notification.id)}
+                                onClick={() =>
+                                  handleDeclineInvitation(notification.id)
+                                }
                               >
                                 Decline
                               </button>

@@ -14,6 +14,7 @@ import CreateTaskModal from "../../components/CreateTaskModal";
 import TaskDetailModal from "../../components/TaskDetailModal";
 import { NotificationContext } from "../../context/NotificationContext";
 import ChatMessage from "../../components/ChatMessage";
+import ChatAi from "../../components/ChatAi";
 
 const Progress = () => {
   const { id } = useParams();
@@ -113,13 +114,13 @@ const Progress = () => {
       const data = await response.json();
       if (response.ok) {
         setMembers(data);
-        return data; // Trả về dữ liệu để sử dụng trong ProjectMembersButton
+        return data;
       } else {
         throw new Error(data.message || "Failed to fetch members");
       }
     } catch (err) {
       console.error("Fetch members error:", err);
-      throw err; // Ném lỗi để xử lý trong ProjectMembersButton
+      throw err;
     }
   }, [id]);
 
@@ -673,10 +674,8 @@ const Progress = () => {
   const onDragEnd = async (result) => {
     const { source, destination, draggableId } = result;
 
-    // Nếu không có đích, thoát
     if (!destination) return;
 
-    // Nếu kéo thả trong cùng một cột và cùng vị trí, thoát
     if (
       source.droppableId === destination.droppableId &&
       source.index === destination.index
@@ -691,7 +690,10 @@ const Progress = () => {
       return;
     }
 
-    const newStatus = destination.droppableId === "DONE" ? "COMPLETED" : destination.droppableId;
+    const newStatus =
+      destination.droppableId === "DONE"
+        ? "COMPLETED"
+        : destination.droppableId;
 
     try {
       const userId = localStorage.getItem("userId");
@@ -705,7 +707,6 @@ const Progress = () => {
         throw new Error("Trạng thái không hợp lệ");
       }
 
-      // Optimistic update
       setTasks((prevTasks) =>
         prevTasks.map((t) =>
           t.id === task.id ? { ...t, status: destination.droppableId } : t
@@ -721,7 +722,12 @@ const Progress = () => {
         endDate: task.endDate,
       };
 
-      console.log("Updating task status for taskId:", task.id, "to:", newStatus);
+      console.log(
+        "Updating task status for taskId:",
+        task.id,
+        "to:",
+        newStatus
+      );
 
       const response = await fetch(
         `${process.env.REACT_APP_API_URL}/api/sprints/task/${task.id}/status`,
@@ -739,7 +745,8 @@ const Progress = () => {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
-          errorData.message || `Cập nhật trạng thái thất bại: ${response.status}`
+          errorData.message ||
+            `Cập nhật trạng thái thất bại: ${response.status}`
         );
       }
 
@@ -747,13 +754,14 @@ const Progress = () => {
       triggerSuccess("Task status updated successfully.");
     } catch (err) {
       console.error("Lỗi khi cập nhật trạng thái task:", err);
-      // Rollback optimistic update
       setTasks((prevTasks) =>
         prevTasks.map((t) =>
           t.id === task.id ? { ...t, status: source.droppableId } : t
         )
       );
-      alert(err.message || "Không thể cập nhật trạng thái task. Vui lòng thử lại.");
+      alert(
+        err.message || "Không thể cập nhật trạng thái task. Vui lòng thử lại."
+      );
     }
   };
 
@@ -768,7 +776,7 @@ const Progress = () => {
     const dropdownRef = useRef(null);
 
     useEffect(() => {
-      setFilteredMembers([]); // Reset filteredMembers khi mở modal
+      setFilteredMembers([]);
     }, [isOpen]);
 
     useEffect(() => {
@@ -1072,7 +1080,9 @@ const Progress = () => {
                           (
                           {
                             (groupBy === "status"
-                              ? filteredTasks.filter((t) => t.status === column.id)
+                              ? filteredTasks.filter(
+                                  (t) => t.status === column.id
+                                )
                               : column.tasks || []
                             ).length
                           }
@@ -1084,7 +1094,10 @@ const Progress = () => {
                         onClick={() => setSelectedTask({ status: column.id })}
                       >
                         {column.title === "TO DO" && (
-                          <Plus className="w-3 h-3" style={{ marginTop: "-10px" }} />
+                          <Plus
+                            className="w-3 h-3"
+                            style={{ marginTop: "-10px" }}
+                          />
                         )}
                       </button>
                     </div>
@@ -1136,7 +1149,9 @@ const Progress = () => {
                                         task.status
                                       );
                                       setTaskMenuOpen(
-                                        taskMenuOpen === task.id ? null : task.id
+                                        taskMenuOpen === task.id
+                                          ? null
+                                          : task.id
                                       );
                                     }}
                                   >
@@ -1153,7 +1168,9 @@ const Progress = () => {
                                             task.id
                                           );
                                           setStatusMenuOpen(
-                                            statusMenuOpen === task.id ? null : task.id
+                                            statusMenuOpen === task.id
+                                              ? null
+                                              : task.id
                                           );
                                         }}
                                       >
@@ -1181,20 +1198,7 @@ const Progress = () => {
                                       >
                                         Edit Task
                                       </button>
-                                      <button
-                                        className="dropdown-item"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          console.log(
-                                            "Assign Member clicked for task:",
-                                            task.id
-                                          );
-                                          fetchProjectMembers(task.id);
-                                          setTaskMenuOpen(null);
-                                        }}
-                                      >
-                                        Assign Member
-                                      </button>
+
                                       <button
                                         className="dropdown-item delete-item"
                                         onClick={(e) => {
@@ -1223,11 +1227,14 @@ const Progress = () => {
                               <div className="board-task-meta">
                                 <div className="task-type-priority">
                                   <span
-                                    className={`task-type ${getTypeColor(task.type)}`}
+                                    className={`task-type ${getTypeColor(
+                                      task.type
+                                    )}`}
                                   >
                                     {task.type || (
                                       <div className="task-name-name">
-                                        {selectedProject.shortName}Task {task.taskNumber}
+                                        {selectedProject.shortName}Task{" "}
+                                        {task.taskNumber}
                                       </div>
                                     )}
                                   </span>
@@ -1247,14 +1254,6 @@ const Progress = () => {
                                       title={`Người thực hiện: ${
                                         task.assigneeName || "Unknown"
                                       }`}
-                                      // onClick={(e) => {
-                                      //   e.stopPropagation();
-                                      //   console.log(
-                                      //     "Assignee avatar clicked for task:",
-                                      //     task.id
-                                      //   );
-                                      //   fetchProjectMembers(task.id);
-                                      // }}
                                     >
                                       {task.assigneeAvatarUrl ? (
                                         <img
@@ -1288,14 +1287,6 @@ const Progress = () => {
                                     <button
                                       className="assign-user-button"
                                       title="Not assigned yet"
-                                      // onClick={(e) => {
-                                      //   e.stopPropagation();
-                                      //   console.log(
-                                      //     "Unassigned button clicked for task:",
-                                      //     task.id
-                                      //   );
-                                      //   fetchProjectMembers(task.id);
-                                      // }}
                                     >
                                       <User
                                         className="unassigned-icon"
@@ -1379,6 +1370,7 @@ const Progress = () => {
         onConfirm={() => handleDeleteTask(deleteTaskModal.task)}
       />
       <ChatMessage projectId={id} fetchMembers={fetchMembers} />
+      <ChatAi projectId={id} fetchMembers={fetchMembers} />
     </div>
   );
 };

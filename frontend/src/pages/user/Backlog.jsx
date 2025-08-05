@@ -832,29 +832,29 @@ const Backlog = () => {
       return;
 
     const task = tasks.find((t) => t.id.toString() === draggableId);
-  if (!task) {
-    console.error("Không tìm thấy task với id:", draggableId);
-    setErrorModal({
-      isOpen: true,
-      message: "Không tìm thấy task. Vui lòng thử lại.",
-    });
-    return;
-  }
-
-  try {
-    const userId = localStorage.getItem("userId");
-    const accessToken = localStorage.getItem("accessToken");
-    if (!userId || !accessToken) {
-      throw new Error("Vui lòng đăng nhập lại để tiếp tục");
+    if (!task) {
+      console.error("Không tìm thấy task với id:", draggableId);
+      setErrorModal({
+        isOpen: true,
+        message: "Không tìm thấy task. Vui lòng thử lại.",
+      });
+      return;
     }
 
-    // Kiểm tra sprint đích
-    if (destSprintId) {
-      const sprint = sprints.find((s) => s.id === destSprintId);
-      if (!sprint || !["PLANNED", "ACTIVE"].includes(sprint.status)) {
-        throw new Error("Không thể di chuyển task vào sprint không hợp lệ");
+    try {
+      const userId = localStorage.getItem("userId");
+      const accessToken = localStorage.getItem("accessToken");
+      if (!userId || !accessToken) {
+        throw new Error("Vui lòng đăng nhập lại để tiếp tục");
       }
-    }
+
+      // Kiểm tra sprint đích
+      if (destSprintId) {
+        const sprint = sprints.find((s) => s.id === destSprintId);
+        if (!sprint || !["PLANNED", "ACTIVE"].includes(sprint.status)) {
+          throw new Error("Không thể di chuyển task vào sprint không hợp lệ");
+        }
+      }
 
       console.log(
         "Di chuyển task:",
@@ -865,36 +865,36 @@ const Backlog = () => {
         destSprintId
       );
       const response = await fetch(
-      `${process.env.REACT_APP_API_URL}/api/sprints/task/${task.id}/sprint`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-          userId: userId,
-        },
-        body: JSON.stringify({ sprintId: destSprintId }),
-      }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(
-        errorData.message || `Di chuyển task thất bại: ${response.status}`
+        `${process.env.REACT_APP_API_URL}/api/sprints/task/${task.id}/sprint`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+            userId: userId,
+          },
+          body: JSON.stringify({ sprintId: destSprintId }),
+        }
       );
-    }
 
-    // Làm mới danh sách sprint và task
-    await fetchSprintsAndTasks();
-    triggerSuccess("Task đã được di chuyển thành công.");
-  } catch (err) {
-    console.error("Lỗi khi di chuyển task:", err);
-    setErrorModal({
-      isOpen: true,
-      message: err.message || "Không thể di chuyển task. Vui lòng thử lại.",
-    });
-  }
-};
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message || `Di chuyển task thất bại: ${response.status}`
+        );
+      }
+
+      // Làm mới danh sách sprint và task
+      await fetchSprintsAndTasks();
+      triggerSuccess("Task đã được di chuyển thành công.");
+    } catch (err) {
+      console.error("Lỗi khi di chuyển task:", err);
+      setErrorModal({
+        isOpen: true,
+        message: err.message || "Không thể di chuyển task. Vui lòng thử lại.",
+      });
+    }
+  };
 
   const handleToggleTaskSelection = (taskId) => {
     setSelectedTasks((prev) => {
@@ -1549,13 +1549,7 @@ const Backlog = () => {
                 ) : (
                   <p className="empty-state">No tasks in backlog</p>
                 )}
-                <button
-                  className="btn-create-task-in-backlog"
-                  onClick={() => setShowTaskForm(null)}
-                >
-                  <Plus />
-                  Create new task
-                </button>
+
                 {provided.placeholder}
               </div>
             </div>

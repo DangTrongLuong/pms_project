@@ -139,7 +139,9 @@ const People = () => {
     }
     try {
       const response = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/members/search?query=${encodeURIComponent(query)}`,
+        `${
+          process.env.REACT_APP_API_URL
+        }/api/members/search?query=${encodeURIComponent(query)}`,
         {
           method: "GET",
           headers: {
@@ -224,7 +226,9 @@ const People = () => {
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           triggerError(
-            `Gửi lời mời đến ${email} thất bại: ${errorData.message || response.status}`
+            `Gửi lời mời đến ${email} thất bại: ${
+              errorData.message || response.status
+            }`
           );
           continue;
         }
@@ -251,7 +255,7 @@ const People = () => {
           };
 
           const n8nResponse = await fetch(
-            "https://n8n.quanliduan-pms.site/webhook/send-email-test",
+            "https://n8n.quanliduan-pms.site/webhook/send-email",
             {
               method: "POST",
               headers: {
@@ -300,7 +304,9 @@ const People = () => {
       }
 
       let response = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/members/project/${projectId}/email/${encodeURIComponent(email)}`,
+        `${
+          process.env.REACT_APP_API_URL
+        }/api/members/project/${projectId}/email/${encodeURIComponent(email)}`,
         {
           method: "DELETE",
           headers: {
@@ -314,7 +320,11 @@ const People = () => {
       if (response.status === 401) {
         token = await refreshToken();
         response = await fetch(
-          `${process.env.REACT_APP_API_URL}/api/members/project/${projectId}/email/${encodeURIComponent(email)}`,
+          `${
+            process.env.REACT_APP_API_URL
+          }/api/members/project/${projectId}/email/${encodeURIComponent(
+            email
+          )}`,
           {
             method: "DELETE",
             headers: {
@@ -620,13 +630,14 @@ const People = () => {
 
         {actionMenu && isLeader && (
           <div
-            className="action-menu"
+            className="action-menu-people"
             ref={actionRef}
             style={{
               position: "absolute",
               top: actionMenu.top,
               left: actionMenu.left,
-              background: "white",
+              width: actionMenu.width,
+              right: actionMenu.right,
               border: "1px solid #ccc",
               boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
               zIndex: 1000,
